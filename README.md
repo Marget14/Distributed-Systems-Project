@@ -6,7 +6,7 @@ StreetFoodGo
 Clone the repository:
 
 ```shell
-git clone [https://github.com/Marget14/Distributed-Systems-Project]
+git clone https://github.com/Marget14/Distributed-Systems-Project
 ```
 
 ---
