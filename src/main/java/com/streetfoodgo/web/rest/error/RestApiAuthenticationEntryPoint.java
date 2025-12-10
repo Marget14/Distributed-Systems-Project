@@ -34,13 +34,15 @@ public class RestApiAuthenticationEntryPoint implements AuthenticationEntryPoint
                          AuthenticationException authException) throws IOException, ServletException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
         final ApiError apiError = new ApiError(
                 Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                "",
+                authException.getMessage(),
                 request.getRequestURI()
         );
+
         final String json = this.objectMapper.writeValueAsString(apiError);
         response.getWriter().write(json);
     }

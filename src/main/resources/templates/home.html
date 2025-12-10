@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout}" layout:fragment="content"
-      xmlns:th="http://www.thymeleaf.org">
-<div class="max-w-7xl mx-auto">
-    <!-- Hero Section with 3D Effects -->
-    <section class="mb-16 relative">
+<html
+        xmlns:th="https://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{base}">
+
+<header class="relative z-10">
+    <h1 class="text-6xl md:text-8xl font-['Orbitron'] font-bold mb-6">
+        <!-- ... -->
+    </h1>
+</header>
+</section>
+</div>
         <!-- Animated Background -->
         <div class="absolute inset-0 grid-bg opacity-10"></div>
         <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-cyber-blue rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
@@ -39,8 +46,10 @@
                         <i class="fas fa-microphone text-white"></i>
                     </button>
                     <button onclick="searchFood()"
-                            class="cyber-button px-8">
-                        <i class="fas fa-bolt mr-2"></i>QUANTUM SEARCH
+                            class="cyber-button px-8"
+                            aria-label="Search for food">
+                        <i class="fas fa-bolt mr-2" aria-hidden="true"></i>
+                        QUANTUM SEARCH
                     </button>
                 </div>
                 <div id="voiceStatus" class="text-center text-sm text-gray-400 mt-2"></div>
@@ -80,7 +89,7 @@
             </a>
         </div>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Store 1 - Holographic Card -->
             <div class="card-3d glass-panel p-6 hover-lift">
                 <div class="relative mb-6">

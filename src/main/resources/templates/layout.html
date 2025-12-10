@@ -1,10 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en"
+      dir="ltr">
 <head>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#FF6B35">
+    <meta property="og:title" content="StreetFoodGo">
+    <meta property="og:description" content="Food delivery service">
+    <meta property="og:image" content="/images/og-image.jpg">
+    <meta property="og:url" content="https://streetfoodgo.com">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${pageTitle} + ' | StreetFoodGo'">StreetFoodGo</title>
+    <meta name="description" content="StreetFoodGo - Food delivery service">
+    <meta name="keywords" content="food delivery, restaurants, takeaway">
+    <title th:text="${pageTitle != null ? pageTitle + ' | StreetFoodGo' : 'StreetFoodGo'}">StreetFoodGo</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,6 +52,8 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="/css/custom.css">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -720,16 +733,7 @@
     }
 
     function addToCart(item) {
-        const existing = cart.find(i => i.id === item.id);
-
-        if (existing) {
-            existing.quantity += 1;
-        } else {
-            cart.push({ ...item, quantity: 1 });
-        }
-
-        updateCart();
-        showToast('Added to cart!', `${item.name} added to your cart`, 'success');
+        console.log('Adding to cart:', item);
     }
 
     function updateQuantity(itemId, change) {
@@ -791,6 +795,10 @@
                 toast.remove();
             }
         }, 5000);
+    }
+
+    function showNotification(message, type = 'info') {
+        showToast('Notification', message, type);
     }
 
     // Category chips

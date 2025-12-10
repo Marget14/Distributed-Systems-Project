@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout}" layout:fragment="content"
-      xmlns:th="http://www.thymeleaf.org">
+<html
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white py-12 px-4">
     <div class="max-w-md w-full">
         <!-- Logo -->
@@ -22,11 +24,17 @@
 
             <form id="login-form" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                    </label>
                     <input type="email"
+                           id="email"
+                           name="email"
                            class="modern-input"
                            placeholder="Enter your email"
-                           required>
+                           required
+                           aria-required="true"
+                           aria-label="Email address">
                 </div>
 
                 <div>
@@ -118,23 +126,38 @@
             submitBtn.disabled = true;
 
             // Simulate API call
-            setTimeout(() => {
-                // In a real app, this would make an API call
-                console.log('Login attempt:', { email, password });
+            fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Login failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Save token to localStorage
+                    localStorage.setItem('access_token', data.accessToken);
+                    localStorage.setItem('user_info', JSON.stringify(data.userInfo));
 
-                // Simulate successful login
-                showToast('Success', 'Welcome back! Redirecting...', 'success');
-
-                // Redirect to home page
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1500);
-
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 2000);
-        });
+                    showToast('Success', 'Welcome back! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                })
+                .catch(error => {
+                    showToast('Error', error.message, 'error');
+                    // Reset button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
 
         // Social login buttons
         document.querySelectorAll('.modern-btn-outline').forEach(btn => {

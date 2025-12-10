@@ -21,7 +21,6 @@ import java.util.List;
 public class PersonResource {
 
     private final PersonDataService personDataService;
-    private final ObjectMapper objectMapper = new ObjectMapper(); // ή Bean ακόμα καλύτερα.
 
     public PersonResource(final PersonDataService personDataService) {
         if (personDataService == null) throw new NullPointerException();
