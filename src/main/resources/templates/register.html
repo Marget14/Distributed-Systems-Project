@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" layout:fragment="content"
+      xmlns:th="http://www.thymeleaf.org">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white py-12 px-4">
+    <div class="max-w-md w-full">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <a href="/" class="inline-flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                    <i class="fas fa-utensils text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-display font-bold text-dark">StreetFood<span class="text-primary">Go</span></h1>
+                    <p class="text-xs text-gray-500">Create your account</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Register Card -->
+        <div class="modern-card p-8">
+            <h2 class="text-2xl font-display font-bold mb-6 text-center">Join StreetFoodGo</h2>
+
+            <form id="register-form" class="space-y-6">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input type="text"
+                               class="modern-input"
+                               placeholder="John"
+                               required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input type="text"
+                               class="modern-input"
+                               placeholder="Doe"
+                               required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <input type="email"
+                           class="modern-input"
+                           placeholder="john.doe@example.com"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <input type="tel"
+                           class="modern-input"
+                           placeholder="+30 697 123 4567"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password"
+                           class="modern-input"
+                           placeholder="Create a password"
+                           required
+                           oninput="checkPasswordStrength(this.value)">
+                    <div class="mt-2">
+                        <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                            <div id="password-strength" class="h-full transition-all duration-300"></div>
+                        </div>
+                        <p id="password-strength-text" class="text-xs mt-1"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                    <input type="password"
+                           class="modern-input"
+                           placeholder="Confirm your password"
+                           required>
+                </div>
+
+                <div class="flex items-start">
+                    <input type="checkbox"
+                           id="terms"
+                           class="rounded border-gray-300 text-primary focus:ring-primary mt-1"
+                           required>
+                    <label for="terms" class="ml-2 text-sm text-gray-700">
+                        I agree to the
+                        <a href="#" class="text-primary hover:text-secondary">Terms of Service</a>
+                        and
+                        <a href="#" class="text-primary hover:text-secondary">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <div class="flex items-start">
+                    <input type="checkbox"
+                           id="newsletter"
+                           class="rounded border-gray-300 text-primary focus:ring-primary mt-1"
+                           checked>
+                    <label for="newsletter" class="ml-2 text-sm text-gray-700">
+                        Send me special offers and updates
+                    </label>
+                </div>
+
+                <button type="submit" class="modern-btn w-full py-3">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">Or sign up with</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" class="modern-btn-outline">
+                    <i class="fab fa-google text-red-500 mr-2"></i>Google
+                </button>
+                <button type="button" class="modern-btn-outline">
+                    <i class="fab fa-facebook text-blue-600 mr-2"></i>Facebook
+                </button>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-gray-600">
+                    Already have an account?
+                    <a href="/login" class="text-primary hover:text-secondary font-medium">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="mt-8 modern-card p-6">
+            <h3 class="font-display font-bold mb-4 text-center">Why Join StreetFoodGo?</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-gift text-primary"></i>
+                    </div>
+                    <p class="text-xs">Exclusive Offers</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-bolt text-primary"></i>
+                    </div>
+                    <p class="text-xs">Faster Checkout</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-history text-primary"></i>
+                    </div>
+                    <p class="text-xs">Order History</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-star text-primary"></i>
+                    </div>
+                    <p class="text-xs">Loyalty Rewards</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded JavaScript -->
+<script>
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        const strengthBar = document.getElementById('password-strength');
+        const strengthText = document.getElementById('password-strength-text');
+
+        let strength = 0;
+        let color = 'bg-red-500';
+        let text = 'Very Weak';
+
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        switch(strength) {
+            case 1:
+                color = 'bg-red-500';
+                text = 'Weak';
+                break;
+            case 2:
+                color = 'bg-yellow-500';
+                text = 'Fair';
+                break;
+            case 3:
+                color = 'bg-blue-500';
+                text = 'Good';
+                break;
+            case 4:
+                color = 'bg-green-500';
+                text = 'Strong';
+                break;
+        }
+
+        strengthBar.className = `h-full ${color} transition-all duration-300`;
+        strengthBar.style.width = `${strength * 25}%`;
+        strengthText.textContent = text;
+        strengthText.className = `text-xs mt-1 text-${color.split('-')[1]}-600`;
+    }
+
+    // Initialize registration form
+    document.addEventListener('DOMContentLoaded', function() {
+        const registerForm = document.getElementById('register-form');
+
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form values
+            const formData = {
+                firstName: this.querySelector('input[placeholder="John"]').value,
+                lastName: this.querySelector('input[placeholder="Doe"]').value,
+                email: this.querySelector('input[type="email"]').value,
+                phone: this.querySelector('input[type="tel"]').value,
+                password: this.querySelector('input[type="password"]').value,
+                confirmPassword: this.querySelectorAll('input[type="password"]')[1].value
+            };
+
+            // Validation
+            if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+                showToast('Error', 'Please fill in all required fields', 'error');
+                return;
+            }
+
+            if (formData.password !== formData.confirmPassword) {
+                showToast('Error', 'Passwords do not match', 'error');
+                return;
+            }
+
+            if (formData.password.length < 8) {
+                showToast('Error', 'Password must be at least 8 characters', 'error');
+                return;
+            }
+
+            if (!this.querySelector('#terms').checked) {
+                showToast('Error', 'You must agree to the terms and conditions', 'error');
+                return;
+            }
+
+            // Show loading
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...';
+            submitBtn.disabled = true;
+
+            // Simulate API call
+            setTimeout(() => {
+                // In a real app, this would make an API call
+                console.log('Registration:', formData);
+
+                // Simulate successful registration
+                showToast('Success', 'Account created successfully! Welcome to StreetFoodGo', 'success');
+
+                // Redirect to home page
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 3000);
+        });
+    });
+</script>
+
+<style>
+    /* Registration page specific styles */
+    .min-h-screen {
+        min-height: 100vh;
+    }
+
+    /* Progress bar colors */
+    .bg-red-500 { background: #ef4444; }
+    .bg-yellow-500 { background: #f59e0b; }
+    .bg-blue-500 { background: #3b82f6; }
+    .bg-green-500 { background: #10b981; }
+
+    .text-red-600 { color: #dc2626; }
+    .text-yellow-600 { color: #d97706; }
+    .text-blue-600 { color: #2563eb; }
+    .text-green-600 { color: #059669; }
+
+    /* Smooth transitions */
+    .transition-all {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 300ms;
+    }
+</style>
+</html>

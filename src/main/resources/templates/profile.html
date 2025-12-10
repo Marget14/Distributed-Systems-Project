@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" layout:fragment="content"
+      xmlns:th="http://www.thymeleaf.org">
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid lg:grid-cols-4 gap-8">
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="modern-card p-6 mb-6">
+                <!-- User Avatar -->
+                <div class="text-center mb-6">
+                    <div class="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-secondary mx-auto mb-4 flex items-center justify-center relative">
+                        <span class="text-white text-4xl font-bold">JD</span>
+                        <button onclick="changeAvatar()" class="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center">
+                            <i class="fas fa-camera text-primary"></i>
+                        </button>
+                    </div>
+                    <h2 class="text-xl font-display font-bold">John Doe</h2>
+                    <p class="text-gray-600">john.doe@email.com</p>
+                </div>
+
+                <!-- Stats -->
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Orders</span>
+                        <span class="font-bold">47</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Member Since</span>
+                        <span class="font-bold">2023</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Loyalty Points</span>
+                        <span class="font-bold text-primary">1,245</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="modern-card p-4">
+                <nav class="space-y-1">
+                    <a href="#" class="profile-nav-item active">
+                        <i class="fas fa-user mr-3"></i>Personal Info
+                    </a>
+                    <a href="/orders" class="profile-nav-item">
+                        <i class="fas fa-receipt mr-3"></i>Order History
+                    </a>
+                    <a href="/addresses" class="profile-nav-item">
+                        <i class="fas fa-map-marker-alt mr-3"></i>Saved Addresses
+                    </a>
+                    <a href="#" class="profile-nav-item">
+                        <i class="fas fa-heart mr-3"></i>Favorite Restaurants
+                    </a>
+                    <a href="#" class="profile-nav-item">
+                        <i class="fas fa-credit-card mr-3"></i>Payment Methods
+                    </a>
+                    <a href="#" class="profile-nav-item">
+                        <i class="fas fa-bell mr-3"></i>Notifications
+                    </a>
+                    <a href="#" class="profile-nav-item">
+                        <i class="fas fa-shield-alt mr-3"></i>Privacy & Security
+                    </a>
+                    <hr class="my-4">
+                    <a href="#" class="profile-nav-item text-danger">
+                        <i class="fas fa-sign-out-alt mr-3"></i>Sign Out
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:col-span-3">
+            <!-- Personal Information -->
+            <div class="modern-card p-8 mb-8">
+                <h2 class="text-2xl font-display font-bold mb-6">Personal Information</h2>
+
+                <form id="profile-form" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                            <input type="text" class="modern-input" value="John" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                            <input type="text" class="modern-input" value="Doe" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" class="modern-input" value="john.doe@email.com" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" class="modern-input" value="+30 697 123 4567" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                        <input type="date" class="modern-input" value="1990-01-15">
+                    </div>
+
+                    <div class="flex gap-4 pt-4">
+                        <button type="button" onclick="resetForm()" class="modern-btn-outline">
+                            Cancel
+                        </button>
+                        <button type="submit" class="modern-btn">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Preferences -->
+            <div class="modern-card p-8 mb-8">
+                <h2 class="text-2xl font-display font-bold mb-6">Preferences</h2>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-display font-bold mb-4">Communication Preferences</h3>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" checked>
+                                <span class="ml-3">Order updates via SMS</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" checked>
+                                <span class="ml-3">Promotional emails</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                                <span class="ml-3">New restaurant notifications</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-display font-bold mb-4">Dietary Preferences</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="dietary-tag active">Vegetarian</span>
+                            <span class="dietary-tag">Vegan</span>
+                            <span class="dietary-tag">Gluten-Free</span>
+                            <span class="dietary-tag">Dairy-Free</span>
+                            <span class="dietary-tag">Nut Allergy</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-display font-bold mb-4">Default Order Settings</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Default Delivery Address</label>
+                                <select class="modern-input">
+                                    <option>Home - Patission 76, Athens</option>
+                                    <option>Work - Syntagma 10, Athens</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Default Payment Method</label>
+                                <select class="modern-input">
+                                    <option>Visa •••• 4321</option>
+                                    <option>Cash on Delivery</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="modern-card p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-display font-bold">Recent Activity</h2>
+                    <a href="/orders" class="text-primary hover:text-secondary font-medium">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="activity-item">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <i class="fas fa-utensils text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium">Order from Burger Palace</div>
+                                    <div class="text-sm text-gray-500">2 Classic Burgers, Fries, Coke</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold">€26.97</div>
+                                <div class="text-sm text-gray-500">Today, 12:05 PM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                                    <i class="fas fa-star text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium">Restaurant Review</div>
+                                    <div class="text-sm text-gray-500">You rated Sushi Master 5 stars</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">Yesterday</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                    <i class="fas fa-heart text-secondary"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium">Added to Favorites</div>
+                                    <div class="text-sm text-gray-500">Pizza Paradise added to favorites</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">2 days ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Upload Modal -->
+<div id="avatar-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="modern-card w-full max-w-md">
+            <div class="p-6">
+                <h3 class="text-xl font-display font-bold mb-4">Change Profile Picture</h3>
+                <div class="space-y-4">
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-600 mb-4">Drag & drop your photo here</p>
+                        <button class="modern-btn-outline">
+                            <i class="fas fa-upload mr-2"></i>Browse Files
+                        </button>
+                    </div>
+
+                    <div class="text-center text-sm text-gray-500">
+                        Maximum file size: 5MB<br>
+                        Supported formats: JPG, PNG, GIF
+                    </div>
+
+                    <div class="flex gap-4 pt-4">
+                        <button type="button" onclick="hideAvatarModal()" class="modern-btn-outline flex-1">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="uploadAvatar()" class="modern-btn flex-1">
+                            Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded JavaScript -->
+<script>
+    // User profile data
+    const userProfile = {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@email.com',
+        phone: '+30 697 123 4567',
+        birthDate: '1990-01-15',
+        dietaryPreferences: ['Vegetarian'],
+        communicationPrefs: {
+            sms: true,
+            email: true,
+            notifications: false
+        }
+    };
+
+    // Initialize profile
+    function initProfile() {
+        // Setup form
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveProfile();
+        });
+
+        // Setup navigation
+        document.querySelectorAll('.profile-nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.profile-nav-item').forEach(i => {
+                    i.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // In a real app, this would load different sections
+                showToast('Navigation', `Loading ${this.textContent.trim()}...`, 'info');
+            });
+        });
+
+        // Setup dietary tags
+        document.querySelectorAll('.dietary-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                this.classList.toggle('active');
+                updateDietaryPreferences();
+            });
+        });
+
+        // Setup checkboxes
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateCommunicationPrefs);
+        });
+    }
+
+    function saveProfile() {
+        // Get form data
+        const formData = {
+            firstName: document.querySelector('input[value="John"]').value,
+            lastName: document.querySelector('input[value="Doe"]').value,
+            email: document.querySelector('input[type="email"]').value,
+            phone: document.querySelector('input[type="tel"]').value,
+            birthDate: document.querySelector('input[type="date"]').value
+        };
+
+        // Validate
+        if (!formData.firstName || !formData.lastName || !formData.email) {
+            showToast('Error', 'Please fill in all required fields', 'error');
+            return;
+        }
+
+        // Simulate API call
+        showToast('Saving...', 'Updating your profile information', 'info');
+
+        setTimeout(() => {
+            showToast('Profile Updated', 'Your changes have been saved successfully', 'success');
+            // In a real app, update userProfile object and possibly sync with backend
+        }, 1500);
+    }
+
+    function resetForm() {
+        // Reset form to original values
+        document.querySelector('input[value="John"]').value = userProfile.firstName;
+        document.querySelector('input[value="Doe"]').value = userProfile.lastName;
+        document.querySelector('input[type="email"]').value = userProfile.email;
+        document.querySelector('input[type="tel"]').value = userProfile.phone;
+        document.querySelector('input[type="date"]').value = userProfile.birthDate;
+
+        showToast('Form Reset', 'Changes have been reverted', 'info');
+    }
+
+    function updateDietaryPreferences() {
+        const activeTags = Array.from(document.querySelectorAll('.dietary-tag.active'))
+            .map(tag => tag.textContent.trim());
+
+        userProfile.dietaryPreferences = activeTags;
+        console.log('Dietary preferences updated:', activeTags);
+    }
+
+    function updateCommunicationPrefs() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        userProfile.communicationPrefs = {
+            sms: checkboxes[0].checked,
+            email: checkboxes[1].checked,
+            notifications: checkboxes[2].checked
+        };
+        console.log('Communication prefs updated:', userProfile.communicationPrefs);
+    }
+
+    function changeAvatar() {
+        document.getElementById('avatar-modal').classList.remove('hidden');
+    }
+
+    function hideAvatarModal() {
+        document.getElementById('avatar-modal').classList.add('hidden');
+    }
+
+    function uploadAvatar() {
+        // Simulate upload
+        showToast('Uploading...', 'Uploading your new profile picture', 'info');
+
+        setTimeout(() => {
+            hideAvatarModal();
+            showToast('Success', 'Profile picture updated successfully', 'success');
+
+            // Update avatar preview
+            const avatar = document.querySelector('.text-4xl');
+            avatar.textContent = 'UP'; // Would be initials from name
+        }, 2000);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initProfile();
+    });
+</script>
+
+<style>
+    .profile-nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 10px;
+        color: #4b5563;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .profile-nav-item:hover {
+        background: rgba(255, 107, 53, 0.1);
+        color: var(--primary);
+    }
+
+    .profile-nav-item.active {
+        background: rgba(255, 107, 53, 0.1);
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .dietary-tag {
+        display: inline-block;
+        padding: 6px 16px;
+        background: #f3f4f6;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .dietary-tag:hover {
+        background: #e5e7eb;
+    }
+
+    .dietary-tag.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .activity-item {
+        padding: 16px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .activity-item:hover {
+        background: #f9fafb;
+    }
+</style>
+</html>

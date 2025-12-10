@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" layout:fragment="content"
+      xmlns:th="http://www.thymeleaf.org">
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-display font-bold mb-2">Restaurants in <span id="location-name">Athens</span></h1>
+        <p class="text-gray-600">500+ restaurants delivering to you</p>
+    </div>
+
+    <!-- Filters Row -->
+    <div class="modern-card p-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+            <!-- Sort By -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+                <select class="modern-input py-3">
+                    <option>Relevance</option>
+                    <option>Delivery Time</option>
+                    <option>Rating</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                </select>
+            </div>
+
+            <!-- Cuisine Filter -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cuisine</label>
+                <select class="modern-input py-3">
+                    <option>All Cuisines</option>
+                    <option>Greek</option>
+                    <option>Italian</option>
+                    <option>Asian</option>
+                    <option>American</option>
+                    <option>Healthy</option>
+                </select>
+            </div>
+
+            <!-- Price Range -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                <select class="modern-input py-3">
+                    <option>All Prices</option>
+                    <option>€</option>
+                    <option>€€</option>
+                    <option>€€€</option>
+                </select>
+            </div>
+
+            <!-- Delivery Time -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Max Delivery Time</label>
+                <select class="modern-input py-3">
+                    <option>Any time</option>
+                    <option>30 minutes</option>
+                    <option>45 minutes</option>
+                    <option>60 minutes</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Active Filters -->
+        <div class="mt-6 flex flex-wrap gap-2">
+            <span class="status-badge bg-primary/10 text-primary">
+                Athens <button class="ml-2">×</button>
+            </span>
+            <span class="status-badge bg-primary/10 text-primary">
+                30 minutes <button class="ml-2">×</button>
+            </span>
+            <button class="text-sm text-gray-500 hover:text-primary ml-auto">Clear all</button>
+        </div>
+    </div>
+
+    <!-- Restaurant Count -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-display font-bold"><span id="restaurant-count">12</span> restaurants found</h2>
+        <div class="flex items-center gap-2">
+            <button class="p-2 rounded-lg border hover:bg-gray-50" onclick="toggleView('grid')">
+                <i class="fas fa-th-large"></i>
+            </button>
+            <button class="p-2 rounded-lg border hover:bg-gray-50" onclick="toggleView('list')">
+                <i class="fas fa-list"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Restaurant Grid -->
+    <div id="restaurant-view" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Dynamic restaurant cards will be loaded here -->
+    </div>
+
+    <!-- Load More -->
+    <div class="text-center mt-12">
+        <button onclick="loadMoreRestaurants()" class="modern-btn-outline px-8 py-3">
+            <i class="fas fa-plus mr-2"></i>Load More Restaurants
+        </button>
+    </div>
+
+    <!-- Map View (Hidden by default) -->
+    <div id="map-view" class="hidden">
+        <div class="modern-card h-96">
+            <div class="h-full flex items-center justify-center text-gray-500">
+                <i class="fas fa-map-marked-alt text-4xl mb-4"></i>
+                <p>Map view would show restaurants in your area</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded JavaScript -->
+<script>
+    // Restaurant data
+    const restaurants = [
+        {
+            id: 1,
+            name: "Burger Palace",
+            rating: 4.7,
+            reviewCount: 1245,
+            deliveryTime: "25-35 min",
+            deliveryFee: "€2.50",
+            minOrder: "€10.00",
+            categories: ["Burgers", "American", "Fast Food"],
+            image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400",
+            isOpen: true,
+            promotion: "Free delivery on orders over €20"
+        },
+        {
+            id: 2,
+            name: "Sushi Master",
+            rating: 4.9,
+            reviewCount: 876,
+            deliveryTime: "30-40 min",
+            deliveryFee: "€3.00",
+            minOrder: "€15.00",
+            categories: ["Sushi", "Japanese", "Asian"],
+            image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400",
+            isOpen: true,
+            promotion: "20% off first order"
+        },
+        {
+            id: 3,
+            name: "Pizza Paradise",
+            rating: 4.5,
+            reviewCount: 2341,
+            deliveryTime: "20-30 min",
+            deliveryFee: "€2.00",
+            minOrder: "€12.00",
+            categories: ["Pizza", "Italian"],
+            image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400",
+            isOpen: true,
+            promotion: null
+        },
+        {
+            id: 4,
+            name: "Greek Taverna",
+            rating: 4.8,
+            reviewCount: 1890,
+            deliveryTime: "35-45 min",
+            deliveryFee: "€2.50",
+            minOrder: "€18.00",
+            categories: ["Greek", "Mediterranean"],
+            image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400",
+            isOpen: true,
+            promotion: "Free dessert with order over €25"
+        },
+        {
+            id: 5,
+            name: "Healthy Bowls",
+            rating: 4.6,
+            reviewCount: 543,
+            deliveryTime: "25-35 min",
+            deliveryFee: "€2.50",
+            minOrder: "€14.00",
+            categories: ["Healthy", "Vegetarian", "Vegan"],
+            image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
+            isOpen: false,
+            promotion: "Opens at 11:00 AM"
+        },
+        {
+            id: 6,
+            name: "Steak House",
+            rating: 4.4,
+            reviewCount: 987,
+            deliveryTime: "40-50 min",
+            deliveryFee: "€3.50",
+            minOrder: "€25.00",
+            categories: ["Steak", "Grill", "American"],
+            image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400",
+            isOpen: true,
+            promotion: "Weekend special: 15% off"
+        }
+    ];
+
+    let currentView = 'grid';
+    let displayedRestaurants = 6;
+
+    // Initialize restaurant list
+    function initRestaurantList() {
+        const container = document.getElementById('restaurant-view');
+        const countEl = document.getElementById('restaurant-count');
+
+        // Update count
+        countEl.textContent = restaurants.length;
+
+        // Render restaurants
+        renderRestaurants();
+    }
+
+    function renderRestaurants() {
+        const container = document.getElementById('restaurant-view');
+        const restaurantsToShow = restaurants.slice(0, displayedRestaurants);
+
+        container.innerHTML = restaurantsToShow.map(restaurant => `
+            <div class="restaurant-card" data-categories="${restaurant.categories.join(',')}">
+                <div class="relative">
+                    <img src="${restaurant.image}"
+                         alt="${restaurant.name}"
+                         class="w-full h-48 object-cover">
+
+                    ${restaurant.promotion ? `
+                        <div class="absolute top-4 left-4 bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold px-3 py-1 rounded-full">
+                            <i class="fas fa-tag mr-1"></i>${restaurant.promotion}
+                        </div>
+                    ` : ''}
+
+                    <div class="delivery-badge">
+                        <i class="fas fa-clock mr-1"></i>${restaurant.deliveryTime}
+                    </div>
+
+                    ${!restaurant.isOpen ? `
+                        <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <div class="text-white text-center">
+                                <i class="fas fa-clock text-2xl mb-2"></i>
+                                <p class="font-bold">Closed</p>
+                                <p class="text-sm">Opens at 11:00</p>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="text-xl font-display font-bold">${restaurant.name}</h3>
+                            <p class="text-gray-600 text-sm mt-1">${restaurant.categories.join(' • ')}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex items-center bg-primary/10 text-primary px-2 py-1 rounded-lg">
+                                <i class="fas fa-star text-sm mr-1"></i>
+                                <span class="font-bold">${restaurant.rating}</span>
+                                <span class="text-xs ml-1">(${restaurant.reviewCount})</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-4">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-motorcycle mr-2 w-5"></i>
+                            <span>Delivery: ${restaurant.deliveryFee}</span>
+                            <span class="mx-2">•</span>
+                            <span>Min: ${restaurant.minOrder}</span>
+                        </div>
+                        ${restaurant.isOpen ? `
+                            <div class="flex items-center text-sm text-success">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span>OPEN NOW</span>
+                            </div>
+                        ` : `
+                            <div class="flex items-center text-sm text-warning">
+                                <i class="fas fa-clock mr-2"></i>
+                                <span>CLOSED • Opens at 11:00</span>
+                            </div>
+                        `}
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="viewRestaurant(${restaurant.id})" class="modern-btn flex-1 py-2">
+                            <i class="fas fa-utensils mr-2"></i>View Menu
+                        </button>
+                        ${restaurant.isOpen ? `
+                            <button onclick="quickOrder(${restaurant.id})" class="modern-btn-outline py-2 px-4">
+                                <i class="fas fa-bolt"></i>
+                            </button>
+                        ` : `
+                            <button class="modern-btn-outline py-2 px-4 opacity-50 cursor-not-allowed" disabled>
+                                <i class="fas fa-ban"></i>
+                            </button>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleView(view) {
+        currentView = view;
+        const restaurantView = document.getElementById('restaurant-view');
+        const mapView = document.getElementById('map-view');
+
+        if (view === 'map') {
+            restaurantView.classList.add('hidden');
+            mapView.classList.remove('hidden');
+        } else {
+            restaurantView.classList.remove('hidden');
+            mapView.classList.add('hidden');
+
+            if (view === 'list') {
+                restaurantView.className = 'space-y-6';
+            } else {
+                restaurantView.className = 'grid md:grid-cols-2 lg:grid-cols-3 gap-6';
+            }
+        }
+    }
+
+    function viewRestaurant(id) {
+        window.location.href = `/restaurants/${id}`;
+    }
+
+    function quickOrder(restaurantId) {
+        // Add sample item to cart and go to checkout
+        const restaurant = restaurants.find(r => r.id === restaurantId);
+        if (restaurant) {
+            addToCart({
+                id: `quick-${restaurantId}`,
+                name: `Quick Order from ${restaurant.name}`,
+                restaurant: restaurant.name,
+                price: parseFloat(restaurant.minOrder.replace('€', '')),
+                isQuickOrder: true
+            });
+
+            setTimeout(() => {
+                window.location.href = '/checkout';
+            }, 500);
+        }
+    }
+
+    function loadMoreRestaurants() {
+        displayedRestaurants += 6;
+        if (displayedRestaurants > restaurants.length) {
+            displayedRestaurants = restaurants.length;
+            showToast('All restaurants loaded', 'You have reached the end of the list.', 'info');
+        }
+        renderRestaurants();
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initRestaurantList();
+
+        // Add filter functionality
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', function() {
+                applyFilters();
+            });
+        });
+    });
+
+    function applyFilters() {
+        // In a real app, this would filter restaurants based on selected filters
+        showToast('Filters applied', 'Restaurants filtered based on your selection', 'success');
+    }
+</script>
+
+<style>
+    /* Page-specific styles */
+    .restaurant-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .restaurant-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Custom scrollbar for filters */
+    .filter-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) #f1f1f1;
+    }
+
+    .filter-scroll::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .filter-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .filter-scroll::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 3px;
+    }
+</style>
+</html>

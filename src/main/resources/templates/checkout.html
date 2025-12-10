@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" layout:fragment="content"
+      xmlns:th="http://www.thymeleaf.org">
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Left Column: Order Details -->
+        <div class="lg:col-span-2">
+            <!-- Progress Steps -->
+            <div class="modern-card p-6 mb-8">
+                <div class="order-progress">
+                    <div class="progress-step completed">
+                        <div class="progress-dot">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <span class="text-sm font-medium mt-2">Cart</span>
+                    </div>
+                    <div class="progress-step active">
+                        <div class="progress-dot">2</div>
+                        <span class="text-sm font-medium mt-2">Checkout</span>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-dot">3</div>
+                        <span class="text-sm font-medium mt-2">Payment</span>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-dot">4</div>
+                        <span class="text-sm font-medium mt-2">Complete</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div class="modern-card p-6 mb-6">
+                <h2 class="text-xl font-display font-bold mb-4 flex items-center">
+                    <i class="fas fa-map-marker-alt text-primary mr-3"></i>
+                    Delivery Address
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div class="address-card active">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold">Home</h4>
+                                <p class="text-gray-600 text-sm mt-1">Patission 76, Athens 10434</p>
+                                <p class="text-gray-500 text-xs mt-2">Apartment 3, 2nd floor</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="text-primary hover:text-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="address-card">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold">Work</h4>
+                                <p class="text-gray-600 text-sm mt-1">Syntagma 10, Athens 10563</p>
+                                <p class="text-gray-500 text-xs mt-2">Office 5A</p>
+                            </div>
+                            <button class="text-primary hover:text-secondary">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="showAddressModal()" class="modern-btn-outline w-full">
+                    <i class="fas fa-plus mr-2"></i>Add New Address
+                </button>
+            </div>
+
+            <!-- Delivery Time -->
+            <div class="modern-card p-6 mb-6">
+                <h2 class="text-xl font-display font-bold mb-4 flex items-center">
+                    <i class="fas fa-clock text-primary mr-3"></i>
+                    Delivery Time
+                </h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    <button class="time-slot active">
+                        <div class="font-bold">ASAP</div>
+                        <div class="text-xs text-gray-500">25-35 min</div>
+                    </button>
+                    <button class="time-slot">
+                        <div class="font-bold">12:30</div>
+                        <div class="text-xs text-gray-500">Today</div>
+                    </button>
+                    <button class="time-slot">
+                        <div class="font-bold">13:00</div>
+                        <div class="text-xs text-gray-500">Today</div>
+                    </button>
+                    <button class="time-slot">
+                        <div class="font-bold">13:30</div>
+                        <div class="text-xs text-gray-500">Today</div>
+                    </button>
+                </div>
+
+                <div class="flex items-center text-sm text-gray-600">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <span>Restaurant preparation time: 15-20 minutes</span>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="modern-card p-6">
+                <h2 class="text-xl font-display font-bold mb-4 flex items-center">
+                    <i class="fas fa-credit-card text-primary mr-3"></i>
+                    Payment Method
+                </h2>
+
+                <div class="space-y-4">
+                    <div class="payment-method active">
+                        <div class="flex items-center">
+                            <div class="w-10 h-6 rounded bg-blue-500 flex items-center justify-center mr-4">
+                                <i class="fab fa-cc-visa text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold">Visa •••• 4321</div>
+                                <div class="text-sm text-gray-500">Expires 12/25</div>
+                            </div>
+                            <i class="fas fa-check-circle text-primary text-xl"></i>
+                        </div>
+                    </div>
+
+                    <div class="payment-method">
+                        <div class="flex items-center">
+                            <div class="w-10 h-6 rounded bg-red-500 flex items-center justify-center mr-4">
+                                <i class="fas fa-money-bill-wave text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold">Cash on Delivery</div>
+                                <div class="text-sm text-gray-500">Pay when you receive</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="showPaymentModal()" class="modern-btn-outline w-full">
+                        <i class="fas fa-plus mr-2"></i>Add New Payment Method
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="modern-card sticky top-24">
+                <!-- Order Items -->
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-display font-bold mb-4">Order Summary</h2>
+
+                    <div class="space-y-4 max-h-96 overflow-y-auto pr-2" id="checkout-items">
+                        <!-- Items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Order Totals -->
+                <div class="p-6">
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Subtotal</span>
+                            <span id="checkout-subtotal">€0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Delivery Fee</span>
+                            <span id="checkout-delivery">€2.50</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Service Fee</span>
+                            <span id="checkout-service">€0.50</span>
+                        </div>
+                        <div class="border-t pt-3 mt-3">
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Total</span>
+                                <span id="checkout-total">€0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Instructions -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Special Instructions
+                        </label>
+                        <textarea class="modern-input h-20"
+                                  placeholder="Add instructions for the restaurant..."></textarea>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="mb-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-600">
+                                I agree to the
+                                <a href="#" class="text-primary hover:underline">Terms & Conditions</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Place Order Button -->
+                    <button onclick="placeOrder()" class="modern-btn w-full py-4 text-lg">
+                        <i class="fas fa-lock mr-2"></i>Place Order • <span id="order-total">€0.00</span>
+                    </button>
+
+                    <p class="text-center text-gray-500 text-xs mt-4">
+                        <i class="fas fa-shield-alt mr-1"></i>100% secure payment
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Address Modal -->
+<div id="address-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="modern-card w-full max-w-md">
+            <div class="p-6">
+                <h3 class="text-xl font-display font-bold mb-4">Add New Address</h3>
+                <form id="address-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address Name</label>
+                        <input type="text" class="modern-input" placeholder="Home, Work, etc.">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                        <input type="text" class="modern-input" placeholder="Enter street address">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                            <input type="text" class="modern-input" placeholder="City">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                            <input type="text" class="modern-input" placeholder="ZIP">
+                        </div>
+                    </div>
+                    <div class="flex gap-4 pt-4">
+                        <button type="button" onclick="hideAddressModal()" class="modern-btn-outline flex-1">
+                            Cancel
+                        </button>
+                        <button type="submit" class="modern-btn flex-1">
+                            Save Address
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded JavaScript -->
+<script>
+    // Order data
+    let orderItems = JSON.parse(localStorage.getItem('streetfoodgo-cart')) || [];
+
+    // Initialize checkout
+    function initCheckout() {
+        renderOrderItems();
+        updateOrderTotals();
+
+        // Setup address selection
+        document.querySelectorAll('.address-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.address-card').forEach(c => {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        // Setup time slot selection
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('click', function() {
+                document.querySelectorAll('.time-slot').forEach(s => {
+                    s.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        // Setup payment method selection
+        document.querySelectorAll('.payment-method').forEach(method => {
+            method.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method').forEach(m => {
+                    m.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        // Setup address form
+        document.getElementById('address-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            hideAddressModal();
+            showToast('Address saved', 'Your new address has been added', 'success');
+        });
+    }
+
+    function renderOrderItems() {
+        const container = document.getElementById('checkout-items');
+
+        if (orderItems.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Your cart is empty</p>
+                    <a href="/restaurants" class="modern-btn-outline inline-block mt-4">Browse Restaurants</a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = orderItems.map(item => `
+            <div class="flex items-center gap-3" data-id="${item.id}">
+                <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <i class="fas fa-utensils text-gray-400"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-medium">${item.name}</h4>
+                    <p class="text-sm text-gray-500">${item.restaurant}</p>
+                    <div class="flex items-center justify-between mt-1">
+                        <div class="flex items-center gap-2">
+                            <button onclick="updateCheckoutQuantity('${item.id}', -1)"
+                                    class="w-6 h-6 rounded-full border flex items-center justify-center hover:bg-gray-50">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="font-medium">${item.quantity}</span>
+                            <button onclick="updateCheckoutQuantity('${item.id}', 1)"
+                                    class="w-6 h-6 rounded-full border flex items-center justify-center hover:bg-gray-50">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                        <span class="font-medium">€${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateOrderTotals() {
+        if (orderItems.length === 0) {
+            document.getElementById('checkout-subtotal').textContent = '€0.00';
+            document.getElementById('checkout-total').textContent = '€0.00';
+            document.getElementById('order-total').textContent = '€0.00';
+            return;
+        }
+
+        const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const delivery = 2.50;
+        const service = 0.50;
+        const total = subtotal + delivery + service;
+
+        document.getElementById('checkout-subtotal').textContent = `€${subtotal.toFixed(2)}`;
+        document.getElementById('checkout-delivery').textContent = `€${delivery.toFixed(2)}`;
+        document.getElementById('checkout-service').textContent = `€${service.toFixed(2)}`;
+        document.getElementById('checkout-total').textContent = `€${total.toFixed(2)}`;
+        document.getElementById('order-total').textContent = `€${total.toFixed(2)}`;
+    }
+
+    function updateCheckoutQuantity(itemId, change) {
+        const item = orderItems.find(i => i.id === itemId);
+
+        if (item) {
+            item.quantity += change;
+
+            if (item.quantity <= 0) {
+                orderItems = orderItems.filter(i => i.id !== itemId);
+                showToast('Item removed', 'Item removed from your order', 'warning');
+            }
+
+            // Update localStorage
+            localStorage.setItem('streetfoodgo-cart', JSON.stringify(orderItems));
+
+            // Update cart badge
+            const count = orderItems.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-badge').textContent = count;
+
+            // Re-render
+            renderOrderItems();
+            updateOrderTotals();
+        }
+    }
+
+    function placeOrder() {
+        if (orderItems.length === 0) {
+            showToast('Cart is empty', 'Add items to your cart first', 'error');
+            return;
+        }
+
+        const termsChecked = document.querySelector('input[type="checkbox"]').checked;
+        if (!termsChecked) {
+            showToast('Please accept terms', 'You must accept the terms & conditions', 'error');
+            return;
+        }
+
+        // Show loading
+        showToast('Processing order...', 'Please wait while we confirm your order', 'info');
+
+        // Simulate order processing
+        setTimeout(() => {
+            // Generate order ID
+            const orderId = 'ORD-' + Date.now().toString().slice(-8);
+
+            // Save order to localStorage
+            const order = {
+                id: orderId,
+                items: orderItems,
+                total: parseFloat(document.getElementById('checkout-total').textContent.replace('€', '')),
+                date: new Date().toISOString(),
+                status: 'preparing'
+            };
+
+            // Save to order history
+            const orders = JSON.parse(localStorage.getItem('streetfoodgo-orders')) || [];
+            orders.unshift(order);
+            localStorage.setItem('streetfoodgo-orders', JSON.stringify(orders));
+
+            // Clear cart
+            localStorage.removeItem('streetfoodgo-cart');
+            orderItems = [];
+
+            // Redirect to order tracking
+            window.location.href = `/orders/${orderId}`;
+        }, 2000);
+    }
+
+    // Modal functions
+    function showAddressModal() {
+        document.getElementById('address-modal').classList.remove('hidden');
+    }
+
+    function hideAddressModal() {
+        document.getElementById('address-modal').classList.add('hidden');
+    }
+
+    function showPaymentModal() {
+        showToast('Payment modal', 'In a real app, this would show payment form', 'info');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initCheckout();
+    });
+</script>
+
+<style>
+    .address-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .address-card:hover {
+        border-color: var(--primary);
+        background: rgba(255, 107, 53, 0.05);
+    }
+
+    .address-card.active {
+        border-color: var(--primary);
+        background: rgba(255, 107, 53, 0.1);
+    }
+
+    .time-slot {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .time-slot:hover {
+        border-color: var(--primary);
+    }
+
+    .time-slot.active {
+        border-color: var(--primary);
+        background: rgba(255, 107, 53, 0.1);
+    }
+
+    .payment-method {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .payment-method:hover {
+        border-color: var(--primary);
+    }
+
+    .payment-method.active {
+        border-color: var(--primary);
+        background: rgba(255, 107, 53, 0.1);
+    }
+</style>
+</html>
