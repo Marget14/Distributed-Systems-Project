@@ -1,78 +1,481 @@
 <!DOCTYPE html>
-<html lang="el" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreetFoodGo</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-        }
-        .header {
-            background-color: #ff6b6b;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .nav {
-            background-color: #343a40;
-            padding: 10px;
-            text-align: center;
-        }
-        .nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-        }
-        .store-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            background-color: white;
-        }
-    </style>
-</head>
-<body>
-<div class="header">
-    <h1>🍔 StreetFoodGo</h1>
-    <p>Find the best street food near you!</p>
+<html layout:decorate="~{layout}" layout:fragment="content"
+      xmlns:th="http://www.thymeleaf.org">
+<div class="max-w-7xl mx-auto">
+    <!-- Hero Section with 3D Effects -->
+    <section class="mb-16 relative">
+        <!-- Animated Background -->
+        <div class="absolute inset-0 grid-bg opacity-10"></div>
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-cyber-blue rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-pink rounded-full filter blur-3xl opacity-10 animate-pulse-3d"></div>
+
+        <div class="relative z-10">
+            <div class="text-center mb-12">
+                <h1 class="text-6xl md:text-8xl font-['Orbitron'] font-bold mb-6">
+                    <span class="bg-gradient-to-r from-cyber-blue via-neon-pink to-ai-orange bg-clip-text text-transparent">
+                        QUANTUM
+                    </span>
+                    <span class="text-white">FOOD</span>
+                </h1>
+                <p class="text-2xl md:text-3xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                    Experience food delivery in <span class="neon-text">3D holograms</span>.
+                    Powered by <span class="text-ai-orange font-bold">Quantum AI</span>.
+                </p>
+            </div>
+
+            <!-- Interactive Search -->
+            <div class="glass-panel p-2 max-w-3xl mx-auto mb-12">
+                <div class="flex items-center">
+                    <div class="flex-1 flex items-center px-4">
+                        <i class="fas fa-search text-gray-400 mr-3"></i>
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Ask AI: 'Find vegan sushi with AR preview near Acropolis'"
+                               class="w-full bg-transparent border-0 outline-none text-white text-lg py-4"
+                               onkeypress="if(event.key === 'Enter') searchFood()">
+                    </div>
+                    <button onclick="startVoiceSearch()"
+                            class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyber-blue to-quantum flex items-center justify-center mr-2 hover:scale-110 transition-transform">
+                        <i class="fas fa-microphone text-white"></i>
+                    </button>
+                    <button onclick="searchFood()"
+                            class="cyber-button px-8">
+                        <i class="fas fa-bolt mr-2"></i>QUANTUM SEARCH
+                    </button>
+                </div>
+                <div id="voiceStatus" class="text-center text-sm text-gray-400 mt-2"></div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+                <div class="glass-panel p-6 text-center hover:scale-105 transition-transform">
+                    <div class="text-4xl font-['Orbitron'] font-bold text-cyber-blue mb-2" id="liveOrders">1,234</div>
+                    <div class="text-gray-400 font-['Rajdhani']">LIVE ORDERS</div>
+                </div>
+                <div class="glass-panel p-6 text-center hover:scale-105 transition-transform">
+                    <div class="text-4xl font-['Orbitron'] font-bold text-neon-pink mb-2" id="avgTime">12.4</div>
+                    <div class="text-gray-400 font-['Rajdhani']">AVG MINUTES</div>
+                </div>
+                <div class="glass-panel p-6 text-center hover:scale-105 transition-transform">
+                    <div class="text-4xl font-['Orbitron'] font-bold text-ai-orange mb-2" id="storesLive">456</div>
+                    <div class="text-gray-400 font-['Rajdhani']">3D STORES</div>
+                </div>
+                <div class="glass-panel p-6 text-center hover:scale-105 transition-transform">
+                    <div class="text-4xl font-['Orbitron'] font-bold text-white mb-2" id="aiAccuracy">98.7%</div>
+                    <div class="text-gray-400 font-['Rajdhani']">AI ACCURACY</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured 3D Stores -->
+    <section class="mb-16">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-4xl font-['Orbitron'] font-bold">
+                <span class="neon-text">FEATURED</span>
+                <span class="text-white">3D STORES</span>
+            </h2>
+            <a th:href="@{/stores}" class="cyber-button">
+                <i class="fas fa-vr-cardboard mr-2"></i>VIEW ALL IN 3D
+            </a>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Store 1 - Holographic Card -->
+            <div class="card-3d glass-panel p-6 hover-lift">
+                <div class="relative mb-6">
+                    <div class="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-cyber-blue/20 to-neon-pink/20 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-burger text-6xl text-cyber-blue mb-4"></i>
+                            <div class="text-sm text-gray-400">3D HOLOGRAM READY</div>
+                        </div>
+                    </div>
+                    <div class="absolute top-4 right-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyber-blue to-neon-pink flex items-center justify-center">
+                            <i class="fas fa-vr-cardboard text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-['Orbitron'] font-bold mb-2">NEO BURGER CO.</h3>
+                <p class="text-gray-400 mb-4">Quantum-cooked burgers with AI-optimized recipes</p>
+
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="flex text-ai-orange mr-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="text-gray-400">4.7</span>
+                    </div>
+                    <span class="text-cyber-blue font-bold">12-18 min</span>
+                </div>
+
+                <button onclick="viewStore3D(1)" class="w-full cyber-button">
+                    <i class="fas fa-eye mr-2"></i>VIEW IN 3D
+                </button>
+            </div>
+
+            <!-- Store 2 - AR Enabled -->
+            <div class="card-3d glass-panel p-6 hover-lift">
+                <div class="relative mb-6">
+                    <div class="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-ai-orange/20 to-cyber-blue/20 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-pizza-slice text-6xl text-ai-orange mb-4"></i>
+                            <div class="text-sm text-gray-400">AR PREVIEW AVAILABLE</div>
+                        </div>
+                    </div>
+                    <div class="absolute top-4 right-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-ai-orange to-cyber-blue flex items-center justify-center">
+                            <i class="fas fa-mobile-alt text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-['Orbitron'] font-bold mb-2">PIZZA MATRIX</h3>
+                <p class="text-gray-400 mb-4">Holographic pizza customization with neural networks</p>
+
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="flex text-ai-orange mr-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-gray-400">5.0</span>
+                    </div>
+                    <span class="text-cyber-blue font-bold">15-22 min</span>
+                </div>
+
+                <button onclick="viewStoreAR(2)" class="w-full cyber-button">
+                    <i class="fas fa-cube mr-2"></i>AR EXPERIENCE
+                </button>
+            </div>
+
+            <!-- Store 3 - AI Powered -->
+            <div class="card-3d glass-panel p-6 hover-lift">
+                <div class="relative mb-6">
+                    <div class="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-neon-pink/20 to-quantum/20 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-robot text-6xl text-neon-pink mb-4"></i>
+                            <div class="text-sm text-gray-400">AI CHEF POWERED</div>
+                        </div>
+                    </div>
+                    <div class="absolute top-4 right-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neon-pink to-quantum flex items-center justify-center">
+                            <i class="fas fa-brain text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-['Orbitron'] font-bold mb-2">SUSHI.AI</h3>
+                <p class="text-gray-400 mb-4">Machine learning sushi with real-time freshness tracking</p>
+
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="flex text-ai-orange mr-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-gray-400">4.9</span>
+                    </div>
+                    <span class="text-cyber-blue font-bold">20-25 min</span>
+                </div>
+
+                <button onclick="aiRecommendSushi()" class="w-full cyber-button">
+                    <i class="fas fa-robot mr-2"></i>AI RECOMMEND
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quantum Features -->
+    <section class="mb-16">
+        <h2 class="text-4xl font-['Orbitron'] font-bold text-center mb-12">
+            <span class="text-white">QUANTUM</span>
+            <span class="neon-text"> FEATURES</span>
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="glass-panel p-8 text-center hover:scale-105 transition-transform">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyber-blue/20 to-transparent flex items-center justify-center mx-auto mb-6 border border-cyber-blue/30">
+                    <i class="fas fa-vr-cardboard text-3xl text-cyber-blue"></i>
+                </div>
+                <h3 class="text-2xl font-['Orbitron'] font-bold mb-4">3D HOLOGRAM VIEW</h3>
+                <p class="text-gray-400 mb-6">View food in photorealistic 3D holograms before ordering</p>
+                <div class="text-cyber-blue text-sm font-['Rajdhani'] font-semibold">
+                    <i class="fas fa-bolt mr-2"></i>REAL-TIME RENDERING
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="glass-panel p-8 text-center hover:scale-105 transition-transform">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-neon-pink/20 to-transparent flex items-center justify-center mx-auto mb-6 border border-neon-pink/30">
+                    <i class="fas fa-brain text-3xl text-neon-pink"></i>
+                </div>
+                <h3 class="text-2xl font-['Orbitron'] font-bold mb-4">QUANTUM AI</h3>
+                <p class="text-gray-400 mb-6">Predictive ordering based on neural network analysis</p>
+                <div class="text-neon-pink text-sm font-['Rajdhani'] font-semibold">
+                    <i class="fas fa-chart-network mr-2"></i>98.7% ACCURACY
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="glass-panel p-8 text-center hover:scale-105 transition-transform">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-ai-orange/20 to-transparent flex items-center justify-center mx-auto mb-6 border border-ai-orange/30">
+                    <i class="fas fa-bolt text-3xl text-ai-orange"></i>
+                </div>
+                <h3 class="text-2xl font-['Orbitron'] font-bold mb-4">QUANTUM DELIVERY</h3>
+                <p class="text-gray-400 mb-6">AI-optimized routes using quantum computing algorithms</p>
+                <div class="text-ai-orange text-sm font-['Rajdhani'] font-semibold">
+                    <i class="fas fa-rocket mr-2"></i>12.4 AVG MINUTES
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Orders Stream -->
+    <section class="mb-16">
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-['Orbitron'] font-bold">
+                    <i class="fas fa-satellite-dish text-cyber-blue mr-3"></i>
+                    LIVE ORDERS STREAM
+                </h3>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-cyber-blue animate-pulse mr-2"></div>
+                    <span class="text-gray-400 font-['Rajdhani']">LIVE</span>
+                </div>
+            </div>
+
+            <div class="space-y-3" id="liveOrdersStream">
+                <!-- Orders will be added dynamically -->
+                <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-cyber-blue to-neon-pink flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-xs text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-['Rajdhani'] font-semibold">QuantumBurger #1278</div>
+                            <div class="text-sm text-gray-400">To Syntagma Square</div>
+                        </div>
+                    </div>
+                    <div class="text-cyber-blue font-['Orbitron']">12:45</div>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-neon-pink to-ai-orange flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-xs text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-['Rajdhani'] font-semibold">Sushi.AI #0956</div>
+                            <div class="text-sm text-gray-400">To Kolonaki</div>
+                        </div>
+                    </div>
+                    <div class="text-cyber-blue font-['Orbitron']">12:42</div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
-<div class="nav">
-    <a th:href="@{/}">🏠 Home</a>
-    <a th:href="@{/login}">🔑 Log in</a>
-    <a th:href="@{/register}">📝 Register</a>
-    <a th:href="@{/stores}">🏪 Restaurants</a>
-</div>
+<!-- Embedded JavaScript for Home Page -->
+<script>
+    // Page-specific JavaScript
+    let liveOrderCount = 1234;
 
-<div class="container">
-    <h2>Welcome to StreetFoodGo!</h2>
-    <p>The platform for online orders from your favorite street food restaurants.</p>
+    // Update live stats
+    function updateLiveStats() {
+        // Simulate real-time updates
+        liveOrderCount += Math.floor(Math.random() * 3);
+        document.getElementById('liveOrders').textContent = liveOrderCount.toLocaleString();
 
-    <h3>Popular Restaurants</h3>
-    <div class="store-card">
-        <h4>Burger House</h4>
-        <p>🍔 Greek kitchen</p>
-        <p>📍 Example street 123</p>
-        <p>🕒 Open now</p>
-    </div>
+        // Update delivery time (random between 11-13)
+        const avgTime = 12.4 + (Math.random() - 0.5) * 0.4;
+        document.getElementById('avgTime').textContent = avgTime.toFixed(1);
 
-    <div class="store-card">
-        <h4>Souvlaki Express</h4>
-        <p>🍢 Souvlakerie</p>
-        <p>📍 Center square 45</p>
-        <p>🕒 Open now</p>
-    </div>
-</div>
-</body>
+        // Update AI accuracy (random around 98.7%)
+        const accuracy = 98.7 + (Math.random() - 0.5) * 0.2;
+        document.getElementById('aiAccuracy').textContent = accuracy.toFixed(1) + '%';
+
+        // Add new order to stream
+        const orders = ['QuantumBurger', 'Sushi.AI', 'Pizza Matrix', 'Neo Tacos', 'AI Ramen'];
+        const areas = ['Syntagma', 'Kolonaki', 'Monastiraki', 'Gazi', 'Psiri'];
+
+        if (Math.random() > 0.7) {
+            const order = orders[Math.floor(Math.random() * orders.length)];
+            const area = areas[Math.floor(Math.random() * areas.length)];
+            const orderNum = Math.floor(Math.random() * 2000);
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            const orderElement = document.createElement('div');
+            orderElement.className = 'flex items-center justify-between p-3 rounded-lg bg-white/5 animate-slide-up';
+            orderElement.innerHTML = `
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-cyber-blue to-neon-pink flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-xs text-white"></i>
+                    </div>
+                    <div>
+                        <div class="font-['Rajdhani'] font-semibold">${order} #${orderNum}</div>
+                        <div class="text-sm text-gray-400">To ${area}</div>
+                    </div>
+                </div>
+                <div class="text-cyber-blue font-['Orbitron']">${time}</div>
+            `;
+
+            const stream = document.getElementById('liveOrdersStream');
+            stream.insertBefore(orderElement, stream.firstChild);
+
+            // Remove old orders if too many
+            if (stream.children.length > 5) {
+                stream.removeChild(stream.lastChild);
+            }
+        }
+    }
+
+    // 3D Store View
+    function viewStore3D(storeId) {
+        showNotification('info', '3D Mode', 'Loading holographic view...');
+        setTimeout(() => {
+            window.location.href = `/stores/${storeId}?view=3d`;
+        }, 1500);
+    }
+
+    // AR Store View
+    function viewStoreAR(storeId) {
+        if ('xr' in navigator) {
+            showNotification('info', 'AR Mode', 'Starting augmented reality...');
+            setTimeout(() => {
+                window.location.href = `/stores/${storeId}/ar`;
+            }, 1500);
+        } else {
+            showNotification('error', 'AR Not Supported', 'Your device doesn\'t support AR');
+        }
+    }
+
+    // AI Sushi Recommendation
+    function aiRecommendSushi() {
+        const loading = document.createElement('div');
+        loading.id = 'aiLoading';
+        loading.className = 'glass-panel fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-8 z-50';
+        loading.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-robot text-4xl text-cyber-blue mb-4"></i>
+                <h4 class="text-xl font-['Orbitron'] mb-2">QUANTUM AI ANALYZING</h4>
+                <p class="text-gray-400 mb-4">Scanning taste preferences...</p>
+                <div class="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div id="aiProgress" class="h-full bg-gradient-to-r from-cyber-blue to-neon-pink" style="width: 0%"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(loading);
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            document.getElementById('aiProgress').style.width = progress + '%';
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    loading.remove();
+                    showNotification('success', 'AI Recommendation',
+                        'Based on 15,432 data points, we recommend: Dragon Roll + Miso Soup');
+                }, 500);
+            }
+        }, 200);
+    }
+
+    // Quantum Search
+    function searchFood() {
+        const query = document.getElementById('searchInput').value;
+        if (!query.trim()) return;
+
+        showNotification('info', 'Quantum Search', 'Analyzing with neural networks...');
+
+        setTimeout(() => {
+            window.location.href = `/stores?q=${encodeURIComponent(query)}`;
+        }, 1000);
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update stats every 5 seconds
+        setInterval(updateLiveStats, 5000);
+
+        // Add typing effect to search placeholder
+        const placeholder = "Ask AI: 'Find vegan sushi with AR preview near Acropolis'";
+        let i = 0;
+        const input = document.getElementById('searchInput');
+
+        function typePlaceholder() {
+            if (i < placeholder.length) {
+                input.placeholder = placeholder.substring(0, i + 1);
+                i++;
+                setTimeout(typePlaceholder, 50);
+            }
+        }
+
+        // Start typing after a delay
+        setTimeout(typePlaceholder, 1000);
+
+        // Add hover effects to feature cards
+        document.querySelectorAll('.hover-lift').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-10px)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Page-specific embedded CSS */
+    .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .aspect-w-16 {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    }
+
+    .aspect-w-16 > * {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+</style>
 </html>
