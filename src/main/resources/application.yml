@@ -39,7 +39,8 @@ path: /swagger-ui.html
 # Custom Application Properties.
 app:
 jwt:
-issuer: "office-hours-api"
+issuer: "streetfoodgo-api"
 audience: "external-systems"
 secret: "${JWT_SECRET:Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=}" # openssl rand -base64 32
+
 ttl-minutes: 60
