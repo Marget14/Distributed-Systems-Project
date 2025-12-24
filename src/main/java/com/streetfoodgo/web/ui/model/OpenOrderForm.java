@@ -10,4 +10,3 @@ public record OpenOrderForm(
         @NotNull @NotBlank @Size(max = 255) String subject,
         @NotNull @NotBlank @Size(max = 1000) String customerContent
 ) {}
-

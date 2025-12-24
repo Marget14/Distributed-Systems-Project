@@ -73,7 +73,7 @@ public class OrderController {
         return "new_order";
     }
 
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/new")
     public String handleOpenForm(
             @ModelAttribute("form") @Valid final OpenOrderForm openOrderForm,

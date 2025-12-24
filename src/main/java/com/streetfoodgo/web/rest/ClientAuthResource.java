@@ -4,22 +4,18 @@ import com.streetfoodgo.core.security.ClientDetailsService;
 import com.streetfoodgo.core.security.ClientDetails;
 import com.streetfoodgo.core.security.JwtService;
 
-import com.streetfoodgo.web.rest.model.ClientOrderRequest;
-import com.streetfoodgo.web.rest.model.ClientOrderResponse;
+import com.streetfoodgo.web.rest.model.ClientTokenRequest;
+import com.streetfoodgo.web.rest.model.ClientTokenResponse;
 
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST controller for authentication.
@@ -39,22 +35,18 @@ public class ClientAuthResource {
     }
 
     @PostMapping("/client-tokens")
-    @RateLimit(value = 5, duration = 60)
-    public ResponseEntity<?> clientToken(@RequestBody @Valid ClientOrderRequest clientOrderRequest) {
-        final String clientId = clientOrderRequest.clientId();
-        final String clientSecret = clientOrderRequest.clientSecret();
+    public ClientTokenResponse clientToken(@RequestBody @Valid ClientTokenRequest clientTokenRequest) {
+        final String clientId = clientTokenRequest.clientId();
+        final String clientSecret = clientTokenRequest.clientSecret();
 
+        // Step 1: Find and authenticate Client.
         final ClientDetails client = this.clientDetailsService.authenticate(clientId, clientSecret).orElse(null);
         if (client == null) {
-            Map<String, String> errorDetails = new HashMap<>();
-            errorDetails.put("error", "invalid_client");
-            errorDetails.put("error_description", "Invalid client credentials");
-            errorDetails.put("timestamp", Instant.now().toString());
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDetails);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid client credentials");
         }
 
+        // Step 2: Issue token.
         final String token = this.jwtService.issue("client:" + client.id(), client.roles());
-        return ResponseEntity.ok(new ClientOrderResponse(token, "Bearer", 60 * 60));
+        return new ClientTokenResponse(token, "Bearer", 60 * 60);
     }
 }
