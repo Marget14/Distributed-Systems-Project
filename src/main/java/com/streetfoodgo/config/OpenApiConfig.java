@@ -40,8 +40,9 @@ public class OpenApiConfig {
     public GroupedOpenApi groupedOpenApi() {
         return GroupedOpenApi.builder()
                 .group("api")
-                .packagesToScan("gr.hua.dit.officehours.web.rest")
+                .packagesToScan("com.streetfoodgo.web.rest")
                 .pathsToMatch("/api/v1/**")
                 .build();
     }
 }
+
