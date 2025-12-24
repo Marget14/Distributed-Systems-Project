@@ -1,46 +1,46 @@
+# application.yml (or application-dev.yml if you use profiles)
 spring:
-application:
-name: StreetFoodGo
+  application:
+    name: StreetFoodGo
 
-datasource:
-url: jdbc:postgresql://dpg-d4rgvhu3jp1c7390h6og-a.frankfurt-postgres.render.com:5432/streetfoodgodb
-username: streetfoodgo_user
-password: h6jJm9qQvD50RCatTBtq7jCe2PS6c3nq
-driver-class-name: org.postgresql.Driver
-#  datasource:
-#    url: jdbc:h2:file:./LOCAL_DATA/h2/app;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
-#    username: sa
-#    password: changeme
-#    driver-class-name: org.h2.Driver
+  datasource:
+    url: jdbc:postgresql://dpg-d5615315pdvs73ce2r20-a.frankfurt-postgres.render:5432/streetfoodgo
+    username: streetfoodgo_user
+    password: kBQkzBhYYZmzlq04TJJY7ba2FOPIeuhj
+    driver-class-name: org.postgresql.Driver
+  #  datasource:
+  #    url: jdbc:h2:file:./LOCAL_DATA/h2/app;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+  #    username: sa
+  #    password: changeme
+  #    driver-class-name: org.h2.Driver
 
-jpa:
-hibernate:
-ddl-auto: create-drop   # dev only
-open-in-view: false
-properties:
-hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
-#      hibernate.dialect: org.hibernate.dialect.H2Dialect
-hibernate.format_sql: true
+  jpa:
+    hibernate:
+      ddl-auto: create-drop   # dev only
+    open-in-view: false
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+      #      hibernate.dialect: org.hibernate.dialect.H2Dialect
+      hibernate.format_sql: true
 
 server:
-error:
-whitelabel:
-enabled: false
-include-message: always
-include-binding-errors: always
-include-exception: true
+  error:
+    whitelabel:
+      enabled: false
+    include-message: always
+    include-binding-errors: always
+    include-exception: true
 
 springdoc:
-api-docs:
-path: /v3/api-docs
-swagger-ui:
-path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 
 # Custom Application Properties.
 app:
-jwt:
-issuer: "streetfoodgo-api"
-audience: "external-systems"
-secret: "${JWT_SECRET:Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=}" # openssl rand -base64 32
-
-ttl-minutes: 60
+  jwt:
+    issuer: "streetfoodgo-api"
+    audience: "external-systems"
+    secret: "${JWT_SECRET:Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=}" # openssl rand -base64 32
+    ttl-minutes: 60
