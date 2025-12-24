@@ -37,7 +37,7 @@ public class RegistrationController {
             return "redirect:/profile";
         }
         // Initial data for the form.
-        final CreatePersonRequest createPersonRequest = new CreatePersonRequest(PersonType.STUDENT, "", "", "", "", "", "");
+        final CreatePersonRequest createPersonRequest = new CreatePersonRequest(PersonType.CUSTOMER, "", "", "", "", "", "");
         model.addAttribute("createPersonRequest", createPersonRequest);
         return "register";
     }

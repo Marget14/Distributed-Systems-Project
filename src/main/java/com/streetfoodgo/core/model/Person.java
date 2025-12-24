@@ -23,7 +23,7 @@ import java.time.Instant;
 @Table(
         name = "person",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_person_hua_id", columnNames = "hua_id"),
+                @UniqueConstraint(name = "uk_person_food_id", columnNames = "food_id"),
                 @UniqueConstraint(name = "uk_person_email_address", columnNames = "email_address"),
                 @UniqueConstraint(name = "uk_person_mobile_phone_number", columnNames = "mobile_phone_number")
         },

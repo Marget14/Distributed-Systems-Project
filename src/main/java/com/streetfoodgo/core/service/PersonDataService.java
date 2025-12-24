@@ -1,14 +1,13 @@
 package com.streetfoodgo.core.service;
 
-import org.springframework.stereotype.Service;
-import java.util.Collections;
+import com.streetfoodgo.core.service.model.PersonView;
+
 import java.util.List;
 
-@Service
-public class PersonDataService {
+/**
+ * Service for managing {@code Person} for data analytics purposes.
+ */
+public interface PersonDataService {
 
-    public List<PersonView> getAllPeople() {
-        // Επιστρέφουμε μια άδεια λίστα για να μην κρασάρει ο Controller
-        return Collections.emptyList();
-    }
+    List<PersonView> getAllPeople();
 }

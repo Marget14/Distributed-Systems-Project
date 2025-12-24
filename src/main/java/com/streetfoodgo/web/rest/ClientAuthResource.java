@@ -4,8 +4,8 @@ import com.streetfoodgo.core.security.ClientDetailsService;
 import com.streetfoodgo.core.security.ClientDetails;
 import com.streetfoodgo.core.security.JwtService;
 
-import com.streetfoodgo.web.rest.model.ClientTokenRequest;
-import com.streetfoodgo.web.rest.model.ClientTokenResponse;
+import com.streetfoodgo.web.rest.model.ClientOrderRequest;
+import com.streetfoodgo.web.rest.model.ClientOrderResponse;
 
 import jakarta.validation.Valid;
 
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -41,9 +40,9 @@ public class ClientAuthResource {
 
     @PostMapping("/client-tokens")
     @RateLimit(value = 5, duration = 60)
-    public ResponseEntity<?> clientToken(@RequestBody @Valid ClientTokenRequest clientTokenRequest) {
-        final String clientId = clientTokenRequest.clientId();
-        final String clientSecret = clientTokenRequest.clientSecret();
+    public ResponseEntity<?> clientToken(@RequestBody @Valid ClientOrderRequest clientOrderRequest) {
+        final String clientId = clientOrderRequest.clientId();
+        final String clientSecret = clientOrderRequest.clientSecret();
 
         final ClientDetails client = this.clientDetailsService.authenticate(clientId, clientSecret).orElse(null);
         if (client == null) {
@@ -56,6 +55,6 @@ public class ClientAuthResource {
         }
 
         final String token = this.jwtService.issue("client:" + client.id(), client.roles());
-        return ResponseEntity.ok(new ClientTokenResponse(token, "Bearer", 60 * 60));
+        return ResponseEntity.ok(new ClientOrderResponse(token, "Bearer", 60 * 60));
     }
 }
