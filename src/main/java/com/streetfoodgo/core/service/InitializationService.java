@@ -76,7 +76,7 @@ public class InitializationService {
                 ),
                 // User with ID 3
                 new CreatePersonRequest(
-                        PersonType.STUDENT,
+                        PersonType.CUSTOMER,
                         "it2023124",
                         "Test 2",
                         "Test 2",

@@ -201,7 +201,7 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
         Order order = new Order();
         // order.setId(); // auto-generated
         order.setCustomer(customer);
-        order.setTeacher(waiter);
+        order.setWaiter(waiter);
         order.setStatus(OrderStatus.QUEUED);
         order.setSubject(subject);
         order.setCustomerContent(customerContent);

@@ -40,6 +40,7 @@ public class ApplicationUserDetailsService implements UserDetailsService {
 
         // One-line alternative:
 
+        /*
         return this.personRepository.findByEmailAddressIgnoreCase(username.strip())
             .map(person -> new ApplicationUserDetails(
                     person.getId(),
@@ -48,6 +49,6 @@ public class ApplicationUserDetailsService implements UserDetailsService {
                     person.getType())
             )
             .orElseThrow(() -> new UsernameNotFoundException("User " + username + " not found"));
-
+        */
     }
 }
