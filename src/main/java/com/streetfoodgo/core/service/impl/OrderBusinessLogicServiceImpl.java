@@ -77,7 +77,7 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
         } else {
             throw new RuntimeException("Unreachable");
         }
-        final String content = String.format("Ticket %s new status: %s", orderView.id(), orderView.status().name());
+        final String content = String.format("Order %s new status: %s", orderView.id(), orderView.status().name());
         final boolean sent = this.smsNotificationPort.sendSms(e164, content);
         if (!sent) {
             LOGGER.warn("SMS send to {} failed", e164);
@@ -254,7 +254,7 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
         // --------------------------------------------------
 
         if (order.getStatus() != OrderStatus.QUEUED) {
-            throw new IllegalArgumentException("Only QUEUED tickets can be started");
+            throw new IllegalArgumentException("Only QUEUED orders can be started");
         }
 
         // --------------------------------------------------
@@ -337,3 +337,4 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
         return orderView;
     }
 }
+
