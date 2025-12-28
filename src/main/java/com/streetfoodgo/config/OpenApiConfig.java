@@ -22,7 +22,7 @@ public class OpenApiConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
             .info(new Info()
-                .title("Office Hours API")
+                .title("StreetFoodGo API")
                 .version("v1")
                 .description("Stateless API for data analytics purposes")
             )
@@ -40,7 +40,7 @@ public class OpenApiConfig {
     public GroupedOpenApi groupedOpenApi() {
         return GroupedOpenApi.builder()
             .group("api")
-            .packagesToScan("gr.hua.dit.officehours.web.rest")
+            .packagesToScan("com.streetfoodgo.web.rest")
             .pathsToMatch("/api/v1/**")
             .build();
     }
