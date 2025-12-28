@@ -10,13 +10,13 @@ import com.streetfoodgo.core.service.PersonBusinessLogicService;
  * @see PersonBusinessLogicService
  */
 public record PersonView(
-        long id,
-        String foodId,
-        String firstName,
-        String lastName,
-        String mobilePhoneNumber,
-        String emailAddress,
-        PersonType type
+    long id,
+    String huaId,
+    String firstName,
+    String lastName,
+    String mobilePhoneNumber,
+    String emailAddress,
+    PersonType type
 ) {
 
     public String fullName() {

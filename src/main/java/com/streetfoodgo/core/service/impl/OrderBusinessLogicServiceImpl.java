@@ -51,10 +51,10 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
     private final SmsNotificationPort smsNotificationPort;
 
     public OrderBusinessLogicServiceImpl(final OrderMapper orderMapper,
-                                          final OrderRepository orderRepository,
-                                          final PersonRepository personRepository,
-                                          final CurrentUserProvider currentUserProvider,
-                                          final SmsNotificationPort smsNotificationPort) {
+                                         final OrderRepository orderRepository,
+                                         final PersonRepository personRepository,
+                                         final CurrentUserProvider currentUserProvider,
+                                         final SmsNotificationPort smsNotificationPort) {
         if (orderMapper == null) throw new NullPointerException();
         if (orderRepository == null) throw new NullPointerException();
         if (personRepository == null) throw new NullPointerException();
@@ -337,4 +337,3 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
         return orderView;
     }
 }
-

@@ -5,12 +5,11 @@ import com.streetfoodgo.core.service.impl.PersonBusinessLogicServiceImpl;
 /**
  * CreatePersonResult DTO.
  *
- * @see PersonBusinessLogicServiceImpl#createPerson(CreatePersonRequest)
  */
 public record CreatePersonResult(
-        boolean created,
-        String reason,
-        PersonView personView
+    boolean created,
+    String reason,
+    PersonView personView
 ) {
 
     public static CreatePersonResult success(final PersonView personView) {

@@ -48,23 +48,23 @@ public class JwtService {
     public String issue(final String subject, final Collection<String> roles) {
         final Instant now = Instant.now();
         return Jwts.builder()
-                .subject(subject)
-                .issuer(this.issuer)
-                .setAudience(this.audience)
-                .claim("roles", roles)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(Duration.ofMinutes(this.ttlMinutes))))
-                .signWith(this.key, SignatureAlgorithm.HS256)
-                .compact();
+            .subject(subject)
+            .issuer(this.issuer)
+            .setAudience(this.audience)
+            .claim("roles", roles)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plus(Duration.ofMinutes(this.ttlMinutes))))
+            .signWith(this.key, SignatureAlgorithm.HS256)
+            .compact();
     }
 
     public Claims parse(final String token) {
         return Jwts.parser()
-                .requireAudience(this.audience)
-                .requireIssuer(this.issuer)
-                .setSigningKey(this.key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+            .requireAudience(this.audience)
+            .requireIssuer(this.issuer)
+            .setSigningKey(this.key)
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
     }
 }

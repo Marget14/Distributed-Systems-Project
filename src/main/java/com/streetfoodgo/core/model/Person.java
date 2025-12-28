@@ -12,6 +12,12 @@ import jakarta.persistence.Table;
 
 import jakarta.persistence.UniqueConstraint;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import jakarta.validation.constraints.Size;
+
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -21,43 +27,63 @@ import java.time.Instant;
  */
 @Entity
 @Table(
-        name = "person",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_person_food_id", columnNames = "food_id"),
-                @UniqueConstraint(name = "uk_person_email_address", columnNames = "email_address"),
-                @UniqueConstraint(name = "uk_person_mobile_phone_number", columnNames = "mobile_phone_number")
-        },
-        indexes = {
-                @Index(name = "idx_person_type", columnList = "type"),
-                @Index(name = "idx_person_last_name", columnList = "last_name")
-        }
+    name = "person",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_person_hua_id", columnNames = "hua_id"),
+        @UniqueConstraint(name = "uk_person_email_address", columnNames = "email_address"),
+        @UniqueConstraint(name = "uk_person_mobile_phone_number", columnNames = "mobile_phone_number")
+    },
+    indexes = {
+        @Index(name = "idx_person_type", columnList = "type"),
+        @Index(name = "idx_person_last_name", columnList = "last_name")
+    }
 )
-public class Person {
+public final class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "food_id", nullable = false, length = 20)
-    private String foodId;
+    @NotNull
+    @NotBlank
+    @Size(max = 20)
+    @Column(name = "hua_id", nullable = false, length = 20)
+    private String huaId;
 
+    @NotNull
+    @NotBlank
+    @Size(max = 100)
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
+    @NotNull
+    @NotBlank
+    @Size(max = 100)
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
+    @NotNull
+    @NotBlank
+    @Size(max = 18)
     @Column(name = "mobile_phone_number", nullable = false, length = 18)
     private String mobilePhoneNumber; // E164
 
+    @NotNull
+    @NotBlank
+    @Size(max = 100)
+    @Email
     @Column(name = "email_address", nullable = false, length = 100)
     private String emailAddress;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private PersonType type;
 
+    @NotNull
+    @NotBlank
+    @Size(max = 255)
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
@@ -69,7 +95,7 @@ public class Person {
     }
 
     public Person(Long id,
-                  String foodId,
+                  String huaId,
                   String firstName,
                   String lastName,
                   String mobilePhoneNumber,
@@ -78,7 +104,7 @@ public class Person {
                   String passwordHash,
                   Instant createdAt) {
         this.id = id;
-        this.foodId = foodId;
+        this.huaId = huaId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.mobilePhoneNumber = mobilePhoneNumber;
@@ -96,12 +122,12 @@ public class Person {
         this.id = id;
     }
 
-    public String getFoodId() {
-        return foodId;
+    public String getHuaId() {
+        return huaId;
     }
 
-    public void setFoodId(String foodId) {
-        this.foodId = foodId;
+    public void setHuaId(String huaId) {
+        this.huaId = huaId;
     }
 
     public String getFirstName() {
@@ -163,9 +189,9 @@ public class Person {
     @Override
     public String toString() {
         return "Person{" +
-                "id=" + id +
-                ", foodId='" + foodId + '\'' +
-                ", type=" + type +
-                '}';
+            "id=" + id +
+            ", huaId='" + huaId + '\'' +
+            ", type=" + type +
+            '}';
     }
 }

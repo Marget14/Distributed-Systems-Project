@@ -31,7 +31,7 @@ public class OrderReminderService {
     }
 
     @Scheduled(cron = "0 0 9 * * *")
-    public void remindTeacherOfStaleQueuedOrders() {
+    public void remindWaiterOfStaleQueuedOrders() {
         Instant cutoff = Instant.now().minus(1, ChronoUnit.DAYS);
         final List<Order> orderList = this.orderRepository.findByStatusAndQueuedAtBefore(OrderStatus.QUEUED, cutoff);
         for (final Order order : orderList) {

@@ -49,47 +49,46 @@ public class InitializationService {
         }
         LOGGER.info("Starting database initialization with initial data...");
         final List<Client> clientList = List.of(
-                new Client(null, "client01", "s3cr3t", "INTEGRATION_READ,INTEGRATION_WRITE"),
-                new Client(null, "client02", "s3cr3t", "INTEGRATION_READ")
+            new Client(null, "client01", "s3cr3t", "INTEGRATION_READ,INTEGRATION_WRITE"),
+            new Client(null, "client02", "s3cr3t", "INTEGRATION_READ")
         );
         this.clientRepository.saveAll(clientList);
         final List<CreatePersonRequest> createPersonRequestList = List.of(
-                // User with ID 1
-                new CreatePersonRequest(
-                        PersonType.WAITER,
-                        "t0001",
-                        "Dimitris",
-                        "Margetis",
-                        "it2023141@hua.gr",
-                        "+306976679684",
-                        "1234"
-                ),
-                // User with ID 2
-                new CreatePersonRequest(
-                        PersonType.CUSTOMER,
-                        "it2023089",
-                        "Test 1",
-                        "Test 1",
-                        "it2023089@hua.gr",
-                        "+306900000001",
-                        "1234"
-                ),
-                // User with ID 3
-                new CreatePersonRequest(
-                        PersonType.CUSTOMER,
-                        "it2023124",
-                        "Test 2",
-                        "Test 2",
-                        "it2023124@hua.gr",
-                        "+306900000002",
-                        "1234"
-                )
+            // User with ID 1
+            new CreatePersonRequest(
+                PersonType.WAITER,
+                "it2023141",
+                "Dimitris",
+                "Margetis",
+                "it2023141@hua.gr",
+                "+306976679684",
+                "1234"
+            ),
+            // User with ID 2
+            new CreatePersonRequest(
+                PersonType.CUSTOMER,
+                "it2023089",
+                "Stamatis",
+                "Xristofakis",
+                "it2023089@hua.gr",
+                "+306900000001",
+                "1234"
+            ),
+            // User with ID 3
+            new CreatePersonRequest(
+                PersonType.CUSTOMER,
+                "it2023124",
+                "Giorgos",
+                "Koufakis",
+                "it2023124@hua.gr",
+                "+306900000002",
+                "1234"
+            )
         );
         for (final var createPersonRequest : createPersonRequestList) {
             this.personBusinessLogicService.createPerson(createPersonRequest, false); // do not send SMS
         }
         // TODO Not working: requires authenticated user!
-
         /*
         final List<OpenTicketRequest> openTicketRequestList = List.of(
             new OpenTicketRequest(

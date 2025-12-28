@@ -20,7 +20,7 @@ public class OrderDataServiceImpl implements OrderDataService {
     private final OrderMapper orderMapper;
 
     public OrderDataServiceImpl(final OrderRepository orderRepository,
-                                 final OrderMapper orderMapper) {
+                                final OrderMapper orderMapper) {
         if (orderRepository == null) throw new NullPointerException();
         if (orderMapper == null) throw new NullPointerException();
         this.orderRepository = orderRepository;
@@ -31,9 +31,9 @@ public class OrderDataServiceImpl implements OrderDataService {
     public List<OrderView> getAllOrders() {
         final List<Order> orderList = this.orderRepository.findAll();
         final List<OrderView> orderViewList = orderList
-                .stream()
-                .map(this.orderMapper::convertOrderToOrderView)
-                .toList();
+            .stream()
+            .map(this.orderMapper::convertOrderToOrderView)
+            .toList();
         return orderViewList;
     }
 }

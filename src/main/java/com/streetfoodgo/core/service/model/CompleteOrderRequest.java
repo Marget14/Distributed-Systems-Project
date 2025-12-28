@@ -6,6 +6,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record CompleteOrderRequest(
-        @NotNull @Positive Long id,
-        @NotNull @NotBlank @Size(max = 1000) String waiterContent
+    @NotNull @Positive Long id,
+    @NotNull @NotBlank @Size(max = 1000) String waiterContent
 ) {}

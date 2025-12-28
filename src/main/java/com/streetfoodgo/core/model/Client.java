@@ -19,10 +19,10 @@ import java.util.Objects;
  */
 @Entity
 @Table(
-        name = "client",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_client_name", columnNames = "name")
-        }
+    name = "client",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_client_name", columnNames = "name")
+    }
 )
 public class Client {
 
@@ -96,8 +96,8 @@ public class Client {
         if (o == null || getClass() != o.getClass()) return false;
         Client client = (Client) o;
         return Objects.equals(name, client.name)
-                && Objects.equals(secret, client.secret)
-                && Objects.equals(rolesCsv, client.rolesCsv);
+            && Objects.equals(secret, client.secret)
+            && Objects.equals(rolesCsv, client.rolesCsv);
     }
 
     @Override

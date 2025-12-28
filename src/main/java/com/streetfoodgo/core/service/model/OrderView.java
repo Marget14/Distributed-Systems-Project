@@ -12,14 +12,14 @@ import java.time.Instant;
  * @see OrderBusinessLogicService
  */
 public record OrderView(
-        long id,
-        PersonView customer,
-        PersonView waiter,
-        OrderStatus status,
-        String subject,
-        String customerContent,
-        String waiterContent,
-        Instant queuedAt,
-        Instant inProgressAt,
-        Instant completedAt
+    long id,
+    PersonView customer,
+    PersonView waiter,
+    OrderStatus status,
+    String subject,
+    String customerContent,
+    String waiterContent,
+    Instant queuedAt,
+    Instant inProgressAt,
+    Instant completedAt
 ) {}

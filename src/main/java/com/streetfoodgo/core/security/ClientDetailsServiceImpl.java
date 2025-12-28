@@ -45,12 +45,12 @@ public class ClientDetailsServiceImpl implements ClientDetailsService {
             // ClientDetails.secret - map - Client.secret
             // ClientDetails.roles  - map - Client.permissionsCsv (comma separated values)
             final ClientDetails clientDetails = new ClientDetails(
-                    client.getName(),
-                    client.getSecret(),
-                    Arrays.stream(client.getRolesCsv().split(","))
-                            .map(String::strip)
-                            .map(String::toUpperCase)
-                            .collect(Collectors.toSet()));
+                client.getName(),
+                client.getSecret(),
+                Arrays.stream(client.getRolesCsv().split(","))
+                    .map(String::strip)
+                    .map(String::toUpperCase)
+                    .collect(Collectors.toSet()));
             return Optional.of(clientDetails);
         } else {
             return Optional.empty();

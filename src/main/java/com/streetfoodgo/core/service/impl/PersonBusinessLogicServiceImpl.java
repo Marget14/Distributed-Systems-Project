@@ -73,15 +73,15 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         // --------------------------------------------------
 
         final Set<ConstraintViolation<CreatePersonRequest>> requestViolations
-                = this.validator.validate(createPersonRequest);
+            = this.validator.validate(createPersonRequest);
         if (!requestViolations.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             for (final ConstraintViolation<CreatePersonRequest> violation : requestViolations) {
                 sb
-                        .append(violation.getPropertyPath())
-                        .append(": ")
-                        .append(violation.getMessage())
-                        .append("\n");
+                    .append(violation.getPropertyPath())
+                    .append(": ")
+                    .append(violation.getMessage())
+                    .append("\n");
             }
             return CreatePersonResult.fail(sb.toString());
         }
@@ -90,7 +90,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         // --------------------------------------------------
 
         final PersonType type = createPersonRequest.type();
-        final String foodId = createPersonRequest.foodId().strip(); // remove whitespaces
+        final String huaId = createPersonRequest.huaId().strip(); // remove whitespaces
         final String firstName = createPersonRequest.firstName().strip();
         final String lastName = createPersonRequest.lastName().strip();
         final String emailAddress = createPersonRequest.emailAddress().strip();
@@ -108,7 +108,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         // --------------------------------------------------
 
         final PhoneNumberValidationResult phoneNumberValidationResult
-                = this.phoneNumberPort.validate(mobilePhoneNumber);
+            = this.phoneNumberPort.validate(mobilePhoneNumber);
         if (!phoneNumberValidationResult.isValidMobile()) {
             return CreatePersonResult.fail("Mobile Phone Number is not valid");
         }
@@ -116,8 +116,8 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
 
         // --------------------------------------------------
 
-        if (this.personRepository.existsByFoodIdIgnoreCase(foodId)) {
-            return CreatePersonResult.fail("FOOD ID already registered");
+        if (this.personRepository.existsByHuaIdIgnoreCase(huaId)) {
+            return CreatePersonResult.fail("HUA ID already registered");
         }
 
         if (this.personRepository.existsByEmailAddressIgnoreCase(emailAddress)) {
@@ -130,9 +130,9 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
 
         // --------------------------------------------------
 
-        final PersonType personType_lookup = this.lookupPort.lookup(foodId).orElse(null);
+        final PersonType personType_lookup = this.lookupPort.lookup(huaId).orElse(null);
         if (personType_lookup == null) {
-            return CreatePersonResult.fail("Invalid FOOD ID");
+            return CreatePersonResult.fail("Invalid HUA ID");
         }
         if (personType_lookup != type) {
             return CreatePersonResult.fail("The provided person type does not match the actual one");
@@ -147,7 +147,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
 
         Person person = new Person();
         person.setId(null); // auto generated
-        person.setFoodId(foodId);
+        person.setHuaId(huaId);
         person.setType(type);
         person.setFirstName(firstName);
         person.setLastName(lastName);
@@ -175,8 +175,8 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
 
         if (notify) {
             final String content = String.format(
-                    "You have successfully registered for the Office Hours application. " +
-                            "Use your email (%s) to log in.", emailAddress);
+                "You have successfully registered for the Office Hours application. " +
+                    "Use your email (%s) to log in.", emailAddress);
             final boolean sent = this.smsNotificationPort.sendSms(mobilePhoneNumber, content);
             if (!sent) {
                 LOGGER.warn("SMS send to {} failed!", mobilePhoneNumber);

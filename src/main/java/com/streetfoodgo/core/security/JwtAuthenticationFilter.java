@@ -69,15 +69,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Convert String to GrantedAuthority
             final var authorities =
-                    roles == null
-                            ? List.<GrantedAuthority>of() // empty list
-                            : roles.stream().map(role ->
-                            new SimpleGrantedAuthority("ROLE_" + role)).toList();
+                roles == null
+                    ? List.<GrantedAuthority>of() // empty list
+                    : roles.stream().map(role ->
+                        new SimpleGrantedAuthority("ROLE_" + role)).toList();
 
             // Create User.
             final User principal = new User(subject, "", authorities);
             final UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
+                new UsernamePasswordAuthenticationToken(principal, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         } catch (Exception ex) {
             // Invalid Token or Internal error.

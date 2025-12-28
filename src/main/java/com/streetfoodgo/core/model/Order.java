@@ -26,7 +26,7 @@ import java.time.Instant;
  */
 @Entity
 @Table(
-        name = "order",
+        name = "orders",
         indexes = {
                 @Index(name = "idx_order_status", columnList = "status"),
                 @Index(name = "idx_order_customer", columnList = "customer_id"),
@@ -87,15 +87,15 @@ public final class Order {
     }
 
     public Order(Long id,
-                  Person customer,
-                  Person waiter,
-                  OrderStatus status,
-                  String subject,
-                  String customerContent,
-                  String waiterContent,
-                  Instant queuedAt,
-                  Instant inProgressAt,
-                  Instant completedAt) {
+                 Person customer,
+                 Person waiter,
+                 OrderStatus status,
+                 String subject,
+                 String customerContent,
+                 String waiterContent,
+                 Instant queuedAt,
+                 Instant inProgressAt,
+                 Instant completedAt) {
         this.id = id;
         this.customer = customer;
         this.waiter = waiter;

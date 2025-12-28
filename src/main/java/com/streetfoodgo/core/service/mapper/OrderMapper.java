@@ -1,8 +1,6 @@
 package com.streetfoodgo.core.service.mapper;
 
-import com.streetfoodgo.core.model.Person;
 import com.streetfoodgo.core.model.Order;
-import com.streetfoodgo.core.service.model.PersonView;
 
 import com.streetfoodgo.core.service.model.OrderView;
 
@@ -26,9 +24,9 @@ public class OrderMapper {
             return null;
         }
         return new OrderView(
-                order.getId(),
-                this.personMapper.convertPersonToPersonView(order.getCustomer()),
-                this.personMapper.convertPersonToPersonView(order.getWaiter()),
+            order.getId(),
+            this.personMapper.convertPersonToPersonView(order.getCustomer()),
+            this.personMapper.convertPersonToPersonView(order.getWaiter()),
                 order.getStatus(),
                 order.getSubject(),
                 order.getCustomerContent(),

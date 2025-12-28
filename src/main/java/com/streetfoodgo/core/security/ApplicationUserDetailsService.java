@@ -26,20 +26,19 @@ public class ApplicationUserDetailsService implements UserDetailsService {
         if (username == null) throw new NullPointerException();
         if (username.isBlank()) throw new IllegalArgumentException();
         final Person person = this.personRepository
-                .findByEmailAddressIgnoreCase(username)
-                .orElse(null);
+            .findByEmailAddressIgnoreCase(username)
+            .orElse(null);
         if (person == null) {
             throw new UsernameNotFoundException("person with emailAddress" + username + " does not exist");
         }
         return new ApplicationUserDetails(
-                person.getId(),
-                person.getEmailAddress(),
-                person.getPasswordHash(),
-                person.getType()
+            person.getId(),
+            person.getEmailAddress(),
+            person.getPasswordHash(),
+            person.getType()
         );
 
         // One-line alternative:
-
         /*
         return this.personRepository.findByEmailAddressIgnoreCase(username.strip())
             .map(person -> new ApplicationUserDetails(

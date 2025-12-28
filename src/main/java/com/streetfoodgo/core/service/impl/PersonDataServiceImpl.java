@@ -31,9 +31,9 @@ public class PersonDataServiceImpl implements PersonDataService {
     public List<PersonView> getAllPeople() {
         final List<Person> personList = this.personRepository.findAll();
         final List<PersonView> personViewList = personList
-                .stream()
-                .map(this.personMapper::convertPersonToPersonView)
-                .toList();
+            .stream()
+            .map(this.personMapper::convertPersonToPersonView)
+            .toList();
         return personViewList;
     }
 }

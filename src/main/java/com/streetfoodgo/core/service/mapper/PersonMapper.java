@@ -16,13 +16,13 @@ public class PersonMapper {
             return null;
         }
         final PersonView personView = new PersonView(
-                person.getId(),
-                person.getFoodId(),
-                person.getFirstName(),
-                person.getLastName(),
-                person.getMobilePhoneNumber(),
-                person.getEmailAddress(),
-                person.getType()
+            person.getId(),
+            person.getHuaId(),
+            person.getFirstName(),
+            person.getLastName(),
+            person.getMobilePhoneNumber(),
+            person.getEmailAddress(),
+            person.getType()
         );
         return personView;
     }
