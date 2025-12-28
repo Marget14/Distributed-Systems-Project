@@ -21,6 +21,7 @@ import java.util.List;
 public class PersonResource {
 
     private final PersonDataService personDataService;
+    private final ObjectMapper objectMapper = new ObjectMapper(); // ή Bean ακόμα καλύτερα.
 
     public PersonResource(final PersonDataService personDataService) {
         if (personDataService == null) throw new NullPointerException();
@@ -33,4 +34,17 @@ public class PersonResource {
         final List<PersonView> personViewList = this.personDataService.getAllPeople();
         return personViewList;
     }
+
+    // Σημείωση: Το Spring μετατρέπει τα java instances σε JSON. Παρακάτω, αν θέλαμε να το κάνουμε χειροκίνητα:
+    // ΑΚΡΙΒΩΣ το ίδιο αποτέλεσμα. Κάπως έτσι λειτουργεί εσωτερικά το Spring.
+    /*
+    @GetMapping("/example")
+    public String peopleManualJson() throws IOException {
+        final List<PersonView> personViewList = this.personDataService.getAllPeople();
+        final StringWriter stringWriter = new StringWriter();
+        objectMapper.writeValue(stringWriter, personViewList);
+        final String jsonString = stringWriter.toString();
+        return jsonString;
+    }
+    */
 }

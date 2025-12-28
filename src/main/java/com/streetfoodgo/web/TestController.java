@@ -1,6 +1,5 @@
 package com.streetfoodgo.web;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -28,7 +27,6 @@ public class TestController {
     */
 
     @GetMapping(value = "/test/error/NullPointerException")
-    @Profile("dev")
     public String testErrorNullPointerException() {
         final Integer a = null;
         final int b = 0;

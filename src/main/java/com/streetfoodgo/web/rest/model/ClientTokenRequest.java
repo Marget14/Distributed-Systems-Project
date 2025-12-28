@@ -9,6 +9,6 @@ import jakarta.validation.constraints.NotNull;
  * @see ClientAuthResource
  */
 public record ClientTokenRequest(
-        @NotNull @NotBlank String clientId,
-        @NotNull @NotBlank String clientSecret
+    @NotNull @NotBlank String clientId,
+    @NotNull @NotBlank String clientSecret
 ) {}

@@ -15,9 +15,9 @@ public class AuthController {
 
     @GetMapping("/login")
     public String login(
-            final Authentication authentication,
-            final HttpServletRequest request,
-            final Model model
+        final Authentication authentication,
+        final HttpServletRequest request,
+        final Model model
     ) {
         if (AuthUtils.isAuthenticated(authentication)) {
             return "redirect:/profile";

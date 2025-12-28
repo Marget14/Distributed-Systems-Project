@@ -21,28 +21,27 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("Office Hours API")
-                        .version("v1")
-                        .description("Stateless API for data analytics purposes")
+            .info(new Info()
+                .title("Office Hours API")
+                .version("v1")
+                .description("Stateless API for data analytics purposes")
+            )
+            .components(new Components()
+                .addSecuritySchemes("BearerAuth", new SecurityScheme()
+                    .type(SecurityScheme.Type.HTTP)
+                    .scheme("bearer")
+                    .bearerFormat("JWT")
                 )
-                .components(new Components()
-                        .addSecuritySchemes("BearerAuth", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")
-                        )
-                )
-                .addSecurityItem(new SecurityRequirement().addList("BearerAuth"));
+            )
+            .addSecurityItem(new SecurityRequirement().addList("BearerAuth"));
     }
 
     @Bean
     public GroupedOpenApi groupedOpenApi() {
         return GroupedOpenApi.builder()
-                .group("api")
-                .packagesToScan("com.streetfoodgo.web.rest")
-                .pathsToMatch("/api/v1/**")
-                .build();
+            .group("api")
+            .packagesToScan("gr.hua.dit.officehours.web.rest")
+            .pathsToMatch("/api/v1/**")
+            .build();
     }
 }
-

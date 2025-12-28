@@ -2,14 +2,13 @@ package com.streetfoodgo.web.ui;
 
 import com.streetfoodgo.core.security.CurrentUserProvider;
 import com.streetfoodgo.core.service.OrderBusinessLogicService;
+
 import com.streetfoodgo.core.service.model.CompleteOrderRequest;
 import com.streetfoodgo.core.service.model.OpenOrderRequest;
-import com.streetfoodgo.core.service.model.StartOrderRequest;
 import com.streetfoodgo.core.service.model.OrderView;
-
+import com.streetfoodgo.core.service.model.StartOrderRequest;
 import com.streetfoodgo.web.ui.model.CompleteOrderForm;
 import com.streetfoodgo.web.ui.model.OpenOrderForm;
-
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatusCode;
@@ -37,7 +36,7 @@ public class OrderController {
     private final OrderBusinessLogicService orderBusinessLogicService;
 
     public OrderController(final CurrentUserProvider currentUserProvider,
-                            final OrderBusinessLogicService orderBusinessLogicService) {
+                           final OrderBusinessLogicService orderBusinessLogicService) {
         if (currentUserProvider == null) throw new NullPointerException();
         if (orderBusinessLogicService == null) throw new NullPointerException();
 
@@ -76,17 +75,17 @@ public class OrderController {
     @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/new")
     public String handleOpenForm(
-            @ModelAttribute("form") @Valid final OpenOrderForm openOrderForm,
-            final BindingResult bindingResult
+        @ModelAttribute("form") @Valid final OpenOrderForm openOrderForm,
+        final BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
             return "new_order";
         }
         final OpenOrderRequest openOrderRequest = new OpenOrderRequest(
-                this.currentUserProvider.requiredCustomerId(), // The current user must be Customer. We need their ID.
-                openOrderForm.waiterId(),
-                openOrderForm.subject(),
-                openOrderForm.customerContent()
+            this.currentUserProvider.requiredStudentId(), // The current user must be Customer. We need their ID.
+            openOrderForm.waiterId(),
+            openOrderForm.subject(),
+            openOrderForm.customerContent()
         );
         final OrderView orderView = this.orderBusinessLogicService.openOrder(openOrderRequest);
         return "redirect:/orders/" + orderView.id();
@@ -103,16 +102,16 @@ public class OrderController {
     @PreAuthorize("hasRole('WAITER')")
     @PostMapping("/{orderId}/complete")
     public String handleCompleteForm(
-            @PathVariable final Long orderId,
-            @ModelAttribute("form") final CompleteOrderForm completeOrderForm,
-            final BindingResult bindingResult
+        @PathVariable final Long orderId,
+        @ModelAttribute("form") final CompleteOrderForm completeOrderForm,
+        final BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
             return "order";
         }
         final CompleteOrderRequest completeOrderRequest = new CompleteOrderRequest(
-                orderId,
-                completeOrderForm.waiterContent()
+            orderId,
+            completeOrderForm.waiterContent()
         );
         final OrderView orderView = this.orderBusinessLogicService.completeOrder(completeOrderRequest);
         return "redirect:/orders/" + orderView.id();

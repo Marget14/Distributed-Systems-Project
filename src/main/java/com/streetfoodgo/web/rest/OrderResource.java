@@ -2,7 +2,6 @@ package com.streetfoodgo.web.rest;
 
 import com.streetfoodgo.core.service.OrderDataService;
 import com.streetfoodgo.core.service.model.OrderView;
-
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
