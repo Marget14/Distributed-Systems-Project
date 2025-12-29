@@ -1,195 +1,53 @@
 <!DOCTYPE html>
 <html
-      xmlns:th="https://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{base}">
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white py-12 px-4">
-    <div class="max-w-md w-full">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <a href="/" class="inline-flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                    <i class="fas fa-utensils text-white text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-display font-bold text-dark">StreetFood<span class="text-primary">Go</span></h1>
-                    <p class="text-xs text-gray-500">Sign in to your account</p>
-                </div>
-            </a>
+        xmlns:th="https://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{base}">
+
+<head>
+    <title>Login</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <h1>Office Hours <small>/ Login</small></h1>
+</header>
+
+<section layout:fragment="main">
+
+    <form th:action="@{/login}" method="post">
+
+        <!-- MESSAGE -->
+        <div class="text-center mb-3" th:if="${message}">
+            <p class="text-primary" th:text="${message}"></p>
         </div>
 
-        <!-- Login Card -->
-        <div class="modern-card p-8">
-            <h2 class="text-2xl font-display font-bold mb-6 text-center">Welcome Back</h2>
-
-            <form id="login-form" class="space-y-6">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                    </label>
-                    <input type="email"
-                           id="email"
-                           name="email"
-                           class="modern-input"
-                           placeholder="Enter your email"
-                           required
-                           aria-required="true"
-                           aria-label="Email address">
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-sm font-medium text-gray-700">Password</label>
-                        <a href="#" class="text-sm text-primary hover:text-secondary">Forgot password?</a>
-                    </div>
-                    <input type="password"
-                           class="modern-input"
-                           placeholder="Enter your password"
-                           required>
-                </div>
-
-                <div class="flex items-center">
-                    <input type="checkbox"
-                           id="remember-me"
-                           class="rounded border-gray-300 text-primary focus:ring-primary">
-                    <label for="remember-me" class="ml-2 text-sm text-gray-700">Remember me</label>
-                </div>
-
-                <button type="submit" class="modern-btn w-full py-3">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
-                </button>
-
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-2 bg-white text-gray-500">Or continue with</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="modern-btn-outline">
-                        <i class="fab fa-google text-red-500 mr-2"></i>Google
-                    </button>
-                    <button type="button" class="modern-btn-outline">
-                        <i class="fab fa-facebook text-blue-600 mr-2"></i>Facebook
-                    </button>
-                </div>
-            </form>
-
-            <div class="mt-8 text-center">
-                <p class="text-gray-600">
-                    Don't have an account?
-                    <a href="/register" class="text-primary hover:text-secondary font-medium">Sign up</a>
-                </p>
-            </div>
+        <!-- ERROR MESSAGE -->
+        <div class="text-center mb-3" th:if="${error}">
+            <p class="text-danger" th:text="${error}"></p>
         </div>
 
-        <!-- App Download -->
-        <div class="mt-8 text-center">
-            <p class="text-gray-600 text-sm mb-4">Get the app</p>
-            <div class="flex justify-center gap-3">
-                <button class="modern-btn-outline px-4 py-2">
-                    <i class="fab fa-apple mr-2"></i>App Store
-                </button>
-                <button class="modern-btn-outline px-4 py-2">
-                    <i class="fab fa-google-play mr-2"></i>Google Play
-                </button>
-            </div>
+        <!-- FORM CONTROLS -->
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input name="username" type="text" class="form-control" required autofocus>
         </div>
-    </div>
-</div>
 
-<!-- Embedded JavaScript -->
-<script>
-    // Initialize login form
-    document.addEventListener('DOMContentLoaded', function() {
-        const loginForm = document.getElementById('login-form');
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="form-control" required>
+        </div>
 
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        <div class="mb-4">
+            <button type="submit" class="btn btn-primary">Log in</button>
+        </div>
 
-            const email = this.querySelector('input[type="email"]').value;
-            const password = this.querySelector('input[type="password"]').value;
+        <p><a th:href="@{/register}">Don't have an account? Register</a></p>
 
-            // Simple validation
-            if (!email || !password) {
-                showToast('Error', 'Please fill in all fields', 'error');
-                return;
-            }
+    </form>
 
-            // Show loading
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing in...';
-            submitBtn.disabled = true;
+</section>
 
-            // Simulate API call
-            fetch('/api/v1/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Login failed');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Save token to localStorage
-                    localStorage.setItem('access_token', data.accessToken);
-                    localStorage.setItem('user_info', JSON.stringify(data.userInfo));
-
-                    showToast('Success', 'Welcome back! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
-                })
-                .catch(error => {
-                    showToast('Error', error.message, 'error');
-                    // Reset button
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                });
-
-        // Social login buttons
-        document.querySelectorAll('.modern-btn-outline').forEach(btn => {
-            if (btn.textContent.includes('Google') || btn.textContent.includes('Facebook')) {
-                btn.addEventListener('click', function() {
-                    const provider = this.textContent.includes('Google') ? 'Google' : 'Facebook';
-                    showToast('Social Login', `Redirecting to ${provider} authentication...`, 'info');
-                });
-            }
-        });
-    });
-</script>
-
-<style>
-    /* Login page specific styles */
-    .min-h-screen {
-        min-height: 100vh;
-    }
-
-    /* Input focus effects */
-    .modern-input:focus {
-        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
-    }
-
-    /* Button hover effects */
-    .modern-btn:hover {
-        transform: translateY(-2px);
-    }
-
-    /* Social button hover */
-    .modern-btn-outline:hover {
-        transform: translateY(-1px);
-    }
-</style>
+</body>
 </html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="https://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{base}">
+
+<head>
+    <title>Order</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p>
+        <a th:href="@{/orders}">Back to list</a>
+    </p>
+    <h1>Order</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    </div>
+
+    <ul class="mb-4">
+        <li>Status: <b th:text="${order.status()}"></b></li>
+        <li>Customer: <b th:text="${order.customer().fullName()}"></b></li>
+        <li>Waiter: <b th:text="${order.waiter().fullName()}"></b></li>
+        <li>Queued at: <b th:text="${order.queuedAt()}"></b></li>
+        <li th:if="${order.inProgressAt() != null}">In progress at: <b th:text="${order.inProgressAt()}"></b></li>
+        <li th:if="${order.completedAt() != null}">Completed at: <b th:text="${order.completedAt()}"></b></li>
+        <li>Subject: <b th:text="${order.subject()}"></b></li>
+        <li>Customer's Content: <b th:text="${order.customerContent()}"></b></li>
+        <li th:if="${order.waiterContent() != null}">Waiter's Content: <b th:text="${order.waiterContent()}"></b></li>
+    </ul>
+
+    <!-- Waiter actions -->
+    <div th:if="${#authorization.expression('hasRole(''WAITER'')')}">
+
+        <!-- IN_PROGRESS / start -->
+        <form th:if="${order.status().name() == 'QUEUED'}" th:action="@{|/orders/${order.id()}/start|}" method="post">
+            <button type="submit" class="btn btn-primary">Start</button>
+        </form>
+
+        <!-- COMPLETED / complete -->
+        <form
+                th:if="${order.status().name() == 'IN_PROGRESS'}"
+                th:action="@{|/orders/${order.id()}/complete|}"
+                method="post"
+                th:object="${completeOrderForm}"
+        >
+            <div class="mb-3">
+                <label for="waiterContent" class="form-label">Waiter's Content</label>
+                <textarea id="waiterContent" name="waiterContent" th:field="*{waiterContent}" class="form-control" placeholder="" required></textarea>
+                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('waiterContent')}" th:errors="*{waiterContent}"></div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">Complete Order</button>
+            </div>
+
+        </form>
+    </div>
+
+</section>
+
+</body>
+</html>
