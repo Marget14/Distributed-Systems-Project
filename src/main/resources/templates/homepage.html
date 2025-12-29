@@ -11,586 +11,125 @@
 <body>
 
 <div layout:fragment="content">
-    <!-- Hero Section -->
+
+    <!-- ================= HERO ================= -->
     <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden mb-16">
-        <!-- Animated Background -->
         <div class="absolute inset-0 bg-gradient-to-br from-gray-950 via-black to-cyan-950"></div>
-        <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"><g fill=\"none\" fill-rule=\"evenodd\"><path d=\"M0 0h60v60H0z\"/><path d=\"M30 0v60M0 30h60\" stroke=\"%23FFFFFF\" stroke-width=\"1\"/><circle cx=\"30\" cy=\"30\" r=\"2\" fill=\"%230ea5e9\"/></g></svg>');"></div>
-<div class="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
-<div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500 rounded-full filter blur-3xl opacity-10"></div>
-
-<div class="relative z-10 w-full max-w-7xl mx-auto px-4 text-center">
-    <h1 class="text-6xl md:text-8xl font-bold mb-6 tracking-tighter">
-                <span class="bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-orange-400 bg-clip-text text-transparent animate-gradient">
-                    STREETFOOD
-                </span>
-        <span class="text-white block md:inline mt-2 md:mt-0">.GO</span>
-    </h1>
-    <p class="text-2xl md:text-3xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-        The first <span class="text-cyan-300 font-semibold">quantum</span> food experience.
-        With <span class="text-fuchsia-300 font-semibold">3D preview</span> and
-        <span class="text-orange-300 font-semibold">neural networks</span>.
-    </p>
-
-    <!-- Interactive Search -->
-    <div class="glass-panel p-2 max-w-3xl mx-auto mb-12 backdrop-blur-lg border border-white/10">
-        <div class="flex items-center">
-            <div class="flex-1 flex items-center px-4">
-                <i class="fas fa-search text-gray-400 mr-3 text-xl"></i>
-                <input type="text"
-                       id="searchInput"
-                       placeholder="Ask AI: 'Find grilled souvlaki with AR preview near Acropolis'"
-                       class="w-full bg-transparent border-0 outline-none text-white text-lg py-4 placeholder-gray-500"
-                       onkeypress="if(event.key === 'Enter') searchFood()">
-            </div>
-            <button onclick="startVoiceSearch()"
-                    class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center mr-2 hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-cyan-500/25"
-                    aria-label="Voice search">
-                <i class="fas fa-microphone text-white"></i>
-            </button>
-            <button onclick="searchFood()"
-                    class="cyber-button px-8 py-3"
-                    aria-label="Search for food">
-                <i class="fas fa-bolt mr-2" aria-hidden="true"></i>
-                QUANTUM SEARCH
-            </button>
+        <div class="absolute inset-0 opacity-10"
+             style="background-image: url('data:image/svg+xml,<svg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><g fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;><path d=&quot;M0 0h60v60H0z&quot;/><path d=&quot;M30 0v60M0 30h60&quot; stroke=&quot;%23FFFFFF&quot; stroke-width=&quot;1&quot;/><circle cx=&quot;30&quot; cy=&quot;30&quot; r=&quot;2&quot; fill=&quot;%230ea5e9&quot;/></g></svg>');">
         </div>
-        <div id="voiceStatus" class="text-center text-sm text-gray-400 mt-2"></div>
-    </div>
 
-    <!-- Live Stats Bar -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-        <div class="glass-panel p-6 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-4xl font-bold text-cyan-400 mb-2 font-mono" id="liveOrders">1,847</div>
-            <div class="text-gray-400 font-semibold">LIVE ORDERS</div>
-        </div>
-        <div class="glass-panel p-6 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-4xl font-bold text-fuchsia-400 mb-2 font-mono" id="avgTime">8.2</div>
-            <div class="text-gray-400 font-semibold">AVG MINUTES</div>
-        </div>
-        <div class="glass-panel p-6 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-4xl font-bold text-orange-400 mb-2 font-mono" id="storesLive">642</div>
-            <div class="text-gray-400 font-semibold">3D STORES</div>
-        </div>
-        <div class="glass-panel p-6 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-4xl font-bold text-white mb-2 font-mono" id="aiAccuracy">99.1%</div>
-            <div class="text-gray-400 font-semibold">AI ACCURACY</div>
-        </div>
-    </div>
-</div>
-</section>
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 text-center">
+            <h1 class="text-6xl md:text-8xl font-bold mb-6 tracking-tighter">
+            <span class="bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-orange-400 bg-clip-text text-transparent animate-gradient">
+                STREETFOOD
+            </span>
+                <span class="text-white block md:inline">.GO</span>
+            </h1>
 
-<!-- Featured 3D Stores -->
-<section class="mb-16 px-4">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="text-4xl font-bold">
-            <span class="bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">FEATURED</span>
-            <span class="text-white ml-3">3D STORES</span>
-        </h2>
-        <a th:href="@{/stores}" class="cyber-button">
-            <i class="fas fa-vr-cardboard mr-2"></i>VIEW ALL IN 3D
-        </a>
-    </div>
+            <p class="text-2xl md:text-3xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                The first <span class="text-cyan-300 font-semibold">quantum</span> food experience
+            </p>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Store 1 -->
-        <div class="card-3d glass-panel p-6 hover-lift">
-            <div class="relative mb-6">
-                <div class="aspect-video rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-cyan-500/20 to-fuchsia-500/20 flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-burger text-6xl text-cyan-400 mb-4"></i>
-                        <div class="text-sm text-gray-400">3D HOLOGRAM READY</div>
-                    </div>
-                </div>
-                <div class="absolute top-4 right-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-fuchsia-500 flex items-center justify-center">
-                        <i class="fas fa-vr-cardboard text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-2xl font-bold mb-2 text-white">NEO BURGER CO.</h3>
-            <p class="text-gray-400 mb-4">Quantum-cooked burgers with AI-optimized recipes</p>
-
-            <div class="flex items-center justify-between mb-4">
+            <div class="glass-panel p-2 max-w-3xl mx-auto mb-12">
                 <div class="flex items-center">
-                    <div class="flex text-orange-400 mr-2">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <span class="text-gray-400">4.7</span>
+                    <input id="searchInput"
+                           class="w-full bg-transparent text-white text-lg py-4 px-4 outline-none"
+                           placeholder="Ask AI: 'Find grilled souvlaki with AR preview near Acropolis'"
+                           onkeypress="if(event.key === 'Enter') searchFood()">
+                    <button onclick="searchFood()" class="cyber-button px-8 ml-2">
+                        QUANTUM SEARCH
+                    </button>
                 </div>
-                <span class="text-cyan-400 font-bold">12-18 min</span>
-            </div>
-
-            <button onclick="viewStore3D(1)" class="w-full cyber-button">
-                <i class="fas fa-eye mr-2"></i>VIEW IN 3D
-            </button>
-        </div>
-
-        <!-- Store 2 -->
-        <div class="card-3d glass-panel p-6 hover-lift">
-            <div class="relative mb-6">
-                <div class="aspect-video rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-orange-500/20 to-cyan-500/20 flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-pizza-slice text-6xl text-orange-400 mb-4"></i>
-                        <div class="text-sm text-gray-400">AR PREVIEW AVAILABLE</div>
-                    </div>
-                </div>
-                <div class="absolute top-4 right-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-cyan-500 flex items-center justify-center">
-                        <i class="fas fa-mobile-alt text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-2xl font-bold mb-2 text-white">PIZZA MATRIX</h3>
-            <p class="text-gray-400 mb-4">Holographic pizza customization with neural networks</p>
-
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center">
-                    <div class="flex text-orange-400 mr-2">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <span class="text-gray-400">5.0</span>
-                </div>
-                <span class="text-cyan-400 font-bold">15-22 min</span>
-            </div>
-
-            <button onclick="viewStoreAR(2)" class="w-full cyber-button">
-                <i class="fas fa-cube mr-2"></i>AR EXPERIENCE
-            </button>
-        </div>
-
-        <!-- Store 3 -->
-        <div class="card-3d glass-panel p-6 hover-lift">
-            <div class="relative mb-6">
-                <div class="aspect-video rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-fuchsia-500/20 to-purple-600/20 flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-robot text-6xl text-fuchsia-400 mb-4"></i>
-                        <div class="text-sm text-gray-400">AI CHEF POWERED</div>
-                    </div>
-                </div>
-                <div class="absolute top-4 right-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center">
-                        <i class="fas fa-brain text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-2xl font-bold mb-2 text-white">SUSHI.AI</h3>
-            <p class="text-gray-400 mb-4">Machine learning sushi with real-time freshness tracking</p>
-
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center">
-                    <div class="flex text-orange-400 mr-2">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <span class="text-gray-400">4.9</span>
-                </div>
-                <span class="text-cyan-400 font-bold">20-25 min</span>
-            </div>
-
-            <button onclick="aiRecommendSushi()" class="w-full cyber-button">
-                <i class="fas fa-robot mr-2"></i>AI RECOMMEND
-            </button>
-        </div>
-    </div>
-</section>
-
-<!-- Quantum Features -->
-<section class="mb-16 px-4">
-    <h2 class="text-4xl font-bold text-center mb-12">
-        <span class="text-white">QUANTUM</span>
-        <span class="bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent ml-3">FEATURES</span>
-    </h2>
-
-    <div class="grid md:grid-cols-3 gap-8">
-        <div class="glass-panel p-8 text-center hover:scale-105 transition-transform duration-300">
-            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-transparent flex items-center justify-center mx-auto mb-6 border border-cyan-500/30">
-                <i class="fas fa-vr-cardboard text-3xl text-cyan-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold mb-4 text-white">3D HOLOGRAM VIEW</h3>
-            <p class="text-gray-400 mb-6">View food in photorealistic 3D holograms before ordering</p>
-            <div class="text-cyan-400 text-sm font-semibold">
-                <i class="fas fa-bolt mr-2"></i>REAL-TIME RENDERING
             </div>
         </div>
+    </section>
 
-        <div class="glass-panel p-8 text-center hover:scale-105 transition-transform duration-300">
-            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-transparent flex items-center justify-center mx-auto mb-6 border border-fuchsia-500/30">
-                <i class="fas fa-brain text-3xl text-fuchsia-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold mb-4 text-white">QUANTUM AI</h3>
-            <p class="text-gray-400 mb-6">Predictive ordering based on neural network analysis</p>
-            <div class="text-fuchsia-400 text-sm font-semibold">
-                <i class="fas fa-chart-network mr-2"></i>99.1% ACCURACY
-            </div>
-        </div>
-
-        <div class="glass-panel p-8 text-center hover:scale-105 transition-transform duration-300">
-            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500/20 to-transparent flex items-center justify-center mx-auto mb-6 border border-orange-500/30">
-                <i class="fas fa-bolt text-3xl text-orange-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold mb-4 text-white">QUANTUM DELIVERY</h3>
-            <p class="text-gray-400 mb-6">AI-optimized routes using quantum computing algorithms</p>
-            <div class="text-orange-400 text-sm font-semibold">
-                <i class="fas fa-rocket mr-2"></i>8.2 AVG MINUTES
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Live Orders Stream -->
-<section class="mb-16 px-4">
-    <div class="glass-panel p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-white">
-                <i class="fas fa-satellite-dish text-cyan-400 mr-3"></i>
+    <!-- ================= LIVE STREAM ================= -->
+    <section class="px-4 mb-16">
+        <div class="glass-panel p-6">
+            <h3 class="text-2xl font-bold text-white mb-4">
                 LIVE ORDERS STREAM
             </h3>
-            <div class="flex items-center">
-                <div class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse mr-2"></div>
-                <span class="text-gray-400 font-semibold">LIVE</span>
-            </div>
-        </div>
 
-        <div class="space-y-3" id="liveOrdersStream">
-            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                <div class="flex items-center">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 flex items-center justify-center mr-3">
-                        <i class="fas fa-user text-xs text-white"></i>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-white">QuantumBurger #1278</div>
-                        <div class="text-sm text-gray-400">To Syntagma Square</div>
-                    </div>
-                </div>
-                <div class="text-cyan-400 font-mono">12:45</div>
-            </div>
-
-            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                <div class="flex items-center">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-fuchsia-500 to-orange-500 flex items-center justify-center mr-3">
-                        <i class="fas fa-user text-xs text-white"></i>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-white">Sushi.AI #0956</div>
-                        <div class="text-sm text-gray-400">To Kolonaki</div>
-                    </div>
-                </div>
-                <div class="text-cyan-400 font-mono">12:42</div>
-            </div>
+            <div id="liveOrdersStream" class="space-y-3"></div>
         </div>
-    </div>
-</section>
+    </section>
+
 </div>
 
-<!-- Embedded JavaScript -->
-<script>
-    // Live stats updates
+<!-- ================= JAVASCRIPT ================= -->
+<script th:inline="javascript">
     let liveOrderCount = 1847;
 
     function updateLiveStats() {
-        liveOrderCount += Math.floor(Math.random() * 5);
-        document.getElementById('liveOrders').textContent = liveOrderCount.toLocaleString();
 
-        const avgTime = 8.2 + (Math.random() - 0.5) * 0.3;
-        document.getElementById('avgTime').textContent = avgTime.toFixed(1);
-
-        const accuracy = 99.1 + (Math.random() - 0.5) * 0.1;
-        document.getElementById('aiAccuracy').textContent = accuracy.toFixed(1) + '%';
-
-        // Add new orders to stream
-        if (Math.random() > 0.7) {
-            const orders = ['QuantumBurger', 'Sushi.AI', 'Pizza Matrix', 'Neo Tacos', 'AI Ramen'];
-            const areas = ['Syntagma', 'Kolonaki', 'Monastiraki', 'Gazi', 'Psiri'];
+        if (Math.random() > 0.6) {
+            const orders = ['QuantumBurger', 'Sushi.AI', 'Pizza Matrix', 'Neo Tacos'];
+            const areas = ['Syntagma', 'Kolonaki', 'Gazi', 'Psiri'];
 
             const order = orders[Math.floor(Math.random() * orders.length)];
             const area = areas[Math.floor(Math.random() * areas.length)];
             const orderNum = Math.floor(Math.random() * 2000);
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             const orderElement = document.createElement('div');
-            orderElement.className = 'flex items-center justify-between p-3 rounded-lg bg-white/5 animate-slide-up';
+            orderElement.className = 'flex justify-between p-3 bg-white/5 rounded-lg animate-slide-up';
+
             orderElement.innerHTML = `
-                <div class="flex items-center">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 flex items-center justify-center mr-3">
-                        <i class="fas fa-user text-xs text-white"></i>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-white">${order} #${orderNum}</div>
-                        <div class="text-sm text-gray-400">To ${area}</div>
-                    </div>
+                <div>
+                    <div class="font-semibold text-white">${order} #${orderNum}</div>
+                    <div class="text-sm text-gray-400">To ${area}</div>
                 </div>
                 <div class="text-cyan-400 font-mono">${time}</div>
             `;
 
             const stream = document.getElementById('liveOrdersStream');
-            stream.insertBefore(orderElement, stream.firstChild);
+            stream.prepend(orderElement);
 
             if (stream.children.length > 5) {
-                stream.removeChild(stream.lastChild);
+                stream.lastChild.remove();
             }
         }
     }
 
-    // Store viewing functions
-    function viewStore3D(storeId) {
-        showNotification('info', '3D Mode', 'Loading holographic view...');
-        setTimeout(() => {
-            window.location.href = `/stores/${storeId}?view=3d`;
-        }, 1500);
-    }
-
-    function viewStoreAR(storeId) {
-        if ('xr' in navigator) {
-            showNotification('info', 'AR Mode', 'Starting augmented reality...');
-            setTimeout(() => {
-                window.location.href = `/stores/${storeId}/ar`;
-            }, 1500);
-        } else {
-            showNotification('error', 'AR Not Supported', 'Your device doesn\'t support AR');
-        }
-    }
-
-    function aiRecommendSushi() {
-        const loading = document.createElement('div');
-        loading.id = 'aiLoading';
-        loading.className = 'glass-panel fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-8 z-50 backdrop-blur-xl';
-        loading.innerHTML = `
-            <div class="text-center">
-                <i class="fas fa-robot text-4xl text-cyan-400 mb-4 animate-pulse"></i>
-                <h4 class="text-xl font-bold mb-2 text-white">QUANTUM AI ANALYZING</h4>
-                <p class="text-gray-400 mb-4">Scanning taste preferences...</p>
-                <div class="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-                    <div id="aiProgress" class="h-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 transition-all duration-300" style="width: 0%"></div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(loading);
-
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            document.getElementById('aiProgress').style.width = progress + '%';
-
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    loading.remove();
-                    showNotification('success', 'AI Recommendation',
-                        'Based on 15,432 data points, we recommend: Dragon Roll + Miso Soup');
-                }, 500);
-            }
-        }, 200);
-    }
-
-    // Search functionality
     function searchFood() {
-        const query = document.getElementById('searchInput').value;
-        if (!query.trim()) return;
-
-        showNotification('info', 'Quantum Search', 'Analyzing with neural networks...');
-
-        setTimeout(() => {
-            window.location.href = `/stores?q=${encodeURIComponent(query)}`;
-        }, 1000);
+        const q = document.getElementById('searchInput').value;
+        if (!q.trim()) return;
+        window.location.href = `/stores?q=${encodeURIComponent(q)}`;
     }
 
-    // Voice search
-    function startVoiceSearch() {
-        showNotification('info', 'Voice Search', 'Voice recognition activated. Speak now...');
-        setTimeout(() => {
-            const phrases = [
-                "Find vegan sushi near me",
-                "Show me burgers with 3D preview",
-                "Greek food with AR experience",
-                "Pizza delivery to Kolonaki"
-            ];
-            const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-            document.getElementById('searchInput').value = randomPhrase;
-            document.getElementById('voiceStatus').textContent = `Recognized: "${randomPhrase}"`;
-            document.getElementById('voiceStatus').className = 'text-center text-sm text-cyan-400 mt-2';
-        }, 1500);
-    }
-
-    // Notification system
-    function showNotification(type, title, message) {
-        const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 glass-panel p-4 min-w-80 transform transition-transform duration-300 translate-x-full backdrop-blur-lg border ${
-            type === 'success' ? 'border-green-500/30' :
-                type === 'error' ? 'border-red-500/30' :
-                    'border-cyan-500/30'
-        }`;
-
-        notification.innerHTML = `
-            <div class="flex items-start">
-                <div class="flex-shrink-0">
-                    <i class="fas ${
-            type === 'success' ? 'fa-check-circle text-green-400' :
-                type === 'error' ? 'fa-times-circle text-red-400' :
-                    'fa-info-circle text-cyan-400'
-        } text-xl mr-3"></i>
-                </div>
-                <div class="flex-1">
-                    <h4 class="font-bold text-white mb-1">${title}</h4>
-                    <p class="text-gray-300 text-sm">${message}</p>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.classList.remove('translate-x-full');
-        }, 10);
-
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, 5000);
-    }
-
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Update stats every 5 seconds
+    document.addEventListener('DOMContentLoaded', () => {
         setInterval(updateLiveStats, 5000);
-
-        // Typing effect for search placeholder
-        const placeholder = "Ask AI: 'Find grilled souvlaki with AR preview near Acropolis'";
-        let i = 0;
-        const input = document.getElementById('searchInput');
-
-        function typePlaceholder() {
-            if (i < placeholder.length) {
-                input.placeholder = placeholder.substring(0, i + 1);
-                i++;
-                setTimeout(typePlaceholder, 50);
-            }
-        }
-
-        setTimeout(typePlaceholder, 1000);
-
-        // Card hover effects
-        document.querySelectorAll('.hover-lift').forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-8px)';
-                card.style.boxShadow = '0 20px 40px rgba(6, 182, 212, 0.15)';
-            });
-
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-                card.style.boxShadow = '';
-            });
-        });
     });
 </script>
 
-<!-- Embedded CSS -->
+<!-- ================= CSS ================= -->
 <style>
-    /* Animations */
+    .glass-panel {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+    }
+
+    .cyber-button {
+        background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+        padding: 12px 24px;
+        color: white;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
     @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .animate-slide-up {
         animation: slideUp 0.3s ease-out;
     }
-
-    @keyframes gradient {
-        0%, 100% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-    }
-
-    .animate-gradient {
-        background-size: 200% 200%;
-        animation: gradient 3s ease infinite;
-    }
-
-    /* Glass effect */
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Cyber button */
-    .cyber-button {
-        background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .cyber-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
-    }
-
-    .cyber-button:active {
-        transform: translateY(0);
-    }
-
-    /* Card 3D effect */
-    .card-3d {
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        transform-style: preserve-3d;
-        perspective: 1000px;
-    }
-
-    .card-3d:hover {
-        transform: translateY(-10px) rotateX(5deg);
-    }
-
-    /* Aspect ratio utilities */
-    .aspect-video {
-        position: relative;
-        padding-bottom: 56.25%;
-    }
-
-    .aspect-video > * {
-        position: absolute;
-        height: 100%;
-        width: 100%;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-    }
 </style>
+
 </body>
 </html>
