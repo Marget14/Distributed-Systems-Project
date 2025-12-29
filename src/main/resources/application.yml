@@ -4,7 +4,7 @@ spring:
     name: StreetFoodGo
 
   datasource:
-    url: jdbc:postgresql://dpg-d5615315pdvs73ce2r20-a.frankfurt-postgres.render:5432/streetfoodgo
+    url: jdbc:postgresql://d5615315pdvs73ce2r20-a.frankfurt-postgres.render.com/streetfoodgo
     username: streetfoodgo_user
     password: kBQkzBhYYZmzlq04TJJY7ba2FOPIeuhj
     driver-class-name: org.postgresql.Driver
