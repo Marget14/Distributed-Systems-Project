@@ -7,14 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO for requesting the creation (registration) of a Person.
+ * DTO for creating/registering a new person.
  */
 public record CreatePersonRequest(
-    @NotNull PersonType type,
-    @NotNull @NotBlank @Size(max = 20) String huaId,
-    @NotNull @NotBlank @Size(max = 100) String firstName,
-    @NotNull @NotBlank @Size(max = 100) String lastName,
-    @NotNull @NotBlank @Size(max = 100) @Email String emailAddress,
-    @NotNull @NotBlank @Size(max = 18) String mobilePhoneNumber,
-    @NotNull @NotBlank @Size(min = 4, max = 24) String rawPassword
+        @NotNull PersonType type,
+        @NotNull @NotBlank @Size(max = 100) String firstName,
+        @NotNull @NotBlank @Size(max = 100) String lastName,
+        @NotNull @NotBlank @Size(max = 100) @Email String emailAddress,
+        @NotNull @NotBlank @Size(max = 18) String mobilePhoneNumber,
+        @NotNull @NotBlank @Size(min = 6, max = 50) String rawPassword
 ) {}

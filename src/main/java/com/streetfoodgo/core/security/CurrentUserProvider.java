@@ -31,7 +31,7 @@ public final class CurrentUserProvider {
         return this.getCurrentUser().orElseThrow(() -> new SecurityException("not authenticated"));
     }
 
-    public long requiredStudentId() {
+    public long requiredCustomerId() {
         final var currentUser = this.requireCurrentUser();
         if (currentUser.type() != PersonType.CUSTOMER) throw new SecurityException("Customer type/role required");
         return currentUser.id();

@@ -102,7 +102,7 @@ public class OrderBusinessLogicServiceImpl implements OrderBusinessLogicService 
             return Optional.empty();
         }
 
-        // User MUST have access to Ticket.
+        // User MUST have access to Order.
         // --------------------------------------------------
 
         final long orderPersonId;

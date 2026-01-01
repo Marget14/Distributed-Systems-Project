@@ -1,9 +1,7 @@
 package com.streetfoodgo.core.repository;
 
 import com.streetfoodgo.core.model.Order;
-
 import com.streetfoodgo.core.model.OrderStatus;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,13 +15,21 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    List<Order> findAllByCustomerId(long customerId);
+    List<Order> findAllByCustomerId(Long customerId);
 
-    List<Order> findAllByWaiterId(long waiterId);
+    List<Order> findAllByCustomerIdOrderByCreatedAtDesc(Long customerId);
 
-    List<Order> findByStatusAndQueuedAtBefore(final OrderStatus status, Instant before);
+    List<Order> findAllByStoreId(Long storeId);
 
-    boolean existsByCustomerIdAndWaiterIdAndStatusIn(final long customerId, final long waiterId, final Collection<OrderStatus> statuses);
+    List<Order> findAllByStoreIdOrderByCreatedAtDesc(Long storeId);
 
-    long countByCustomerIdAndStatusIn(final long customerId, final Collection<OrderStatus> statuses);
+    List<Order> findAllByStoreIdAndStatus(Long storeId, OrderStatus status);
+
+    List<Order> findAllByStatus(OrderStatus status);
+
+    List<Order> findByStatusAndCreatedAtBefore(OrderStatus status, Instant before);
+
+    long countByCustomerIdAndStatusIn(Long customerId, Collection<OrderStatus> statuses);
+
+    long countByStoreIdAndStatus(Long storeId, OrderStatus status);
 }

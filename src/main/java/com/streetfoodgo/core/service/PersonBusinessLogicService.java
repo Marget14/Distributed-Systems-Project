@@ -4,13 +4,13 @@ import com.streetfoodgo.core.service.model.CreatePersonRequest;
 import com.streetfoodgo.core.service.model.CreatePersonResult;
 
 /**
- * Service for managing {@link com.streetfoodgo.core.model.Person}.
+ * Service for managing Person business logic.
  */
 public interface PersonBusinessLogicService {
 
-    CreatePersonResult createPerson(final CreatePersonRequest createPersonRequest, final boolean notify);
+    CreatePersonResult createPerson(CreatePersonRequest request, boolean notify);
 
-    default CreatePersonResult createPerson(final CreatePersonRequest createPersonRequest) {
-        return this.createPerson(createPersonRequest, true);
+    default CreatePersonResult createPerson(CreatePersonRequest request) {
+        return this.createPerson(request, true);
     }
 }

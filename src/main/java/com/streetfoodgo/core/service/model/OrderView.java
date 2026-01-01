@@ -1,25 +1,33 @@
 package com.streetfoodgo.core.service.model;
 
 import com.streetfoodgo.core.model.OrderStatus;
-import com.streetfoodgo.core.service.OrderBusinessLogicService;
+import com.streetfoodgo.core.model.OrderType;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
- * General view of {@link com.streetfoodgo.core.model.Order} entity.
- *
- * @see com.streetfoodgo.core.model.Order
- * @see OrderBusinessLogicService
+ * View/DTO for Order entity.
  */
 public record OrderView(
-    long id,
-    PersonView customer,
-    PersonView waiter,
-    OrderStatus status,
-    String subject,
-    String customerContent,
-    String waiterContent,
-    Instant queuedAt,
-    Instant inProgressAt,
-    Instant completedAt
+        Long id,
+        PersonView customer,
+        StoreView store,
+        OrderType orderType,
+        DeliveryAddressView deliveryAddress,
+        List<OrderItemView> items,
+        OrderStatus status,
+        BigDecimal subtotal,
+        BigDecimal deliveryFee,
+        BigDecimal total,
+        String customerNotes,
+        String rejectionReason,
+        Instant createdAt,
+        Instant acceptedAt,
+        Instant readyAt,
+        Instant deliveringAt,
+        Instant completedAt,
+        Instant rejectedAt,
+        Instant cancelledAt
 ) {}
