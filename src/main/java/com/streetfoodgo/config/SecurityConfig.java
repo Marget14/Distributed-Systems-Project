@@ -1,7 +1,6 @@
 package com.streetfoodgo.config;
 
 import com.streetfoodgo.core.security.JwtAuthenticationFilter;
-
 import com.streetfoodgo.web.rest.error.RestApiAccessDeniedHandler;
 import com.streetfoodgo.web.rest.error.RestApiAuthenticationEntryPoint;
 
@@ -20,70 +19,78 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Security configuration.
+ * Security configuration for StreetFoodGo.
+ *
+ * Two security chains:
+ * 1. API chain (stateless, JWT-based) for /api/v1/**
+ * 2. UI chain (stateful, session-based) for web interface
  */
 @Configuration
-@EnableMethodSecurity // enables @PreAuthorize
+@EnableMethodSecurity
 public class SecurityConfig {
 
     /**
-     * API chain {@code "/api/**"} (stateless, JWT).
+     * API chain for REST API (/api/v1/**) - JWT authentication
      */
     @Bean
     @Order(1)
-    public SecurityFilterChain apiChain(final HttpSecurity http,
-                                        final JwtAuthenticationFilter jwtAuthenticationFilter,
-                                        final RestApiAuthenticationEntryPoint restApiAuthenticationEntryPoint,
-                                        final RestApiAccessDeniedHandler restApiAccessDeniedHandler) throws Exception {
+    public SecurityFilterChain apiChain(
+            final HttpSecurity http,
+            final JwtAuthenticationFilter jwtAuthenticationFilter,
+            final RestApiAuthenticationEntryPoint restApiAuthenticationEntryPoint,
+            final RestApiAccessDeniedHandler restApiAccessDeniedHandler) throws Exception {
+
         http
-            .securityMatcher("/api/v1/**")
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/client-tokens").permitAll()
-                .requestMatchers("/api/v1/**").authenticated()
-            )
-            .exceptionHandling(exh -> exh
-                .authenticationEntryPoint(restApiAuthenticationEntryPoint)
-                .accessDeniedHandler(restApiAccessDeniedHandler)
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable);
+                .securityMatcher("/api/v1/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/client-tokens").permitAll()
+                        .requestMatchers("/api/v1/stores/**").permitAll() // Public store viewing
+                        .requestMatchers("/api/v1/**").authenticated()
+                )
+                .exceptionHandling(exh -> exh
+                        .authenticationEntryPoint(restApiAuthenticationEntryPoint)
+                        .accessDeniedHandler(restApiAccessDeniedHandler)
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable);
+
         return http.build();
     }
 
     /**
-     * UI chain {@code "/**"} (stateful, cookie based).
+     * UI chain for web interface (/**) - session-based authentication
      */
     @Bean
     @Order(2)
     public SecurityFilterChain uiChain(final HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/**")
-            // Το αφήνουμε ως σχόλιο προσωρινά... TODO configure.
-            // .csrf(csrf -> csrf.ignoringRequestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                .requestMatchers("/", "/login", "/register").permitAll() // Public
-                .requestMatchers("/profile", "/logout").authenticated() // Private
-                .anyRequest().permitAll() // the rest
-            )
-            .formLogin(form -> form
-                .loginPage("/login") // custom login page (see login.html)
-                .loginProcessingUrl("/login") // POST request target (handled by Spring Security)
-                .defaultSuccessUrl("/profile", true)
-                .failureUrl("/login?error")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout") // POST request target (handled by Spring Security)
-                .logoutSuccessUrl("/login?logout")
-                .deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true)
-                .permitAll()
-            )
-            .httpBasic(AbstractHttpConfigurer::disable);
+                .securityMatcher("/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/", "/stores", "/stores/**", "/login", "/register").permitAll()
+                        .requestMatchers("/profile", "/logout", "/cart", "/orders").authenticated()
+                        .requestMatchers("/owner/**").hasRole("OWNER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().permitAll()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/profile", true)
+                        .failureUrl("/login?error")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .deleteCookies("JSESSIONID")
+                        .invalidateHttpSession(true)
+                        .permitAll()
+                )
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
