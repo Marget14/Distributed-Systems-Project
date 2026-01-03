@@ -13,6 +13,8 @@ import java.util.List;
 public record OrderView(
         Long id,
         PersonView customer,
+        PersonView owner,
+        PersonView admin,
         StoreView store,
         OrderType orderType,
         DeliveryAddressView deliveryAddress,
@@ -30,4 +32,5 @@ public record OrderView(
         Instant completedAt,
         Instant rejectedAt,
         Instant cancelledAt
-) {}
+) {
+}

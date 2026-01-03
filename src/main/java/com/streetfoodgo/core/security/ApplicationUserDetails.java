@@ -47,9 +47,9 @@ public final class ApplicationUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         final String role;
-        if (this.type == PersonType.WAITER) role = "ROLE_WAITER";
+        if (this.type == PersonType.OWNER) role = "ROLE_OWNER";
         else if (this.type == PersonType.CUSTOMER) role = "ROLE_CUSTOMER";
-        else if (this.type == PersonType.STAFF) role = "ROLE_STAFF";
+        else if (this.type == PersonType.ADMIN) role = "ROLE_ADMIN";
         else throw new RuntimeException("Invalid type: " + this.type);
         return Collections.singletonList(new SimpleGrantedAuthority(role));
     }

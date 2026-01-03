@@ -102,7 +102,8 @@ public final class Order {
     private Instant cancelledAt;
 
     // Constructors
-    public Order() {}
+    public Order() {
+    }
 
     public Order(Long id, Person customer, Store store, OrderType orderType,
                  DeliveryAddress deliveryAddress, OrderStatus status, BigDecimal subtotal,
