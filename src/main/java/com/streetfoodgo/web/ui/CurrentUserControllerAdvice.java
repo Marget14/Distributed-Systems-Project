@@ -2,14 +2,20 @@ package com.streetfoodgo.web.ui;
 
 import com.streetfoodgo.core.security.CurrentUser;
 import com.streetfoodgo.core.security.CurrentUserProvider;
-
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 /**
- * Provides specific controllers {@link org.springframework.ui.Model} with the current user.
+ * Adds current user to all views automatically.
  */
-@ControllerAdvice(basePackageClasses = { ProfileController.class, OrderController.class })
+@ControllerAdvice(basePackageClasses = {
+        ProfileController.class,
+        StoreController.class,
+        OrderController.class,
+        OwnerController.class,
+        AddressController.class,
+        CartController.class
+})
 public class CurrentUserControllerAdvice {
 
     private final CurrentUserProvider currentUserProvider;

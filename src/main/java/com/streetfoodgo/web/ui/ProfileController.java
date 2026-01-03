@@ -4,7 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * UI controller for managing profile.
+ * Controller for user profile page.
  */
 @Controller
 public class ProfileController {

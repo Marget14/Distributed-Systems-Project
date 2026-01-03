@@ -4,12 +4,12 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 /**
- * Authentication utilities for controllers.
+ * Utility class for authentication checks in controllers.
  */
 final class AuthUtils {
 
     private AuthUtils() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Utility class");
     }
 
     public static boolean isAuthenticated(final Authentication auth) {
@@ -19,8 +19,6 @@ final class AuthUtils {
     }
 
     public static boolean isAnonymous(final Authentication auth) {
-        if (auth == null) return true;
-        if (auth instanceof AnonymousAuthenticationToken) return true;
-        return !auth.isAuthenticated();
+        return !isAuthenticated(auth);
     }
 }

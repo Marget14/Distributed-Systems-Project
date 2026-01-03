@@ -6,7 +6,6 @@ import com.streetfoodgo.core.service.model.CreatePersonRequest;
 import com.streetfoodgo.core.service.model.CreatePersonResult;
 
 import jakarta.validation.Valid;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 /**
- * UI controller for managing teacher/student registration.
+ * Controller for user registration.
  */
 @Controller
 public class RegistrationController {
@@ -30,37 +29,47 @@ public class RegistrationController {
 
     @GetMapping("/register")
     public String showRegistrationForm(
-        final Authentication authentication,
-        final Model model
-    ) {
+            final Authentication authentication,
+            final Model model) {
+
         if (AuthUtils.isAuthenticated(authentication)) {
             return "redirect:/profile";
         }
-        // Initial data for the form.
-        final CreatePersonRequest createPersonRequest = new CreatePersonRequest(PersonType.CUSTOMER, "", "", "", "", "", "");
-        model.addAttribute("createPersonRequest", createPersonRequest);
+
+        // Initial empty form (default to CUSTOMER)
+        final CreatePersonRequest request = new CreatePersonRequest(
+                PersonType.CUSTOMER, "", "", "", "", ""
+        );
+        model.addAttribute("createPersonRequest", request);
+
         return "register";
     }
 
     @PostMapping("/register")
-    public String handleFormSubmission(
-        final Authentication authentication,
-        @Valid @ModelAttribute("createPersonRequest") final CreatePersonRequest createPersonRequest,
-        final BindingResult bindingResult, // IMPORTANT: BindingResult **MUST** come immediately after the @Valid argument!
-        final Model model
-        ) {
+    public String handleRegistration(
+            final Authentication authentication,
+            @Valid @ModelAttribute("createPersonRequest") final CreatePersonRequest request,
+            final BindingResult bindingResult,
+            final Model model) {
+
         if (AuthUtils.isAuthenticated(authentication)) {
-            return "redirect:/profile"; // already logged in.
+            return "redirect:/profile";
         }
+
         if (bindingResult.hasErrors()) {
             return "register";
         }
-        final CreatePersonResult createPersonResult = this.personBusinessLogicService.createPerson(createPersonRequest);
-        if (createPersonResult.created()) {
-            return "redirect:/login"; // registration successful - redirect to login form (not yet ready)
+
+        final CreatePersonResult result = this.personBusinessLogicService.createPerson(request);
+
+        if (result.created()) {
+            // Success - redirect to login
+            return "redirect:/login?registered";
         }
-        model.addAttribute("createPersonRequest", createPersonRequest); // Pass the same form data.
-        model.addAttribute("errorMessage", createPersonResult.reason()); // Show an error message!
+
+        // Failed - show error message
+        model.addAttribute("createPersonRequest", request);
+        model.addAttribute("errorMessage", result.reason());
         return "register";
     }
 }

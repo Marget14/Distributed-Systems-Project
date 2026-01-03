@@ -1,5 +1,6 @@
 package com.streetfoodgo.web.rest.error;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,13 +9,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Instant;
 
 /**
- * Default implementation of {@link AccessDeniedHandler} for the REST API.
+ * Handles authorization failures for REST API (returns 403 JSON).
  */
 @Component
 public class RestApiAccessDeniedHandler implements AccessDeniedHandler {
@@ -27,18 +27,22 @@ public class RestApiAccessDeniedHandler implements AccessDeniedHandler {
     }
 
     @Override
-    public void handle(HttpServletRequest request,
-                       HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
+    public void handle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            AccessDeniedException accessDeniedException) throws IOException, ServletException {
+
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
         final ApiError apiError = new ApiError(
                 Instant.now(),
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
-                "",
+                "Access denied",
                 request.getRequestURI()
         );
+
         final String json = this.objectMapper.writeValueAsString(apiError);
         response.getWriter().write(json);
     }
