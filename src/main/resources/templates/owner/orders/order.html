@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="https://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{base}">
+
+<head>
+    <title>Order</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p>
+        <a th:href="@{/templates/owner/orders}">Back to list</a>
+    </p>
+    <h1>Order</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/templates/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    </div>
+
+    <ul class="mb-4">
+        <li>Status: <b th:text="${order.status()}"></b></li>
+        <li>Customer: <b th:text="${order.customer().fullName()}"></b></li>
+        <li>Owner: <b th:text="${order.owner().fullName()}"></b></li>
+        <li>Queued at: <b th:text="${order.queuedAt()}"></b></li>
+        <li th:if="${order.inProgressAt() != null}">In progress at: <b th:text="${order.inProgressAt()}"></b></li>
+        <li th:if="${order.completedAt() != null}">Completed at: <b th:text="${order.completedAt()}"></b></li>
+        <li>Subject: <b th:text="${order.subject()}"></b></li>
+        <li>Customer's Content: <b th:text="${order.customerContent()}"></b></li>
+        <li th:if="${order.ownerContent() != null}">Owner's Content: <b th:text="${order.ownerContent()}"></b></li>
+    </ul>
+
+    <!-- Owner actions -->
+    <div th:if="${#authorization.expression('hasRole(''OWNER'')')}">
+
+        <!-- IN_PROGRESS / start -->
+        <form th:if="${order.status().name() == 'QUEUED'}" th:action="@{|/templates/owner/orders/${order.id()}/start|}" method="post">
+            <button type="submit" class="btn btn-primary">Start</button>
+        </form>
+
+        <!-- COMPLETED / complete -->
+        <form
+                th:if="${order.status().name() == 'IN_PROGRESS'}"
+                th:action="@{|/templates/owner/orders/${order.id()}/complete|}"
+                method="post"
+                th:object="${completeOrderForm}"
+        >
+            <div class="mb-3">
+                <label for="ownerContent" class="form-label">Owner's Content</label>
+                <textarea id="ownerContent" name="ownerContent" th:field="*{ownerContent}" class="form-control" placeholder="" required></textarea>
+                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('ownerContent')}" th:errors="*{ownerContent}"></div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">Complete Order</button>
+            </div>
+
+        </form>
+    </div>
+
+</section>
+
+</body>
+</html>

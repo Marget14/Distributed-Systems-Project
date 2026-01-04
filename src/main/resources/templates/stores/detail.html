@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.w3.org/1999/xhtml"
+      layout:decorate="~{base}">
+<head>
+    <title th:text="${store.name}">Store Details</title>
+</head>
+<body>
+<div layout:fragment="main">
+    <!-- Store Header -->
+    <div class="glass-panel p-8 mb-6">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Store Image -->
+            <div class="md:w-1/3">
+                <div class="h-64 md:h-96 rounded-2xl overflow-hidden">
+                    <img th:if="${store.imageUrl}"
+                         th:src="${store.imageUrl}"
+                         alt="Store image"
+                         class="w-full h-full object-cover">
+                    <div th:unless="${store.imageUrl}"
+                         class="w-full h-full bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center">
+                        <i class="fas fa-store text-6xl text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Opening Hours -->
+                <div class="mt-6">
+                    <h4 class="text-lg font-bold text-white mb-3">
+                        <i class="fas fa-clock mr-2"></i>Opening Hours
+                    </h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Monday - Friday</span>
+                            <span class="text-white">10:00 - 22:00</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Saturday</span>
+                            <span class="text-white">11:00 - 23:00</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Sunday</span>
+                            <span class="text-white">12:00 - 20:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Info -->
+            <div class="md:w-2/3">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h1 class="text-4xl font-orbitron font-bold text-white mb-2" th:text="${store.name}"></h1>
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-4 py-2 bg-cyber-blue/20 text-cyber-blue rounded-full text-sm font-semibold"
+                                  th:text="${store.cuisineType}"></span>
+                            <span th:if="${store.isOpen}"
+                                  class="px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold">
+                                <i class="fas fa-check-circle mr-1"></i>OPEN NOW
+                            </span>
+                            <span th:unless="${store.isOpen}"
+                                  class="px-4 py-2 bg-red-500/20 text-red-400 rounded-full text-sm font-semibold">
+                                <i class="fas fa-times-circle mr-1"></i>CLOSED
+                            </span>
+                            <div class="text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <span class="ml-1">4.5 (128 reviews)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <a th:href="@{/cart/add/store/{id}(id=${store.id})}"
+                           class="cyber-button"
+                           sec:authorize="hasRole('CUSTOMER')"
+                           th:disabled="${!store.isOpen}">
+                            <i class="fas fa-shopping-cart mr-2"></i>Start Order
+                        </a>
+                        <button class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors">
+                            <i class="fas fa-heart mr-2"></i>Add to Favorites
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-gray-300 text-lg mb-8 leading-relaxed" th:text="${store.description}"></p>
+
+                <!-- Store Details Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-cyber-blue text-xl mt-1 mr-4"></i>
+                            <div>
+                                <h4 class="text-sm text-gray-400 mb-1">Address</h4>
+                                <p class="text-white" th:text="${store.address}">Patision 76, Athens</p>
+                                <p class="text-gray-400 text-sm" th:text="${store.area}">Kolonaki</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <i class="fas fa-phone text-cyber-blue text-xl mt-1 mr-4"></i>
+                            <div>
+                                <h4 class="text-sm text-gray-400 mb-1">Phone</h4>
+                                <p class="text-white" th:text="${store.phone}">+30 210 1234567</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-truck text-cyber-blue text-xl mt-1 mr-4"></i>
+                            <div>
+                                <h4 class="text-sm text-gray-400 mb-1">Delivery Info</h4>
+                                <p class="text-white">
+                                    <span th:text="${store.estimatedDeliveryTimeMinutes}"></span> min •
+                                    €<span th:text="${store.deliveryFee}"></span> fee
+                                </p>
+                                <p class="text-gray-400 text-sm">
+                                    Min order: €<span th:text="${store.minimumOrderAmount}"></span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <i class="fas fa-shipping-fast text-cyber-blue text-xl mt-1 mr-4"></i>
+                            <div>
+                                <h4 class="text-sm text-gray-400 mb-1">Order Options</h4>
+                                <div class="flex gap-2">
+                                    <span th:if="${store.acceptsDelivery}"
+                                          class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
+                                        <i class="fas fa-truck mr-1"></i>Delivery
+                                    </span>
+                                    <span th:if="${store.acceptsPickup}"
+                                          class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-semibold">
+                                        <i class="fas fa-walking mr-1"></i>Pickup
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Zones -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-bold text-white mb-3">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Delivery Zones
+                    </h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Kolonaki</span>
+                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Exarcheia</span>
+                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Syntagma</span>
+                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Gazi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Categories Tabs -->
+    <div class="sticky top-20 z-30 bg-dark-bg/80 backdrop-blur-md mb-8">
+        <div class="border-b border-white/10">
+            <div class="flex space-x-1 overflow-x-auto pb-1">
+                <button class="menu-tab px-6 py-3 text-gray-300 border-b-2 border-transparent hover:text-white whitespace-nowrap"
+                        data-category="all">
+                    All Items
+                </button>
+                <button th:each="category : ${categories}"
+                        class="menu-tab px-6 py-3 text-gray-300 border-b-2 border-transparent hover:text-white whitespace-nowrap"
+                        th:data-category="${category}"
+                        th:text="${category}">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Items Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="menuContainer">
+        <div th:each="item : ${menuItems}"
+             class="glass-panel p-6 menu-item hover-lift"
+             th:data-category="${item.category}"
+             th:data-available="${item.available}">
+
+            <!-- Item Image -->
+            <div class="h-48 mb-4 rounded-xl overflow-hidden">
+                <img th:if="${item.imageUrl}"
+                     th:src="${item.imageUrl}"
+                     alt="Menu item"
+                     class="w-full h-full object-cover">
+                <div th:unless="${item.imageUrl}"
+                     class="w-full h-full bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center">
+                    <i class="fas fa-utensils text-4xl text-gray-400"></i>
+                </div>
+            </div>
+
+            <!-- Item Info -->
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1" th:text="${item.name}"></h3>
+                    <span class="text-sm text-gray-400" th:text="${item.category}"></span>
+                </div>
+                <span class="text-2xl font-bold text-cyber-blue">
+                    €<span th:text="${item.price}"></span>
+                </span>
+            </div>
+
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2" th:text="${item.description}"></p>
+
+            <!-- Availability & Add to Cart -->
+            <div class="flex items-center justify-between">
+                <span th:if="${item.available}"
+                      class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
+                    <i class="fas fa-check mr-1"></i>Available
+                </span>
+                <span th:unless="${item.available}"
+                      class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold">
+                    <i class="fas fa-times mr-1"></i>Out of Stock
+                </span>
+
+                <button th:if="${item.available}"
+                        class="add-to-cart-btn px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors"
+                        th:data-item-id="${item.id}"
+                        th:data-item-name="${item.name}"
+                        th:data-item-price="${item.price}"
+                        sec:authorize="hasRole('CUSTOMER')">
+                    <i class="fas fa-plus mr-2"></i>Add to Cart
+                </button>
+                <button th:unless="${item.available}"
+                        class="px-4 py-2 bg-white/5 text-gray-500 rounded-lg text-sm cursor-not-allowed"
+                        disabled>
+                    Not Available
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Items Message -->
+    <div id="noItemsMessage" class="hidden text-center py-12 glass-panel">
+        <i class="fas fa-utensils text-4xl text-gray-500 mb-4"></i>
+        <h3 class="text-xl font-bold text-white mb-2">No items in this category</h3>
+        <p class="text-gray-400">Try selecting a different category</p>
+    </div>
+</div>
+
+<!-- JavaScript for Store Detail Page -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Category Tabs
+        const menuTabs = document.querySelectorAll('.menu-tab');
+        const menuItems = document.querySelectorAll('.menu-item');
+
+        menuTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active from all tabs
+                menuTabs.forEach(t => {
+                    t.classList.remove('border-cyber-blue', 'text-cyber-blue');
+                    t.classList.add('border-transparent', 'text-gray-300');
+                });
+
+                // Add active to clicked tab
+                this.classList.remove('border-transparent', 'text-gray-300');
+                this.classList.add('border-cyber-blue', 'text-cyber-blue');
+
+                const category = this.dataset.category;
+                let visibleCount = 0;
+
+                // Filter items
+                menuItems.forEach(item => {
+                    const itemCategory = item.dataset.category;
+                    const isAvailable = item.dataset.available === 'true';
+
+                    if (category === 'all' || itemCategory === category) {
+                        item.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Show/hide no items message
+                const noItemsMessage = document.getElementById('noItemsMessage');
+                noItemsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
+            });
+        });
+
+        // Set first tab as active
+        if (menuTabs.length > 0) {
+            menuTabs[0].click();
+        }
+
+        // Add to Cart functionality
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.itemId;
+                const itemName = this.dataset.itemName;
+                const itemPrice = this.dataset.itemPrice;
+
+                // Show notification
+                showNotification(`Added ${itemName} to cart!`, 'success');
+
+                // Send AJAX request to add to cart
+                fetch('/api/cart/items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        menuItemId: itemId,
+                        quantity: 1
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update cart count in navbar
+                        updateCartCount(data.totalItems);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to add item to cart', 'error');
+                    });
+            });
+        });
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-slide-up ${
+                type === 'success' ? 'bg-green-500/20 border border-green-500/50 text-green-300' :
+                    'bg-red-500/20 border border-red-500/50 text-red-300'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-3"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function updateCartCount(count) {
+            const cartCountElement = document.getElementById('cartCount');
+            if (cartCountElement) {
+                cartCountElement.textContent = count;
+                cartCountElement.classList.remove('hidden');
+            }
+        }
+    });
+</script>
+</body>
+</html>

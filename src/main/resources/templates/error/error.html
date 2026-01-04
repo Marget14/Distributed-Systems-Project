@@ -1,24 +1,29 @@
 <!DOCTYPE html>
-<html
-        xmlns:th="https://www.thymeleaf.org"
-        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-        layout:decorate="~{base}">
-
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
 <head>
-    <title>Error</title>
+    <title>Error - StreetFoodGo</title>
 </head>
-
 <body>
-
-<header layout:fragment="header">
-    <h1>Oops! An error occurred</h1>
-</header>
-
-<section layout:fragment="main">
-    <p th:if="${path}" th:text="${'Path: ' + (path == null ? '' : path)}"></p>
-    <p th:if="${message}" th:text="${message}"></p>
-    <p><a th:href="@{/}">Homepage</a></p>
-</section>
-
+<div layout:fragment="main">
+    <div class="text-center py-20">
+        <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+            <i class="fas fa-exclamation-triangle text-4xl text-white"></i>
+        </div>
+        <h1 class="text-4xl font-orbitron font-bold text-white mb-4">Something Went Wrong</h1>
+        <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto">
+            We're sorry, but something went wrong on our end. Please try again later.
+        </p>
+        <div class="space-x-4">
+            <button onclick="window.history.back()" class="cyber-button inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Go Back
+            </button>
+            <a th:href="@{/}" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                Homepage
+            </a>
+        </div>
+    </div>
+</div>
 </body>
 </html>

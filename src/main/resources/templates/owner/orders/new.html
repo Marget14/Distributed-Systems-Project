@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Checkout - StreetFoodGo</title>
+    <style>
+        .payment-method {
+            @apply p-4 rounded-lg border cursor-pointer transition-all;
+        }
+        .payment-method.selected {
+            @apply border-cyber-blue bg-cyber-blue/10;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="main">
+    <!-- Checkout Header -->
+    <div class="glass-panel p-8 mb-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Checkout</h1>
+            <p class="text-gray-400">Complete your order</p>
+
+            <!-- Progress Steps -->
+            <div class="flex items-center justify-between mt-8">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-cyber-blue flex items-center justify-center text-white">
+                        1
+                    </div>
+                    <span class="ml-3 text-white font-semibold">Cart</span>
+                </div>
+                <div class="flex-1 h-1 mx-4 bg-cyber-blue"></div>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-cyber-blue flex items-center justify-center text-white">
+                        2
+                    </div>
+                    <span class="ml-3 text-white font-semibold">Checkout</span>
+                </div>
+                <div class="flex-1 h-1 mx-4 bg-white/10"></div>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400">
+                        3
+                    </div>
+                    <span class="ml-3 text-gray-400">Confirmation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Order Summary -->
+        <div class="glass-panel p-6 mb-6">
+            <h3 class="text-xl font-bold text-white mb-4">Order Summary</h3>
+
+            <div th:each="storeGroup : ${order.storeGroups}" class="mb-6 last:mb-0">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-store text-cyber-blue"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white" th:text="${storeGroup.storeName}"></h4>
+                        <p class="text-gray-400 text-sm" th:text="${storeGroup.storeArea}"></p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div th:each="item : ${storeGroup.items}" class="flex justify-between">
+                        <div>
+                            <span class="text-white" th:text="${item.quantity} + ' × ' + ${item.name}"></span>
+                            <p class="text-gray-400 text-sm" th:text="${item.description}"></p>
+                        </div>
+                        <span class="text-white">€<span th:text="${item.totalPrice}"></span></span>
+                    </div>
+                </div>
+
+                <div class="border-t border-white/10 mt-4 pt-4">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Subtotal</span>
+                        <span class="text-white">€<span th:text="${storeGroup.subtotal}"></span></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Delivery fee</span>
+                        <span class="text-white">€<span th:text="${storeGroup.deliveryFee}"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 mt-6 pt-6">
+                <div class="flex justify-between text-xl font-bold">
+                    <span class="text-white">Total Amount</span>
+                    <span class="text-cyber-blue">€<span th:text="${order.totalAmount}"></span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Information -->
+        <div class="glass-panel p-6 mb-6">
+            <h3 class="text-xl font-bold text-white mb-4">
+                <i class="fas fa-shipping-fast mr-2"></i>Delivery Information
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-3">Delivery Address</h4>
+                    <div class="space-y-2">
+                        <p class="text-white" th:text="${order.deliveryAddress.recipientName}"></p>
+                        <p class="text-gray-300" th:text="${order.deliveryAddress.streetAddress}"></p>
+                        <p class="text-gray-300" th:text="${order.deliveryAddress.city} + ', ' + ${order.deliveryAddress.postalCode}"></p>
+                        <p class="text-gray-300" th:text="${order.deliveryAddress.area}"></p>
+                        <p th:if="${order.deliveryAddress.instructions}" class="text-gray-400 text-sm">
+                            <i class="fas fa-sticky-note mr-1"></i>
+                            <span th:text="${order.deliveryAddress.instructions}"></span>
+                        </p>
+                    </div>
+                    <button onclick="changeAddress()" class="mt-4 text-cyber-blue hover:text-cyber-blue/80">
+                        <i class="fas fa-edit mr-1"></i>Change address
+                    </button>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-3">Delivery Time</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-400 mb-2">Estimated Delivery</p>
+                            <p class="text-2xl font-bold text-cyber-blue" th:text="${order.estimatedDeliveryTime}"></p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 mb-2">Order Type</p>
+                            <span th:if="${order.orderType == 'DELIVERY'}"
+                                  class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm">
+                                <i class="fas fa-truck mr-1"></i>Delivery
+                            </span>
+                            <span th:if="${order.orderType == 'PICKUP'}"
+                                  class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm">
+                                <i class="fas fa-walking mr-1"></i>Pickup
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="glass-panel p-6 mb-6">
+            <h3 class="text-xl font-bold text-white mb-4">
+                <i class="fas fa-credit-card mr-2"></i>Payment Method
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="payment-method" onclick="selectPaymentMethod('CARD')">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-credit-card text-cyber-blue mr-3"></i>
+                        <span class="font-semibold text-white">Credit/Debit Card</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">Pay securely with your card</p>
+                </div>
+
+                <div class="payment-method" onclick="selectPaymentMethod('CASH')">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-money-bill-wave text-green-400 mr-3"></i>
+                        <span class="font-semibold text-white">Cash on Delivery</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">Pay when you receive your order</p>
+                </div>
+
+                <div class="payment-method" onclick="selectPaymentMethod('WALLET')">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-wallet text-purple-400 mr-3"></i>
+                        <span class="font-semibold text-white">StreetFoodGo Wallet</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">Use your account balance</p>
+                </div>
+            </div>
+
+            <!-- Card Details Form (shown when card is selected) -->
+            <div id="cardDetails" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">Card Number</label>
+                        <input type="text" placeholder="1234 5678 9012 3456"
+                               class="quantum-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">Cardholder Name</label>
+                        <input type="text" placeholder="John Doe"
+                               class="quantum-input w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">Expiry Month</label>
+                        <select class="quantum-input w-full">
+                            <option>01</option>
+                            <option>02</option>
+                            <!-- ... other months -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">Expiry Year</label>
+                        <select class="quantum-input w-full">
+                            <option>2025</option>
+                            <option>2026</option>
+                            <!-- ... other years -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">CVV</label>
+                        <input type="text" placeholder="123"
+                               class="quantum-input w-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Instructions -->
+        <div class="glass-panel p-6 mb-6">
+            <h3 class="text-xl font-bold text-white mb-4">
+                <i class="fas fa-sticky-note mr-2"></i>Special Instructions
+            </h3>
+            <textarea id="orderInstructions"
+                      class="quantum-input w-full"
+                      rows="3"
+                      placeholder="Any special requests or instructions for delivery..."
+                      th:text="${order.specialInstructions}"></textarea>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="glass-panel p-6 mb-8">
+            <div class="flex items-start">
+                <input type="checkbox" id="terms" class="mt-1 mr-3">
+                <label for="terms" class="text-gray-300">
+                    I agree to the <a href="#" class="text-cyber-blue hover:text-cyber-blue/80">Terms of Service</a>
+                    and <a href="#" class="text-cyber-blue hover:text-cyber-blue/80">Privacy Policy</a>.
+                    I understand that my order may be subject to restaurant availability and delivery times are estimates.
+                </label>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between">
+            <a th:href="@{/cart}" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Cart
+            </a>
+            <button onclick="placeOrder()" class="cyber-button px-8">
+                <i class="fas fa-check-circle mr-2"></i>Place Order
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Checkout -->
+<script>
+    let selectedPaymentMethod = null;
+
+    function selectPaymentMethod(method) {
+        selectedPaymentMethod = method;
+
+        // Update UI
+        document.querySelectorAll('.payment-method').forEach(el => {
+            el.classList.remove('selected');
+        });
+        event.currentTarget.classList.add('selected');
+
+        // Show/hide card details
+        const cardDetails = document.getElementById('cardDetails');
+        if (method === 'CARD') {
+            cardDetails.classList.remove('hidden');
+        } else {
+            cardDetails.classList.add('hidden');
+        }
+    }
+
+    function changeAddress() {
+        // In a real app, this would open a modal or redirect
+        alert('This would open address selection');
+    }
+
+    function placeOrder() {
+        // Validation
+        if (!selectedPaymentMethod) {
+            alert('Please select a payment method');
+            return;
+        }
+
+        if (!document.getElementById('terms').checked) {
+            alert('Please accept the terms and conditions');
+            return;
+        }
+
+        const instructions = document.getElementById('orderInstructions').value;
+
+        // Show loading
+        const button = event.currentTarget;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        button.disabled = true;
+
+        // Submit order
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                paymentMethod: selectedPaymentMethod,
+                specialInstructions: instructions
+            })
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Order placement failed');
+            })
+            .then(data => {
+                // Redirect to order confirmation
+                window.location.href = `/orders/${data.orderId}/confirmation`;
+            })
+            .catch(error => {
+                alert('Order failed: ' + error.message);
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+    }
+
+    // Initialize payment method selection if already selected
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if a payment method is already selected (from session)
+        const selected = document.querySelector('.payment-method.selected');
+        if (selected) {
+            const method = selected.getAttribute('data-method');
+            if (method) {
+                selectPaymentMethod(method);
+            }
+        }
+    });
+</script>
+</body>
+</html>

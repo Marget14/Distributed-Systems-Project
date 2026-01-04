@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Store Orders - StreetFoodGo</title>
+    <style>
+        .order-status {
+            @apply px-3 py-1 rounded-full text-xs font-semibold;
+        }
+        .status-pending { @apply bg-yellow-500/20 text-yellow-400; }
+        .status-confirmed { @apply bg-blue-500/20 text-blue-400; }
+        .status-preparing { @apply bg-purple-500/20 text-purple-400; }
+        .status-ready { @apply bg-green-500/20 text-green-400; }
+        .status-delivering { @apply bg-cyber-blue/20 text-cyber-blue; }
+        .status-completed { @apply bg-gray-500/20 text-gray-400; }
+        .status-cancelled { @apply bg-red-500/20 text-red-400; }
+    </style>
+</head>
+<body>
+<div layout:fragment="main">
+    <!-- Header -->
+    <div class="glass-panel p-8 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Store Orders</h1>
+                <p class="text-gray-400">Manage and track customer orders</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-sm text-gray-400">Today's Revenue</p>
+                    <p class="text-2xl font-bold text-cyber-blue">€<span th:text="${stats.todayRevenue}">342.50</span></p>
+                </div>
+                <a th:href="@{/owner/dashboard}" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                    <i class="fas fa-chart-line mr-2"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Pending</p>
+                    <p class="text-2xl font-bold text-yellow-400" th:text="${stats.pendingOrders}">3</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                    <i class="fas fa-clock text-yellow-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Preparing</p>
+                    <p class="text-2xl font-bold text-purple-400" th:text="${stats.preparingOrders}">5</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <i class="fas fa-utensils text-purple-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Ready</p>
+                    <p class="text-2xl font-bold text-green-400" th:text="${stats.readyOrders}">2</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Delivering</p>
+                    <p class="text-2xl font-bold text-cyber-blue" th:text="${stats.deliveringOrders}">4</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-cyber-blue/20 flex items-center justify-center">
+                    <i class="fas fa-truck text-cyber-blue"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="glass-panel p-6 mb-8">
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+            <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select id="statusFilter" class="quantum-input">
+                    <option value="all">All Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="PREPARING">Preparing</option>
+                    <option value="READY">Ready</option>
+                    <option value="DELIVERING">Delivering</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+
+                <select id="timeFilter" class="quantum-input">
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="all">All Time</option>
+                </select>
+
+                <input type="text" id="searchOrders" placeholder="Search orders..." class="quantum-input">
+            </div>
+
+            <button onclick="filterOrders()" class="cyber-button px-6">
+                <i class="fas fa-filter mr-2"></i>Filter
+            </button>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="glass-panel p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left py-4 text-gray-400 font-medium">Order ID</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Customer</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Items</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Total</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Type</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Status</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Time</th>
+                    <th class="text-left py-4 text-gray-400 font-medium">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="ordersTable">
+                <tr th:each="order : ${orders}"
+                    class="border-b border-white/5 order-row"
+                    th:data-status="${order.status}"
+                    th:data-time="${#temporals.format(order.createdAt, 'yyyy-MM-dd')}">
+                    <td class="py-4">
+                        <span class="font-mono text-cyber-blue" th:text="'#' + ${order.id}"></span>
+                    </td>
+                    <td class="py-4">
+                        <div>
+                            <p class="font-bold text-white" th:text="${order.customerName}"></p>
+                            <p class="text-gray-400 text-sm" th:text="${order.customerPhone}"></p>
+                        </div>
+                    </td>
+                    <td class="py-4">
+                        <p class="text-white" th:text="${order.itemCount} + ' items'"></p>
+                        <p class="text-gray-400 text-sm line-clamp-1" th:text="${order.itemsSummary}"></p>
+                    </td>
+                    <td class="py-4">
+                        <p class="text-white font-bold">€<span th:text="${order.totalAmount}"></span></p>
+                    </td>
+                    <td class="py-4">
+                            <span th:if="${order.deliveryType == 'DELIVERY'}"
+                                  class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">
+                                <i class="fas fa-truck mr-1"></i>Delivery
+                            </span>
+                        <span th:if="${order.deliveryType == 'PICKUP'}"
+                              class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">
+                                <i class="fas fa-walking mr-1"></i>Pickup
+                            </span>
+                    </td>
+                    <td class="py-4">
+                            <span th:class="'order-status status-' + ${order.status.toLowerCase()}"
+                                  th:text="${order.status}">
+                            </span>
+                    </td>
+                    <td class="py-4">
+                        <p class="text-white" th:text="${#temporals.format(order.createdAt, 'HH:mm')}"></p>
+                        <p class="text-gray-400 text-sm" th:text="${#temporals.format(order.createdAt, 'dd/MM')}"></p>
+                    </td>
+                    <td class="py-4">
+                        <div class="flex gap-2">
+                            <a th:href="@{/owner/orders/{id}(id=${order.id})}"
+                               class="px-3 py-1 bg-cyber-blue/20 text-cyber-blue rounded text-sm hover:bg-cyber-blue/30">
+                                <i class="fas fa-eye mr-1"></i>View
+                            </a>
+
+                            <!-- Action buttons based on status -->
+                            <button th:if="${order.status == 'PENDING'}"
+                                    th:onclick="'updateOrderStatus(' + ${order.id} + ', \"CONFIRMED\")'"
+                            class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded text-sm hover:bg-blue-500/30">
+                            Confirm
+                            </button>
+
+                            <button th:if="${order.status == 'CONFIRMED'}"
+                                    th:onclick="'updateOrderStatus(' + ${order.id} + ', \"PREPARING\")'"
+                            class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded text-sm hover:bg-purple-500/30">
+                            Start Prep
+                            </button>
+
+                            <button th:if="${order.status == 'PREPARING'}"
+                                    th:onclick="'updateOrderStatus(' + ${order.id} + ', \"READY\")'"
+                            class="px-3 py-1 bg-green-500/20 text-green-400 rounded text-sm hover:bg-green-500/30">
+                            Mark Ready
+                            </button>
+
+                            <button th:if="${order.status == 'READY' && order.deliveryType == 'DELIVERY'}"
+                                    th:onclick="'updateOrderStatus(' + ${order.id} + ', \"DELIVERING\")'"
+                            class="px-3 py-1 bg-cyber-blue/20 text-cyber-blue rounded text-sm hover:bg-cyber-blue/30">
+                            Out for Delivery
+                            </button>
+
+                            <button th:if="${order.status == 'DELIVERING' || (order.status == 'READY' && order.deliveryType == 'PICKUP')}"
+                                    th:onclick="'completeOrder(' + ${order.id} + ')'"
+                                    class="px-3 py-1 bg-gray-500/20 text-gray-400 rounded text-sm hover:bg-gray-500/30">
+                                Complete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Orders Message -->
+        <div id="noOrdersMessage" class="hidden text-center py-12">
+            <i class="fas fa-receipt text-4xl text-gray-500 mb-4"></i>
+            <h3 class="text-xl font-bold text-white mb-2">No orders found</h3>
+            <p class="text-gray-400">Try adjusting your filters or check back later</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterOrders() {
+        const status = document.getElementById('statusFilter').value;
+        const timeFilter = document.getElementById('timeFilter').value;
+        const searchTerm = document.getElementById('searchOrders').value.toLowerCase();
+
+        const rows = document.querySelectorAll('.order-row');
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowStatus = row.dataset.status;
+            const rowDate = row.dataset.time;
+            const rowText = row.textContent.toLowerCase();
+
+            // Check status filter
+            const matchesStatus = status === 'all' || rowStatus === status;
+
+            // Check time filter
+            let matchesTime = true;
+            if (timeFilter === 'today' && rowDate !== today) matchesTime = false;
+            if (timeFilter === 'yesterday' && rowDate !== yesterday) matchesTime = false;
+
+            // Check search term
+            const matchesSearch = searchTerm === '' || rowText.includes(searchTerm);
+
+            if (matchesStatus && matchesTime && matchesSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        document.getElementById('noOrdersMessage').style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+        const statusMap = {
+            'PENDING': 'Confirm',
+            'CONFIRMED': 'Start Preparation',
+            'PREPARING': 'Mark as Ready',
+            'READY': 'Out for Delivery',
+            'DELIVERING': 'Complete Delivery'
+        };
+
+        if (confirm(`Are you sure you want to ${statusMap[newStatus] || 'update'} this order?`)) {
+            fetch(`/api/owner/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+        }
+    }
+
+    function completeOrder(orderId) {
+        fetch(`/api/owner/orders/${orderId}/complete`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+    }
+
+    // Auto-refresh orders every 30 seconds
+    setInterval(() => {
+        fetch('/api/owner/orders/stats')
+            .then(response => response.json())
+            .then(data => {
+                // Update stats if needed
+            });
+    }, 30000);
+</script>
+</body>
+</html>

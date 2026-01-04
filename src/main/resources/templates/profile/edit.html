@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Edit Profile - StreetFoodGo</title>
+    <style>
+        .profile-tab {
+            @apply px-6 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors;
+        }
+        .profile-tab.active {
+            @apply bg-cyber-blue/20 text-cyber-blue;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="main">
+    <!-- Header -->
+    <div class="glass-panel p-8 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Edit Profile</h1>
+                <p class="text-gray-400">Update your personal information and preferences</p>
+            </div>
+            <a th:href="@{/profile}" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Profile
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Tabs -->
+        <div class="flex space-x-2 mb-8 overflow-x-auto">
+            <button class="profile-tab active" data-tab="personal">
+                <i class="fas fa-user mr-2"></i>Personal Info
+            </button>
+            <button class="profile-tab" data-tab="security">
+                <i class="fas fa-lock mr-2"></i>Security
+            </button>
+            <button class="profile-tab" data-tab="preferences">
+                <i class="fas fa-cog mr-2"></i>Preferences
+            </button>
+            <button class="profile-tab" data-tab="notifications">
+                <i class="fas fa-bell mr-2"></i>Notifications
+            </button>
+        </div>
+
+        <!-- Personal Info Tab (Default) -->
+        <div id="personalTab" class="tab-content">
+            <div class="glass-panel p-8">
+                <form th:action="@{/profile/update}" method="post" th:object="${user}" class="space-y-6">
+                    <!-- Avatar Upload -->
+                    <div class="flex items-center mb-8">
+                        <div class="relative mr-6">
+                            <div class="w-24 h-24 rounded-full bg-gradient-to-br from-cyber-blue to-quantum flex items-center justify-center">
+                                <i class="fas fa-user text-white text-3xl"></i>
+                            </div>
+                            <button type="button" class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                                <i class="fas fa-camera text-white"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Profile Photo</h3>
+                            <p class="text-gray-400 text-sm">JPG, GIF or PNG. Max size 2MB</p>
+                        </div>
+                    </div>
+
+                    <!-- Name -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
+                            <input type="text" th:field="*{firstName}" required
+                                   class="quantum-input w-full">
+                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
+                            <input type="text" th:field="*{lastName}" required
+                                   class="quantum-input w-full">
+                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Email Address *</label>
+                            <input type="email" th:field="*{email}" required
+                                   class="quantum-input w-full"
+                                   placeholder="your@email.com">
+                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number *</label>
+                            <input type="tel" th:field="*{phone}" required
+                                   class="quantum-input w-full"
+                                   placeholder="+30 69X XXX XXXX">
+                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Date of Birth</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <select th:field="*{birthDay}" class="quantum-input">
+                                <option value="">Day</option>
+                                <option th:each="day : ${#numbers.sequence(1,31)}"
+                                        th:value="${day}"
+                                        th:text="${day}"></option>
+                            </select>
+                            <select th:field="*{birthMonth}" class="quantum-input">
+                                <option value="">Month</option>
+                                <option th:each="month,iter : ${#temporals.monthNames()}"
+                                        th:value="${iter.index + 1}"
+                                        th:text="${month}"></option>
+                            </select>
+                            <select th:field="*{birthYear}" class="quantum-input">
+                                <option value="">Year</option>
+                                <option th:each="year : ${#numbers.sequence(1950, 2020)}"
+                                        th:value="${year}"
+                                        th:text="${year}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Gender</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" th:field="*{gender}" value="MALE" class="mr-2">
+                                <span class="text-gray-300">Male</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" th:field="*{gender}" value="FEMALE" class="mr-2">
+                                <span class="text-gray-300">Female</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" th:field="*{gender}" value="OTHER" class="mr-2">
+                                <span class="text-gray-300">Other</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" th:field="*{gender}" value="PREFER_NOT_TO_SAY" class="mr-2">
+                                <span class="text-gray-300">Prefer not to say</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-white/10">
+                        <button type="button" onclick="window.history.back()"
+                                class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                            Cancel
+                        </button>
+                        <button type="submit" class="cyber-button">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="securityTab" class="tab-content hidden">
+            <div class="glass-panel p-8">
+                <h3 class="text-2xl font-bold text-white mb-6">Security Settings</h3>
+
+                <!-- Change Password -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Change Password</h4>
+                    <form id="changePasswordForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2">Current Password</label>
+                            <input type="password" id="currentPassword" required
+                                   class="quantum-input w-full">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2">New Password</label>
+                                <input type="password" id="newPassword" required
+                                       class="quantum-input w-full">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" required
+                                       class="quantum-input w-full">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="cyber-button">
+                                Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Two-Factor Authentication -->
+                <div class="border-t border-white/10 pt-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Two-Factor Authentication</h4>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white">Two-factor authentication is <span class="text-red-400">disabled</span></p>
+                            <p class="text-gray-400 text-sm">Add an extra layer of security to your account</p>
+                        </div>
+                        <button class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30">
+                            Enable 2FA
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Sessions -->
+                <div class="border-t border-white/10 pt-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Active Sessions</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-desktop text-cyber-blue mr-4"></i>
+                                <div>
+                                    <p class="text-white">Windows 10 • Chrome</p>
+                                    <p class="text-gray-400 text-sm">Athens, Greece • Current session</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-mobile-alt text-cyber-blue mr-4"></i>
+                                <div>
+                                    <p class="text-white">iPhone 13 • Safari</p>
+                                    <p class="text-gray-400 text-sm">Last active 2 days ago</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferences Tab -->
+        <div id="preferencesTab" class="tab-content hidden">
+            <div class="glass-panel p-8">
+                <h3 class="text-2xl font-bold text-white mb-6">Preferences</h3>
+
+                <!-- Language -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Language</h4>
+                    <select class="quantum-input w-full md:w-64">
+                        <option value="en">English</option>
+                        <option value="el">Greek</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                    </select>
+                </div>
+
+                <!-- Currency -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Currency</h4>
+                    <select class="quantum-input w-full md:w-64">
+                        <option value="EUR">Euro (€)</option>
+                        <option value="USD">US Dollar ($)</option>
+                        <option value="GBP">British Pound (£)</option>
+                    </select>
+                </div>
+
+                <!-- Dietary Preferences -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Dietary Preferences</h4>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-3 rounded bg-white/5 border-white/10">
+                            <span class="text-gray-300">Vegetarian</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-3 rounded bg-white/5 border-white/10">
+                            <span class="text-gray-300">Vegan</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-3 rounded bg-white/5 border-white/10">
+                            <span class="text-gray-300">Gluten-Free</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-3 rounded bg-white/5 border-white/10">
+                            <span class="text-gray-300">Dairy-Free</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-3 rounded bg-white/5 border-white/10">
+                            <span class="text-gray-300">Halal</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Preferred Cuisines -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Preferred Cuisines</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Greek</span>
+                        <span class="px-3 py-2 bg-cyber-blue/20 text-cyber-blue rounded-lg cursor-pointer">Italian</span>
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Japanese</span>
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Mexican</span>
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Burgers</span>
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Pizza</span>
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Sushi</span>
+                        <span class="px-3 py-2 bg-white/10 text-gray-300 rounded-lg cursor-pointer hover:bg-white/20">Asian</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button class="cyber-button">
+                        Save Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notificationsTab" class="tab-content hidden">
+            <div class="glass-panel p-8">
+                <h3 class="text-2xl font-bold text-white mb-6">Notification Preferences</h3>
+
+                <!-- Email Notifications -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Email Notifications</h4>
+                    <div class="space-y-4">
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Order updates</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" checked class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Promotions & discounts</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">New restaurants</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" checked class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Newsletter</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Push Notifications -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">Push Notifications</h4>
+                    <div class="space-y-4">
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Order status changes</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" checked class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Delivery updates</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" checked class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Special offers</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- SMS Notifications -->
+                <div class="border-t border-white/10 pt-8">
+                    <h4 class="text-lg font-semibold text-white mb-4">SMS Notifications</h4>
+                    <div class="space-y-4">
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Order confirmations</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between">
+                            <span class="text-gray-300">Delivery updates</span>
+                            <div class="relative inline-block w-12 align-middle select-none">
+                                <input type="checkbox" class="toggle-checkbox">
+                                <label class="toggle-label block"></label>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-4">Standard carrier rates may apply</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Edit Profile -->
+<script>
+    // Tab switching
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+
+            // Update active tab
+            document.querySelectorAll('.profile-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // Show selected tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabId + 'Tab').classList.remove('hidden');
+        });
+    });
+
+    // Toggle switch functionality
+    document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
+        const label = checkbox.nextElementSibling;
+
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                label.classList.add('bg-cyber-blue');
+                label.classList.remove('bg-gray-300');
+            } else {
+                label.classList.remove('bg-cyber-blue');
+                label.classList.add('bg-gray-300');
+            }
+        });
+
+        // Initialize
+        if (checkbox.checked) {
+            label.classList.add('bg-cyber-blue');
+            label.classList.remove('bg-gray-300');
+        }
+    });
+
+    // Change password form
+    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            alert('New passwords do not match');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            alert('New password must be at least 6 characters');
+            return;
+        }
+
+        fetch('/api/profile/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                currentPassword: currentPassword,
+                newPassword: newPassword
+            })
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Password changed successfully');
+                    this.reset();
+                } else {
+                    alert('Failed to change password');
+                }
+            });
+    });
+
+    // Avatar upload
+    document.querySelector('button[type="button"]').addEventListener('click', function() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // In a real app, you would upload the file
+                alert('Avatar upload would be implemented here');
+            }
+        };
+
+        input.click();
+    });
+</script>
+
+<style>
+    .toggle-checkbox {
+        @apply absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer;
+        transition: all 0.3s;
+    }
+    .toggle-checkbox:checked {
+        @apply right-0 border-cyber-blue;
+    }
+    .toggle-label {
+        @apply block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer;
+        transition: background-color 0.3s;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+        @apply bg-cyber-blue;
+    }
+</style>
+</body>
+</html>

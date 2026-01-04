@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+  <title>Track Order - StreetFoodGo</title>
+  <style>
+    .tracking-step {
+      @apply flex items-center;
+    }
+    .tracking-step.active .step-icon {
+      @apply bg-cyber-blue text-white border-cyber-blue;
+    }
+    .tracking-step.active .step-label {
+      @apply text-cyber-blue font-semibold;
+    }
+    .tracking-step.completed .step-icon {
+      @apply bg-green-500 text-white border-green-500;
+    }
+    .tracking-step.completed .step-label {
+      @apply text-green-400;
+    }
+    .tracking-step.pending .step-icon {
+      @apply bg-white/10 text-gray-400 border-white/10;
+    }
+    .tracking-step.pending .step-label {
+      @apply text-gray-400;
+    }
+    .step-connector {
+      @apply flex-1 h-1 mx-4;
+    }
+    .step-connector.active {
+      @apply bg-cyber-blue;
+    }
+    .step-connector.completed {
+      @apply bg-green-500;
+    }
+    .step-connector.pending {
+      @apply bg-white/10;
+    }
+  </style>
+</head>
+<body>
+<div layout:fragment="main">
+  <!-- Order Tracking Header -->
+  <div class="glass-panel p-8 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+      <div>
+        <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Order Tracking</h1>
+        <div class="flex items-center gap-4">
+          <p class="text-gray-400">Order #<span th:text="${order.id}" class="font-mono text-white">00042</span></p>
+          <span class="px-3 py-1 bg-cyber-blue/20 text-cyber-blue rounded-full text-sm font-semibold"
+                th:text="${order.status}">PREPARING</span>
+        </div>
+      </div>
+      <div class="mt-4 md:mt-0">
+        <p class="text-gray-400">Estimated Delivery</p>
+        <p class="text-2xl font-bold text-cyber-blue" th:text="${order.estimatedDeliveryTime}">18:45</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tracking Progress -->
+  <div class="glass-panel p-8 mb-8">
+    <div class="max-w-4xl mx-auto">
+      <!-- Tracking Steps -->
+      <div class="flex items-center justify-between mb-12">
+        <div class="tracking-step active">
+          <div class="step-icon w-12 h-12 rounded-full border-2 flex items-center justify-center">
+            <i class="fas fa-clipboard-check"></i>
+          </div>
+          <div class="ml-4">
+            <p class="step-label">Order Received</p>
+            <p class="text-gray-400 text-sm" th:text="${#temporals.format(order.createdAt, 'HH:mm')}">15:30</p>
+          </div>
+        </div>
+
+        <div class="step-connector active"></div>
+
+        <div class="tracking-step active">
+          <div class="step-icon w-12 h-12 rounded-full border-2 flex items-center justify-center">
+            <i class="fas fa-utensils"></i>
+          </div>
+          <div class="ml-4">
+            <p class="step-label">Preparing</p>
+            <p class="text-gray-400 text-sm">In progress</p>
+          </div>
+        </div>
+
+        <div class="step-connector pending"></div>
+
+        <div class="tracking-step pending">
+          <div class="step-icon w-12 h-12 rounded-full border-2 flex items-center justify-center">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="ml-4">
+            <p class="step-label">Quality Check</p>
+            <p class="text-gray-400 text-sm">Pending</p>
+          </div>
+        </div>
+
+        <div class="step-connector pending"></div>
+
+        <div class="tracking-step pending">
+          <div class="step-icon w-12 h-12 rounded-full border-2 flex items-center justify-center">
+            <i class="fas fa-truck"></i>
+          </div>
+          <div class="ml-4">
+            <p class="step-label">On the Way</p>
+            <p class="text-gray-400 text-sm">Pending</p>
+          </div>
+        </div>
+
+        <div class="step-connector pending"></div>
+
+        <div class="tracking-step pending">
+          <div class="step-icon w-12 h-12 rounded-full border-2 flex items-center justify-center">
+            <i class="fas fa-home"></i>
+          </div>
+          <div class="ml-4">
+            <p class="step-label">Delivered</p>
+            <p class="text-gray-400 text-sm">Pending</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Map Placeholder -->
+      <div class="mb-8">
+        <h3 class="text-xl font-bold text-white mb-4">Delivery Route</h3>
+        <div class="h-64 bg-white/5 rounded-xl flex items-center justify-center">
+          <div class="text-center">
+            <i class="fas fa-map-marked-alt text-4xl text-gray-500 mb-4"></i>
+            <p class="text-gray-400">Live tracking map will be displayed here</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glass-panel p-6">
+          <h4 class="text-lg font-bold text-white mb-4">
+            <i class="fas fa-store mr-2"></i>Store Information
+          </h4>
+          <div class="space-y-3">
+            <p class="text-white" th:text="${order.storeName}">QuantumBurger</p>
+            <p class="text-gray-400" th:text="${order.storeAddress}">Patision 76, Athens</p>
+            <p class="text-gray-400 text-sm">Tel: <span th:text="${order.storePhone}">+30 210 1234567</span></p>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6">
+          <h4 class="text-lg font-bold text-white mb-4">
+            <i class="fas fa-home mr-2"></i>Delivery Address
+          </h4>
+          <div class="space-y-3">
+            <p class="text-white" th:text="${order.deliveryAddress?.recipientName}">John Doe</p>
+            <p class="text-gray-400" th:text="${order.deliveryAddress?.streetAddress}">Ermou 24</p>
+            <p class="text-gray-400" th:text="${order.deliveryAddress?.area}">Syntagma, Athens</p>
+            <p class="text-gray-400 text-sm">Note: <span th:text="${order.deliveryAddress?.instructions}">Ring bell twice</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Summary -->
+  <div class="glass-panel p-8">
+    <h3 class="text-2xl font-orbitron font-bold text-white mb-6">Order Summary</h3>
+
+    <div class="space-y-4 mb-8">
+      <div th:each="item : ${order.items}" class="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
+        <div class="flex items-center">
+          <div class="w-16 h-16 rounded-lg overflow-hidden mr-4">
+            <img th:if="${item.imageUrl}"
+                 th:src="${item.imageUrl}"
+                 alt="Item image"
+                 class="w-full h-full object-cover">
+          </div>
+          <div>
+            <h4 class="font-bold text-white" th:text="${item.name}"></h4>
+            <p class="text-gray-400 text-sm" th:text="${item.quantity} + ' × €' + ${item.unitPrice}"></p>
+          </div>
+        </div>
+        <p class="text-white font-bold">€<span th:text="${item.totalPrice}"></span></p>
+      </div>
+    </div>
+
+    <!-- Totals -->
+    <div class="space-y-3">
+      <div class="flex justify-between text-gray-400">
+        <span>Subtotal</span>
+        <span>€<span th:text="${order.subtotal}">21.50</span></span>
+      </div>
+      <div class="flex justify-between text-gray-400">
+        <span>Delivery Fee</span>
+        <span>€<span th:text="${order.deliveryFee}">2.50</span></span>
+      </div>
+      <div class="flex justify-between text-gray-400">
+        <span>Service Fee</span>
+        <span>€<span th:text="${order.serviceFee}">0.50</span></span>
+      </div>
+      <div class="border-t border-white/10 pt-4">
+        <div class="flex justify-between text-xl font-bold">
+          <span class="text-white">Total</span>
+          <span class="text-cyber-blue">€<span th:text="${order.totalAmount}">24.50</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for Live Tracking -->
+<script>
+  // Simulate real-time updates
+  function updateTracking() {
+    fetch(`/api/orders/${orderId}/status`)
+            .then(response => response.json())
+            .then(data => {
+              updateProgressBar(data.status);
+              updateEstimatedTime(data.estimatedDeliveryTime);
+
+              // If order is delivered, redirect after 5 seconds
+              if (data.status === 'DELIVERED') {
+                setTimeout(() => {
+                  window.location.href = `/orders/${orderId}/rating`;
+                }, 5000);
+              }
+            });
+  }
+
+  function updateProgressBar(status) {
+    const steps = document.querySelectorAll('.tracking-step, .step-connector');
+    steps.forEach(step => step.classList.remove('active', 'completed'));
+
+    // Logic to update steps based on status
+    // This is simplified - you would implement based on your status flow
+  }
+
+  function updateEstimatedTime(time) {
+    document.querySelector('.estimated-delivery-time').textContent = time;
+  }
+
+  // Poll for updates every 30 seconds
+  setInterval(updateTracking, 30000);
+
+  // Initial update
+  updateTracking();
+</script>
+</body>
+</html>
