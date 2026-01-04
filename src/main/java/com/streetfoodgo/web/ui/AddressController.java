@@ -18,7 +18,7 @@ import java.util.List;
  * Controller for managing delivery addresses.
  */
 @Controller
-@RequestMapping("/addresses")
+@RequestMapping("/profile/addresses")
 @PreAuthorize("hasRole('CUSTOMER')")
 public class AddressController {
 
@@ -96,18 +96,18 @@ public class AddressController {
         }
 
         this.deliveryAddressService.updateAddress(id, request);
-        return "redirect:/addresses";
+        return "redirect:/profile/addresses";
     }
 
     @PostMapping("/{id}/set-default")
     public String setDefault(@PathVariable Long id) {
         this.deliveryAddressService.setDefaultAddress(id);
-        return "redirect:/addresses";
+        return "redirect:/profile/addresses";
     }
 
     @PostMapping("/{id}/delete")
     public String deleteAddress(@PathVariable Long id) {
         this.deliveryAddressService.deleteAddress(id);
-        return "redirect:/addresses";
+        return "redirect:/profile/addresses";
     }
 }

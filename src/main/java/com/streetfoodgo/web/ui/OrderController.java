@@ -53,6 +53,17 @@ public class OrderController {
         model.addAttribute("order", order);
         return "orders/detail";
     }
+    @GetMapping("/new")
+    public String newOrder(Model model) {
+        // dummy form
+        return "orders/new";
+    }
+
+    @GetMapping("/{id}/tracking")
+    public String trackOrder(@PathVariable Long id, Model model) {
+        // dummy data
+        return "orders/tracking";
+    }
 
     @PostMapping("/{id}/cancel")
     public String cancelOrder(@PathVariable Long id) {

@@ -30,14 +30,14 @@ public class AuthController {
             model.addAttribute("message", "You have been logged out successfully.");
         }
 
-        return "login";
+        return "auth/login";
     }
 
     @GetMapping("/logout")
     public String logout(final Authentication authentication) {
         if (AuthUtils.isAnonymous(authentication)) {
-            return "redirect:/login";
+            return "redirect:auth/login";
         }
-        return "logout";
+        return "auth/logout";
     }
 }
