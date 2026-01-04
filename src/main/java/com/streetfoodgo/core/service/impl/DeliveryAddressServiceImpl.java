@@ -50,7 +50,7 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
 
         // Security: Only customer can view their own addresses
         final var currentUser = this.currentUserProvider.requireCurrentUser();
-        if (!currentUser.id().equals(customerId)) {
+        if (currentUser.id() !=customerId) {
             throw new SecurityException("Cannot access other customer's addresses");
         }
 

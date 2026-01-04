@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -72,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Security: Verify customer
         final var currentUser = this.currentUserProvider.requireCurrentUser();
-        if (!currentUser.id().equals(request.customerId())) {
+        if (!Objects.equals(request.customerId(), currentUser.id())) {
             throw new SecurityException("Cannot create order for another customer");
         }
 
@@ -198,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
         if (customerId == null || customerId <= 0) throw new IllegalArgumentException();
 
         final var currentUser = this.currentUserProvider.requireCurrentUser();
-        if (!currentUser.id().equals(customerId)) {
+        if (!Objects.equals(customerId, currentUser.id())) {
             throw new SecurityException("Cannot access other customer's orders");
         }
 

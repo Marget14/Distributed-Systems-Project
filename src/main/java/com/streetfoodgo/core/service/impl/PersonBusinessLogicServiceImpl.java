@@ -124,7 +124,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         // Send SMS notification
         if (notify) {
             final String content = String.format(
-                    "Welcome to StreetFoodGo! Your account has been created. Use %s to log in.",
+                    "Welcome to StreetFoodGo! Your account has been created. Use %s to login.",
                     emailAddress
             );
             final boolean sent = this.smsNotificationPort.sendSms(mobilePhoneNumber, content);
