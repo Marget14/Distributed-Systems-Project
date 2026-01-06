@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="https://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{base}">
 <head>
@@ -28,7 +28,7 @@
                         <div class="flex items-center gap-4">
                             <span class="px-3 py-1 bg-cyber-blue/20 text-cyber-blue rounded-full text-sm font-semibold"
                                   th:text="${user.type}"></span>
-                            <span class="text-gray-400">Member since <span th:text="${#temporals.format(user.joinDate, 'MMMM yyyy')}"></span></span>
+                            <span class="text-gray-400">Member since <span th:text="${user.joinDate}"></span></span>
                         </div>
                     </div>
                     <a th:href="@{/profile/edit}" class="cyber-button mt-4 md:mt-0">
