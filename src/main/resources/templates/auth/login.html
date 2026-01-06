@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html
-        xmlns:th="https://www.thymeleaf.org"
+        xmlns:th="http://www.thymeleaf.org"
         xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{base}">
 
@@ -24,7 +24,7 @@
                 <span th:text="${error}"></span>
             </div>
 
-            <form th:action="@{/auth/login}" method="post" class="space-y-6">
+            <form th:action="@{/login}" method="post" class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
                     <input
