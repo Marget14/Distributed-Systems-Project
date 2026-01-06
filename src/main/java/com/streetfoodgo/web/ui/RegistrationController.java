@@ -13,11 +13,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Controller for user registration.
  */
 @Controller
+@RequestMapping("/auth")
 public class RegistrationController {
 
     private final PersonBusinessLogicService personBusinessLogicService;
@@ -42,7 +44,7 @@ public class RegistrationController {
         );
         model.addAttribute("createPersonRequest", request);
 
-        return "register";
+        return "/auth/register";
     }
 
     @PostMapping("/register")
@@ -57,7 +59,7 @@ public class RegistrationController {
         }
 
         if (bindingResult.hasErrors()) {
-            return "register";
+            return "/auth/register";
         }
 
         final CreatePersonResult result = this.personBusinessLogicService.createPerson(request);
@@ -70,6 +72,6 @@ public class RegistrationController {
         // Failed - show error message
         model.addAttribute("createPersonRequest", request);
         model.addAttribute("errorMessage", result.reason());
-        return "register";
+        return "/auth/register";
     }
 }

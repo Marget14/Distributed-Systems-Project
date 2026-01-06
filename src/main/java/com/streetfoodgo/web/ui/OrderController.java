@@ -42,7 +42,7 @@ public class OrderController {
         final List<OrderView> orders = this.orderService.getCustomerOrders(currentUser.id());
 
         model.addAttribute("orders", orders);
-        return "orders/list";
+        return "/orders/list";
     }
 
     @GetMapping("/{id}")
@@ -51,18 +51,18 @@ public class OrderController {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         model.addAttribute("order", order);
-        return "orders/detail";
+        return "/orders/detail";
     }
 
     @GetMapping("/new")
     public String newOrder(Model model) {
-        return "orders/new";
+        return "/orders/new";
     }
 
     @GetMapping("/{id}/tracking")
     public String trackOrder(@PathVariable Long id, Model model) {
         // dummy data
-        return "orders/tracking";
+        return "/orders/tracking";
     }
 
     @PostMapping("/{id}/cancel")
