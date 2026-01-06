@@ -62,7 +62,7 @@ public class AddressController {
         }
 
         this.deliveryAddressService.createAddress(request);
-        return "redirect:/addresses";
+        return "redirect:/profile/addresses";
     }
 
     @GetMapping("/{id}/edit")

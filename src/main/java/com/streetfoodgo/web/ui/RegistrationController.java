@@ -33,7 +33,7 @@ public class RegistrationController {
             final Model model) {
 
         if (AuthUtils.isAuthenticated(authentication)) {
-            return "redirect:/profile";
+            return "redirect:/profile/profile";
         }
 
         // Initial empty form (default to CUSTOMER)
@@ -53,7 +53,7 @@ public class RegistrationController {
             final Model model) {
 
         if (AuthUtils.isAuthenticated(authentication)) {
-            return "redirect:/profile";
+            return "redirect:/profile/profile";
         }
 
         if (bindingResult.hasErrors()) {

@@ -53,9 +53,9 @@ public class OrderController {
         model.addAttribute("order", order);
         return "orders/detail";
     }
+
     @GetMapping("/new")
     public String newOrder(Model model) {
-        // dummy form
         return "orders/new";
     }
 

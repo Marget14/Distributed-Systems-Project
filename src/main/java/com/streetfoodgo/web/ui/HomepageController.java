@@ -27,17 +27,17 @@ public class HomepageController {
 
     // Simple DTO class for the example
     public static class Store {
-        private Long id;
-        private String name;
-        private String cuisineType;
-        private String description;
-        private boolean isOpen;
-        private int estimatedDeliveryTimeMinutes;
-        private double minimumOrderAmount;
-        private String area;
-        private boolean acceptsDelivery;
-        private boolean acceptsPickup;
-        private double deliveryFee;
+        private final Long id;
+        private final String name;
+        private final String cuisineType;
+        private final String description;
+        private final boolean isOpen;
+        private final int estimatedDeliveryTimeMinutes;
+        private final double minimumOrderAmount;
+        private final String area;
+        private final boolean acceptsDelivery;
+        private final boolean acceptsPickup;
+        private final double deliveryFee;
 
         public Store(Long id, String name, String cuisineType, String description, boolean isOpen,
                      int estimatedDeliveryTimeMinutes, double minimumOrderAmount, String area,

@@ -39,7 +39,7 @@ public class StoreController {
     @GetMapping
     public String listStores(
             @RequestParam(required = false) String area,
-            @RequestParam(required = false) CuisineType cuisine,
+            @RequestParam(required = false) String cuisine,  // Changed from CuisineType to String
             @RequestParam(required = false) String search,
             final Model model) {
 
@@ -48,9 +48,14 @@ public class StoreController {
         if (search != null && !search.isBlank()) {
             stores = this.storeService.searchStores(search);
             model.addAttribute("searchQuery", search);
-        } else if (cuisine != null) {
-            stores = this.storeService.getStoresByCuisine(cuisine);
-            model.addAttribute("selectedCuisine", cuisine);
+        } else if (cuisine != null && !cuisine.isBlank()) {
+            try {
+                CuisineType cuisineType = CuisineType.valueOf(cuisine);
+                stores = this.storeService.getStoresByCuisine(cuisineType);
+                model.addAttribute("selectedCuisine", cuisine);  // Pass as String
+            } catch (IllegalArgumentException e) {
+                stores = this.storeService.getOpenStores();
+            }
         } else if (area != null && !area.isBlank()) {
             stores = this.storeService.getStoresByArea(area);
             model.addAttribute("selectedArea", area);

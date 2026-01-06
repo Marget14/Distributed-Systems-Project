@@ -36,7 +36,7 @@ public class AuthController {
     @GetMapping("/logout")
     public String logout(final Authentication authentication) {
         if (AuthUtils.isAnonymous(authentication)) {
-            return "redirect:auth/login";
+            return "redirect:/login";
         }
         return "auth/logout";
     }
