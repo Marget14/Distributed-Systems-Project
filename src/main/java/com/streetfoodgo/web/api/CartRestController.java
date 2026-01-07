@@ -51,6 +51,7 @@ public class CartRestController {
         } else {
             cartItem = new CartItem(
                     menuItem.id(),
+                    menuItem.storeId(),
                     menuItem.name(),
                     menuItem.price(),
                     request.quantity()
@@ -133,47 +134,33 @@ public class CartRestController {
      */
     public static class CartItem {
         private Long id;
+        private Long storeId;
         private String name;
         private BigDecimal price;
         private int quantity;
 
-        public CartItem(Long id, String name, BigDecimal price, int quantity) {
+        public CartItem(Long id, Long storeId, String name, BigDecimal price, int quantity) {
             this.id = id;
+            this.storeId = storeId;
             this.name = name;
             this.price = price;
             this.quantity = quantity;
         }
 
-        public Long getId() {
-            return id;
-        }
+        // Getters and setters
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
 
-        public void setId(Long id) {
-            this.id = id;
-        }
+        public Long getStoreId() { return storeId; }  // ΝΑ ΥΠΑΡΧΕΙ ΑΥΤΟ
+        public void setStoreId(Long storeId) { this.storeId = storeId; }
 
-        public String getName() {
-            return name;
-        }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
 
-        public void setName(String name) {
-            this.name = name;
-        }
+        public BigDecimal getPrice() { return price; }
+        public void setPrice(BigDecimal price) { this.price = price; }
 
-        public BigDecimal getPrice() {
-            return price;
-        }
-
-        public void setPrice(BigDecimal price) {
-            this.price = price;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(int quantity) {
-            this.quantity = quantity;
-        }
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
     }
 }
