@@ -74,7 +74,7 @@
                             </div>
                         </div>
                         <button id="checkoutBtn" class="w-full cyber-button py-3 relative">
-                            <i class="fas fa-shopping-bag mr-2"></i>Checkout
+                            <i class="fas fa-shopping-bag mr-2"></i>View Cart
                             <span id="cartBadge" class="absolute -top-2 -right-2 w-6 h-6 bg-neon-pink rounded-full flex items-center justify-center text-xs font-bold">0</span>
                         </button>
                     </div>
@@ -131,22 +131,52 @@
                 var checkoutBtn = document.getElementById('checkoutBtn');
                 if (checkoutBtn) {
                     checkoutBtn.addEventListener('click', function() {
-                        window.location.href = '/checkout?store=' + config.storeId;
+                        window.location.href = '/cart';
                     });
                 }
             }
 
             function addToCart(item) {
                 console.log('Adding to cart:', item);
-                var ex = cart.find(function(c) { return c.id === item.id; });
-                if (ex) {
-                    ex.quantity++;
-                } else {
-                    cart.push(item);
-                }
-                saveCart();
-                renderCart();
-                showNotification('Added ' + item.name + ' to cart!');
+
+                // Send to backend API
+                fetch('/api/cart/items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        menuItemId: item.id,
+                        quantity: item.quantity
+                    })
+                })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Failed to add item');
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        console.log('Item added:', data);
+                        // Also save to localStorage as backup
+                        var ex = cart.find(function(c) { return c.id === item.id; });
+                        if (ex) {
+                            ex.quantity++;
+                        } else {
+                            cart.push(item);
+                        }
+                        saveCart();
+                        renderCart();
+                        showNotification('Added ' + item.name + ' to cart!');
+                    })
+                    .catch(function(error) {
+                        console.error('Error adding to cart:', error);
+                        showNotification('Failed to add item', 'error');
+                    });
+            }
+
+            function getCsrfToken() {
+                var token = document.querySelector('meta[name="_csrf"]');
+                return token ? token.getAttribute('content') : '';
             }
 
             function removeItem(id) {
