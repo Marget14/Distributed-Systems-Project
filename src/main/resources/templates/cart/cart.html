@@ -3,15 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{base}">
 <head>
-    <title>Shopping Cart - StreetFoodGo</title>
-    <style>
-        .cart-item {
-            @apply border-b border-white/10;
-        }
-        .quantity-btn {
-            @apply w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors;
-        }
-    </style>
+    <title>Shopping Cart</title>
 </head>
 <body>
 <div layout:fragment="main">
@@ -22,15 +14,15 @@
                 <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Shopping Cart</h1>
                 <p class="text-gray-400">Review your order before checkout</p>
             </div>
-            <div class="text-right">
+            <div class="text-right" th:if="${cart != null && cart.items != null && !cart.items.empty}">
                 <p class="text-gray-400">Items in cart</p>
-                <p class="text-2xl font-bold text-cyber-blue" id="cartItemCount" th:text="${cart?.items?.size() ?: 0}">0</p>
+                <p class="text-2xl font-bold text-cyber-blue" th:text="${cart.items.size()}">0</p>
             </div>
         </div>
     </div>
 
     <!-- Empty Cart -->
-    <div th:if="${cart == null || cart.items.empty}" class="glass-panel p-12 text-center">
+    <div th:if="${cart == null || cart.items == null || cart.items.empty}" class="glass-panel p-12 text-center">
         <i class="fas fa-shopping-cart text-4xl text-gray-500 mb-4"></i>
         <h3 class="text-xl font-bold text-white mb-2">Your cart is empty</h3>
         <p class="text-gray-400 mb-6">Add delicious items from our stores</p>
@@ -40,81 +32,60 @@
     </div>
 
     <!-- Cart with Items -->
-    <div th:if="${cart != null && !cart.items.empty}" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column: Cart Items -->
-        <div class="lg:col-span-2">
+    <div th:if="${cart != null && cart.items != null && !cart.items.empty}" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Cart Items -->
+        <div class="lg:col-span-2 space-y-6">
             <!-- Store Grouping -->
-            <div th:each="storeGroup : ${cart.storeGroups}" class="glass-panel p-6 mb-6">
+            <div th:each="storeGroup : ${cart.storeGroups}" class="glass-panel p-6">
                 <div class="flex items-center mb-6">
                     <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center mr-3">
                         <i class="fas fa-store text-cyber-blue"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-white" th:text="${storeGroup.storeName}"></h3>
-                        <p class="text-gray-400 text-sm" th:text="${storeGroup.storeArea}"></p>
+                        <h3 class="text-xl font-bold text-white" th:text="${storeGroup.storeName}">Store</h3>
+                        <p class="text-gray-400 text-sm" th:text="${storeGroup.storeArea}">Area</p>
                     </div>
                 </div>
 
-                <!-- Items in this store -->
-                <div th:each="item : ${storeGroup.items}" class="cart-item py-6">
-                    <div class="flex">
-                        <!-- Item Image -->
-                        <div class="w-24 h-24 rounded-lg overflow-hidden mr-4 flex-shrink-0">
-                            <img th:if="${item.imageUrl}"
-                                 th:src="${item.imageUrl}"
-                                 alt="Item image"
-                                 class="w-full h-full object-cover">
-                            <div th:unless="${item.imageUrl}"
-                                 class="w-full h-full bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center">
-                                <i class="fas fa-utensils text-gray-400"></i>
-                            </div>
+                <!-- Items -->
+                <div th:each="item, iterStat : ${storeGroup.items}"
+                     th:class="${!iterStat.last ? 'border-b border-white/10 pb-6 mb-6' : 'pb-2'}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-white" th:text="${item.name}">Item</h4>
+                            <p class="text-gray-400 text-sm" th:text="${item.description}">Description</p>
+                        </div>
+                        <button class="text-red-400 hover:text-red-300 transition-colors ml-4"
+                                th:attr="data-item-id=${item.id}"
+                                onclick="removeItem(this.getAttribute('data-item-id'))">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <!-- Quantity Controls -->
+                        <div class="flex items-center gap-3">
+                            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                                    th:attr="data-item-id=${item.id}"
+                                    onclick="updateQuantity(this.getAttribute('data-item-id'), -1)">
+                                <i class="fas fa-minus text-sm"></i>
+                            </button>
+                            <span class="text-white font-bold min-w-[2rem] text-center" th:text="${item.quantity}">1</span>
+                            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                                    th:attr="data-item-id=${item.id}"
+                                    onclick="updateQuantity(this.getAttribute('data-item-id'), 1)">
+                                <i class="fas fa-plus text-sm"></i>
+                            </button>
                         </div>
 
-                        <!-- Item Details -->
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-bold text-white" th:text="${item.name}"></h4>
-                                    <p class="text-gray-400 text-sm" th:text="${item.description}"></p>
-                                </div>
-                                <button class="text-red-400 hover:text-red-300"
-                                        th:onclick="'removeItem(' + ${item.id} + ')'">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <!-- Quantity Controls -->
-                                <div class="flex items-center">
-                                    <button class="quantity-btn"
-                                            th:onclick="'updateQuantity(' + ${item.id} + ', -1)'">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                    <span class="mx-4 text-white font-bold" th:text="${item.quantity}"></span>
-                                    <button class="quantity-btn"
-                                            th:onclick="'updateQuantity(' + ${item.id} + ', 1)'">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Price -->
-                                <div class="text-right">
-                                    <p class="text-xl font-bold text-cyber-blue">
-                                        €<span th:text="${item.totalPrice}"></span>
-                                    </p>
-                                    <p class="text-gray-400 text-sm">
-                                        €<span th:text="${item.unitPrice}"></span> each
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Special Instructions -->
-                            <div th:if="${item.specialInstructions}" class="mt-4">
-                                <p class="text-gray-400 text-sm">
-                                    <i class="fas fa-sticky-note mr-2"></i>
-                                    <span th:text="${item.specialInstructions}"></span>
-                                </p>
-                            </div>
+                        <!-- Price -->
+                        <div class="text-right">
+                            <p class="text-xl font-bold text-cyber-blue">
+                                €<span th:text="${item.totalPrice}">0.00</span>
+                            </p>
+                            <p class="text-gray-400 text-sm">
+                                €<span th:text="${item.unitPrice}">0.00</span> each
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -124,107 +95,65 @@
                      class="mt-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
-                        <div>
-                            <p class="text-yellow-300 text-sm">
-                                Minimum order for this store is €<span th:text="${storeGroup.minimumOrder}"></span>.
-                                Add €<span th:text="${storeGroup.minimumOrder - storeGroup.subtotal}"></span> more to proceed.
-                            </p>
-                        </div>
+                        <p class="text-yellow-300 text-sm">
+                            Minimum order is €<span th:text="${storeGroup.minimumOrder}">0</span>.
+                            Add €<span th:text="${storeGroup.minimumOrder - storeGroup.subtotal}">0</span> more.
+                        </p>
                     </div>
-                </div>
-            </div>
-
-            <!-- Delivery Address -->
-            <div class="glass-panel p-6 mb-6">
-                <h3 class="text-xl font-bold text-white mb-4">
-                    <i class="fas fa-map-marker-alt mr-2"></i>Delivery Address
-                </h3>
-
-                <div th:if="${addresses != null && !addresses.empty}">
-                    <div th:each="address : ${addresses}"
-                         class="flex items-center p-4 rounded-lg border mb-3 cursor-pointer hover:border-cyber-blue transition-colors"
-                         th:classappend="${address.id == selectedAddressId} ? 'border-cyber-blue bg-cyber-blue/10' : 'border-white/10'"
-                         th:onclick="'selectAddress(' + ${address.id} + ')'">
-                        <div class="flex-grow">
-                            <div class="flex items-center mb-2">
-                                <span class="font-semibold text-white" th:text="${address.label}"></span>
-                                <span th:if="${address.isDefault}"
-                                      class="ml-3 px-2 py-1 bg-cyber-blue/20 text-cyber-blue rounded text-xs">
-                                    Default
-                                </span>
-                            </div>
-                            <p class="text-gray-300 text-sm" th:text="${address.fullAddress}"></p>
-                        </div>
-                        <i class="fas fa-check text-cyber-blue ml-4"
-                           th:if="${address.id == selectedAddressId}"></i>
-                    </div>
-                </div>
-
-                <div th:if="${addresses == null || addresses.empty}" class="text-center py-4">
-                    <p class="text-gray-400 mb-4">No delivery addresses saved</p>
-                    <a th:href="@{/profile/addresses}" class="text-cyber-blue hover:text-cyber-blue/80">
-                        <i class="fas fa-plus mr-2"></i>Add Address
-                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Order Summary -->
+        <!-- Right: Order Summary -->
         <div class="lg:col-span-1">
-            <div class="glass-panel p-6 sticky top-6">
+            <div class="glass-panel p-6 sticky top-24">
                 <h3 class="text-xl font-bold text-white mb-6">Order Summary</h3>
 
                 <!-- Order Type -->
                 <div class="mb-6">
                     <h4 class="text-white mb-3">Order Type</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <button class="order-type-btn py-3 rounded-lg border text-center"
-                                th:classappend="${orderType == 'DELIVERY'} ? 'border-cyber-blue bg-cyber-blue/10 text-cyber-blue' : 'border-white/10 text-gray-300'"
-                                th:onclick="'setOrderType(\"DELIVERY\")'">
-                        <i class="fas fa-truck mb-2"></i>
-                        <p class="font-semibold">Delivery</p>
+                        <button id="deliveryBtn" class="py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors"
+                                onclick="setOrderType('DELIVERY')">
+                            <i class="fas fa-truck mb-1 block"></i>
+                            <p class="font-semibold text-sm">Delivery</p>
                         </button>
-                        <button class="order-type-btn py-3 rounded-lg border text-center"
-                                th:classappend="${orderType == 'PICKUP'} ? 'border-cyber-blue bg-cyber-blue/10 text-cyber-blue' : 'border-white/10 text-gray-300'"
-                                th:onclick="'setOrderType(\"PICKUP\")'">
-                        <i class="fas fa-walking mb-2"></i>
-                        <p class="font-semibold">Pickup</p>
+                        <button id="pickupBtn" class="py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors"
+                                onclick="setOrderType('PICKUP')">
+                            <i class="fas fa-walking mb-1 block"></i>
+                            <p class="font-semibold text-sm">Pickup</p>
                         </button>
                     </div>
                 </div>
 
                 <!-- Summary Details -->
-                <div class="space-y-4 mb-6">
+                <div class="space-y-3 mb-6">
                     <div th:each="storeGroup : ${cart.storeGroups}">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-300" th:text="${storeGroup.storeName}"></span>
-                            <span class="text-white">€<span th:text="${storeGroup.subtotal}"></span></span>
+                            <span class="text-gray-300" th:text="${storeGroup.storeName}">Store</span>
+                            <span class="text-white">€<span th:text="${storeGroup.subtotal}">0</span></span>
                         </div>
                         <div class="flex justify-between text-xs text-gray-500 ml-4">
                             <span>Delivery fee</span>
-                            <span>€<span th:text="${storeGroup.deliveryFee}"></span></span>
+                            <span>€<span th:text="${storeGroup.deliveryFee}">0</span></span>
                         </div>
                     </div>
 
-                    <div class="border-t border-white/10 pt-4">
-                        <div class="flex justify-between text-gray-300">
+                    <div class="border-t border-white/10 pt-3">
+                        <div class="flex justify-between text-gray-300 text-sm">
                             <span>Subtotal</span>
-                            <span>€<span th:text="${cart.subtotal}"></span></span>
+                            <span>€<span th:text="${cart.subtotal}">0</span></span>
                         </div>
-                        <div class="flex justify-between text-gray-300">
+                        <div class="flex justify-between text-gray-300 text-sm">
                             <span>Delivery Total</span>
-                            <span>€<span th:text="${cart.deliveryTotal}"></span></span>
-                        </div>
-                        <div class="flex justify-between text-gray-300">
-                            <span>Service Fee</span>
-                            <span>€<span th:text="${cart.serviceFee}"></span></span>
+                            <span>€<span th:text="${cart.deliveryTotal}">0</span></span>
                         </div>
                     </div>
 
-                    <div class="border-t border-white/10 pt-4">
+                    <div class="border-t border-white/10 pt-3">
                         <div class="flex justify-between text-xl font-bold">
                             <span class="text-white">Total</span>
-                            <span class="text-cyber-blue">€<span th:text="${cart.total}"></span></span>
+                            <span class="text-cyber-blue">€<span th:text="${cart.total}">0</span></span>
                         </div>
                     </div>
                 </div>
@@ -235,105 +164,62 @@
                     <textarea id="specialInstructions"
                               class="quantum-input w-full"
                               rows="3"
-                              placeholder="Any special requests or instructions..."></textarea>
+                              placeholder="Any special requests..."></textarea>
                 </div>
 
                 <!-- Checkout Button -->
-                <button class="w-full cyber-button py-4 text-lg"
+                <button class="w-full cyber-button py-3"
                         onclick="checkout()">
                     <i class="fas fa-lock mr-2"></i>Proceed to Checkout
                 </button>
-
-                <!-- Security Info -->
-                <p class="text-xs text-gray-500 text-center mt-4">
-                    <i class="fas fa-shield-alt mr-1"></i>
-                    Secure checkout • Your data is protected
-                </p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- JavaScript for Cart -->
 <script>
-    // Global variables
-    let selectedAddressId = null;
     let orderType = 'DELIVERY';
 
     function updateQuantity(itemId, change) {
-        fetch(`/api/cart/items/${itemId}/quantity`, {
+        fetch('/api/cart/items/' + itemId + '/quantity', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
             },
             body: JSON.stringify({ change: change })
-        })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();
-                }
-            });
+        }).then(function(response) {
+            if (response.ok) location.reload();
+        });
     }
 
     function removeItem(itemId) {
         if (confirm('Remove this item from cart?')) {
-            fetch(`/api/cart/items/${itemId}`, {
+            fetch('/api/cart/items/' + itemId, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
                 }
-            })
-                .then(response => {
-                    if (response.ok) {
-                        location.reload();
-                    }
-                });
+            }).then(function(response) {
+                if (response.ok) location.reload();
+            });
         }
-    }
-
-    function selectAddress(addressId) {
-        selectedAddressId = addressId;
-
-        // Update UI
-        document.querySelectorAll('[th\\:onclick^="selectAddress"]').forEach(el => {
-            el.classList.remove('border-cyber-blue', 'bg-cyber-blue/10');
-            el.classList.add('border-white/10');
-        });
-
-        const selectedElement = document.querySelector(`[th\\:onclick="selectAddress(${addressId})"]`);
-        if (selectedElement) {
-            selectedElement.classList.add('border-cyber-blue', 'bg-cyber-blue/10');
-            selectedElement.classList.remove('border-white/10');
-        }
-
-        // Save selection
-        fetch('/api/cart/delivery-address', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
-            },
-            body: JSON.stringify({ addressId: addressId })
-        });
     }
 
     function setOrderType(type) {
         orderType = type;
 
-        // Update UI
-        document.querySelectorAll('.order-type-btn').forEach(btn => {
-            btn.classList.remove('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
-            btn.classList.add('border-white/10', 'text-gray-300');
-        });
+        var deliveryBtn = document.getElementById('deliveryBtn');
+        var pickupBtn = document.getElementById('pickupBtn');
 
-        const selectedBtn = document.querySelector(`[th\\:onclick="setOrderType('${type}')"]`);
-        if (selectedBtn) {
-            selectedBtn.classList.add('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
-            selectedBtn.classList.remove('border-white/10', 'text-gray-300');
+        if (type === 'DELIVERY') {
+            deliveryBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
+            pickupBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
+        } else {
+            pickupBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
+            deliveryBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
         }
 
-        // Save selection
         fetch('/api/cart/order-type', {
             method: 'PUT',
             headers: {
@@ -345,15 +231,8 @@
     }
 
     function checkout() {
-        // Validation
-        if (orderType === 'DELIVERY' && !selectedAddressId) {
-            alert('Please select a delivery address');
-            return;
-        }
+        var instructions = document.getElementById('specialInstructions').value;
 
-        const instructions = document.getElementById('specialInstructions').value;
-
-        // Proceed to checkout
         fetch('/api/cart/checkout', {
             method: 'POST',
             headers: {
@@ -361,40 +240,22 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
             },
             body: JSON.stringify({
-                deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
+                deliveryAddressId: null,
                 orderType: orderType,
                 specialInstructions: instructions
             })
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
+            .then(function(response) {
+                if (response.ok) return response.json();
                 throw new Error('Checkout failed');
             })
-            .then(data => {
-                // Redirect to order confirmation
-                window.location.href = `/orders/${data.orderId}/confirm`;
+            .then(function(data) {
+                window.location.href = '/orders/' + data.orderId + '/confirm';
             })
-            .catch(error => {
+            .catch(function(error) {
                 alert('Checkout failed: ' + error.message);
             });
     }
-
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set initial order type if present
-        const initialOrderType = document.querySelector('.order-type-btn.border-cyber-blue');
-        if (initialOrderType) {
-            const onclick = initialOrderType.getAttribute('th:onclick');
-            if (onclick) {
-                const match = onclick.match(/setOrderType\('([^']+)'\)/);
-                if (match) {
-                    orderType = match[1];
-                }
-            }
-        }
-    });
 </script>
 </body>
 </html>
