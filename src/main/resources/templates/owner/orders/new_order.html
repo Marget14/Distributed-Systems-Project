@@ -26,9 +26,9 @@
     <form th:action="@{/templates/owner/orders/new}" method="post" th:object="${form}">
 
         <div class="mb-3">
-            <label for="waiterId" class="form-label">Waiter ID</label>
-            <input type="text" id="waiterId" name="waiterId" th:field="*{waiterId}" class="form-control" placeholder="" required />
-            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('waiterId')}" th:errors="*{waiterId}"></div>
+            <label for="ownerId" class="form-label">Owner ID</label>
+            <input type="text" id="ownerId" name="ownerId" th:field="*{ownerId}" class="form-control" placeholder="" required />
+            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('ownerId')}" th:errors="*{ownerId}"></div>
         </div>
 
         <div class="mb-3">
