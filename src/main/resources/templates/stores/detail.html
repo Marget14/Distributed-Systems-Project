@@ -1,369 +1,204 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{base}">
 <head>
-    <title th:text="${store.name}">Store Details</title>
+    <title>Store Details</title>
 </head>
 <body>
 <div layout:fragment="main">
-    <!-- Store Header -->
-    <div class="glass-panel p-8 mb-6">
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- Store Image -->
-            <div class="md:w-1/3">
-                <div class="h-64 md:h-96 rounded-2xl overflow-hidden">
-                    <img th:if="${store.imageUrl != null}"
-                         th:src="${store.imageUrl}"
-                         alt="Store image"
-                         class="w-full h-full object-cover"/>
-                    <div th:if="${store.imageUrl == null}"
-                         class="w-full h-full bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center">
-                        <i class="fas fa-store text-6xl text-gray-400"></i>
+    <div id="storeData"
+         th:data-store-id="${store.id()}"
+         th:data-delivery-fee="${store.deliveryFee()}"
+         th:data-min-order="${store.minimumOrderAmount()}">
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Store Info & Menu Items -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Store Header -->
+                <div class="glass-panel p-6">
+                    <h1 class="text-3xl font-bold text-white mb-2" th:text="${store.name()}">Store</h1>
+                    <p class="text-gray-400 mb-3" th:text="${store.description()}">Description</p>
+                    <div class="flex gap-4 text-sm text-gray-400">
+                        <span><i class="fas fa-clock mr-1"></i><span th:text="${store.estimatedDeliveryTimeMinutes()}">30</span> min</span>
+                        <span><i class="fas fa-coins mr-1"></i>Min €<span th:text="${store.minimumOrderAmount()}">10</span></span>
                     </div>
                 </div>
 
-                <!-- Opening Hours -->
-                <div class="mt-6">
-                    <h4 class="text-lg font-bold text-white mb-3">
-                        <i class="fas fa-clock mr-2"></i>Opening Hours
-                    </h4>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Monday - Friday</span>
-                            <span class="text-white">10:00 - 22:00</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Saturday</span>
-                            <span class="text-white">11:00 - 23:00</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Sunday</span>
-                            <span class="text-white">12:00 - 20:00</span>
+                <!-- Menu Items -->
+                <div class="space-y-4">
+                    <div th:each="item : ${menuItems}"
+                         class="glass-panel p-4 menu-item"
+                         th:attr="data-id=${item.id()},data-name=${item.name()},data-price=${item.price()}">
+                        <div class="flex justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-white" th:text="${item.name()}">Item</h3>
+                                <p class="text-sm text-gray-400" th:text="${item.description()}">Desc</p>
+                                <span class="text-xl text-cyber-blue font-bold">€<span th:text="${item.price()}">0</span></span>
+                            </div>
+                            <button th:if="${item.available()}" class="add-btn cyber-button h-fit">Add</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Store Info -->
-            <div class="md:w-2/3">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h1 class="text-4xl font-orbitron font-bold text-white mb-2" th:text="${store.name}"></h1>
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="px-4 py-2 bg-cyber-blue/20 text-cyber-blue rounded-full text-sm font-semibold"
-                                  th:text="${store.cuisineType}"></span>
-                            <span th:if="${store.open}"
-                                  class="px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold">
-                                <i class="fas fa-check-circle mr-1"></i>OPEN NOW
-                            </span>
-                            <span th:if="${!store.open}"
-                                  class="px-4 py-2 bg-red-500/20 text-red-400 rounded-full text-sm font-semibold">
-                                <i class="fas fa-times-circle mr-1"></i>CLOSED
-                            </span>
-                            <div class="text-yellow-400">
-                                <i class="fas fa-star"></i>
-                                <span class="ml-1">4.5 (128 reviews)</span>
-                            </div>
-                        </div>
+            <!-- Right: Cart -->
+            <div class="lg:col-span-1">
+                <div class="glass-panel p-6 sticky top-24">
+                    <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-shopping-cart mr-2"></i>Cart</h2>
+
+                    <div id="emptyCart" class="text-center py-8">
+                        <i class="fas fa-shopping-cart text-4xl text-gray-600 mb-2"></i>
+                        <p class="text-gray-400">Empty</p>
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <a th:href="@{/cart/add/store/{id}(id=${store.id})}"
-                           class="cyber-button"
-                           sec:authorize="hasRole('CUSTOMER')">
-                            <i class="fas fa-shopping-cart mr-2"></i>Start Order
-                        </a>
-                        <button class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors">
-                            <i class="fas fa-heart mr-2"></i>Add to Favorites
+                    <div id="cartItems" class="hidden space-y-3 mb-4"></div>
+
+                    <div id="cartSummary" class="hidden border-t border-white/10 pt-4">
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-gray-300">
+                                <span>Subtotal</span>
+                                <span id="subtotal">€0</span>
+                            </div>
+                            <div class="flex justify-between text-gray-300">
+                                <span>Delivery</span>
+                                <span id="deliveryDisplay">€0</span>
+                            </div>
+                            <div class="flex justify-between text-xl font-bold text-white">
+                                <span>Total</span>
+                                <span id="total">€0</span>
+                            </div>
+                        </div>
+                        <button id="checkoutBtn" class="w-full cyber-button py-3 relative">
+                            <i class="fas fa-shopping-bag mr-2"></i>Checkout
+                            <span id="cartBadge" class="absolute -top-2 -right-2 w-6 h-6 bg-neon-pink rounded-full flex items-center justify-center text-xs font-bold">0</span>
                         </button>
                     </div>
                 </div>
-
-                <p class="text-gray-300 text-lg mb-8 leading-relaxed" th:text="${store.description}"></p>
-
-                <!-- Store Details Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="space-y-4">
-                        <div class="flex items-start">
-                            <i class="fas fa-map-marker-alt text-cyber-blue text-xl mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="text-sm text-gray-400 mb-1">Address</h4>
-                                <p class="text-white" th:text="${store.address}">Patision 76, Athens</p>
-                                <p class="text-gray-400 text-sm" th:text="${store.area}">Kolonaki</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start">
-                            <i class="fas fa-phone text-cyber-blue text-xl mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="text-sm text-gray-400 mb-1">Phone</h4>
-                                <p class="text-white" th:text="${store.phone}">+30 210 1234567</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-start">
-                            <i class="fas fa-truck text-cyber-blue text-xl mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="text-sm text-gray-400 mb-1">Delivery Info</h4>
-                                <p class="text-white">
-                                    <span th:text="${store.estimatedDeliveryTimeMinutes}"></span> min •
-                                    €<span th:text="${store.deliveryFee}"></span> fee
-                                </p>
-                                <p class="text-gray-400 text-sm">
-                                    Min order: €<span th:text="${store.minimumOrderAmount}"></span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start">
-                            <i class="fas fa-shipping-fast text-cyber-blue text-xl mt-1 mr-4"></i>
-                            <div>
-                                <h4 class="text-sm text-gray-400 mb-1">Order Options</h4>
-                                <div class="flex gap-2">
-                                    <span th:if="${store.acceptsDelivery}"
-                                          class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
-                                        <i class="fas fa-truck mr-1"></i>Delivery
-                                    </span>
-                                    <span th:if="${store.acceptsPickup}"
-                                          class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-semibold">
-                                        <i class="fas fa-walking mr-1"></i>Pickup
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Delivery Zones -->
-                <div class="mb-8">
-                    <h4 class="text-lg font-bold text-white mb-3">
-                        <i class="fas fa-map-marked-alt mr-2"></i>Delivery Zones
-                    </h4>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Kolonaki</span>
-                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Exarcheia</span>
-                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Syntagma</span>
-                        <span class="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">Gazi</span>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Menu Categories Tabs -->
-    <div th:if="${menuItems != null and !menuItems.isEmpty()}" class="sticky top-20 z-30 bg-dark-bg/80 backdrop-blur-md mb-8">
-        <div class="border-b border-white/10">
-            <div class="flex space-x-1 overflow-x-auto pb-1">
-                <button class="menu-tab px-6 py-3 text-gray-300 border-b-2 border-transparent hover:text-white whitespace-nowrap"
-                        data-category="all">
-                    All Items
-                </button>
-                <button th:each="category : ${categories}"
-                        class="menu-tab px-6 py-3 text-gray-300 border-b-2 border-transparent hover:text-white whitespace-nowrap"
-                        th:data-category="${category}"
-                        th:text="${category}">
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Menu Items Grid -->
-    <div th:if="${menuItems != null and !menuItems.isEmpty()}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="menuContainer">
-        <div th:each="item : ${menuItems}"
-             class="glass-panel p-6 menu-item hover-lift"
-             th:data-category="${item.category}"
-             th:data-available="${item.available}">
-
-            <!-- Item Image -->
-            <div class="h-48 mb-4 rounded-xl overflow-hidden">
-                <img th:if="${item.imageUrl != null}"
-                     th:src="${item.imageUrl}"
-                     alt="Menu item"
-                     class="w-full h-full object-cover"/>
-                <div th:if="${item.imageUrl == null}"
-                     class="w-full h-full bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center">
-                    <i class="fas fa-utensils text-4xl text-gray-400"></i>
-                </div>
-            </div>
-
-            <!-- Item Info -->
-            <div class="flex justify-between items-start mb-3">
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-1" th:text="${item.name}"></h3>
-                    <span class="text-sm text-gray-400" th:text="${item.category}"></span>
-                </div>
-                <span class="text-2xl font-bold text-cyber-blue">
-                    €<span th:text="${item.price}"></span>
-                </span>
-            </div>
-
-            <p class="text-gray-300 text-sm mb-4 line-clamp-2" th:text="${item.description}"></p>
-
-            <!-- Availability & Add to Cart -->
-            <div class="flex items-center justify-between">
-                <span th:if="${item.available}"
-                      class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
-                    <i class="fas fa-check mr-1"></i>Available
-                </span>
-                <span th:if="${!item.available}"
-                      class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold">
-                    <i class="fas fa-times mr-1"></i>Out of Stock
-                </span>
-
-                <button th:if="${item.available}"
-                        class="add-to-cart-btn px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors"
-                        th:data-item-id="${item.id}"
-                        th:data-item-name="${item.name}"
-                        th:data-item-price="${item.price}"
-                        sec:authorize="hasRole('CUSTOMER')">
-                    <i class="fas fa-plus mr-2"></i>Add to Cart
-                </button>
-                <button th:if="${!item.available}"
-                        class="px-4 py-2 bg-white/5 text-gray-500 rounded-lg text-sm cursor-not-allowed"
-                        disabled="disabled">
-                    Not Available
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- No Items Message -->
-    <div th:if="${menuItems == null or menuItems.isEmpty()}" class="text-center py-12 glass-panel">
-        <i class="fas fa-utensils text-4xl text-gray-500 mb-4"></i>
-        <h3 class="text-xl font-bold text-white mb-2">No menu items available</h3>
-        <p class="text-gray-400">This store hasn't added any items yet</p>
-    </div>
-
-    <div id="noItemsMessage" class="hidden text-center py-12 glass-panel">
-        <i class="fas fa-utensils text-4xl text-gray-500 mb-4"></i>
-        <h3 class="text-xl font-bold text-white mb-2">No items in this category</h3>
-        <p class="text-gray-400">Try selecting a different category</p>
     </div>
 </div>
 
-<!-- JavaScript for Store Detail Page -->
-<script th:inline="javascript">
+<script>
+    var cart = [];
+    var config = {storeId: '', deliveryFee: 0, minOrder: 0};
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Category Tabs
-        const menuTabs = document.querySelectorAll('.menu-tab');
-        const menuItems = document.querySelectorAll('.menu-item');
+        var el = document.getElementById('storeData');
+        config.storeId = el.dataset.storeId;
+        config.deliveryFee = parseFloat(el.dataset.deliveryFee);
+        config.minOrder = parseFloat(el.dataset.minOrder);
 
-        menuTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Remove active from all tabs
-                menuTabs.forEach(t => {
-                    t.classList.remove('border-cyber-blue', 'text-cyber-blue');
-                    t.classList.add('border-transparent', 'text-gray-300');
+        loadCart();
+
+        document.querySelectorAll('.add-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var item = this.closest('.menu-item');
+                addToCart({
+                    id: item.dataset.id,
+                    name: item.dataset.name,
+                    price: parseFloat(item.dataset.price),
+                    quantity: 1
                 });
-
-                // Add active to clicked tab
-                this.classList.remove('border-transparent', 'text-gray-300');
-                this.classList.add('border-cyber-blue', 'text-cyber-blue');
-
-                const category = this.dataset.category;
-                let visibleCount = 0;
-
-                // Filter items
-                menuItems.forEach(item => {
-                    const itemCategory = item.dataset.category;
-                    const isAvailable = item.dataset.available === 'true';
-
-                    if (category === 'all' || itemCategory === category) {
-                        item.style.display = 'block';
-                        visibleCount++;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-
-                // Show/hide no items message
-                const noItemsMessage = document.getElementById('noItemsMessage');
-                noItemsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
             });
         });
 
-        // Set first tab as active
-        if (menuTabs.length > 0) {
-            menuTabs[0].click();
-        }
-
-        // Add to Cart functionality
-        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-        const csrfToken = document.querySelector('meta[name="_csrf"]');
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
-
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const itemId = this.dataset.itemId;
-                const itemName = this.dataset.itemName;
-                const itemPrice = this.dataset.itemPrice;
-
-                // Show notification
-                showNotification(`Added ${itemName} to cart!`, 'success');
-
-                // Send AJAX request to add to cart
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-
-                if (csrfToken && csrfHeader) {
-                    headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
-                }
-
-                fetch('/api/cart/items', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        menuItemId: itemId,
-                        quantity: 1
-                    })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Update cart count in navbar
-                        updateCartCount(data.totalItems);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showNotification('Failed to add item to cart', 'error');
-                    });
-            });
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            window.location.href = '/checkout?store=' + config.storeId;
         });
+    });
 
-        function showNotification(message, type) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-slide-up ${
-                type === 'success' ? 'bg-green-500/20 border border-green-500/50 text-green-300' :
-                    'bg-red-500/20 border border-red-500/50 text-red-300'
-            }`;
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-3"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+    function addToCart(item) {
+        var ex = cart.find(function(c) { return c.id === item.id; });
+        if (ex) {
+            ex.quantity++;
+        } else {
+            cart.push(item);
         }
+        saveCart();
+        renderCart();
+    }
 
-        function updateCartCount(count) {
-            const cartCountElement = document.getElementById('cartCount');
-            if (cartCountElement) {
-                cartCountElement.textContent = count;
-                cartCountElement.classList.remove('hidden');
+    function removeItem(id) {
+        cart = cart.filter(function(c) { return c.id !== id; });
+        saveCart();
+        renderCart();
+    }
+
+    function updateQty(id, d) {
+        var item = cart.find(function(c) { return c.id === id; });
+        if (item) {
+            item.quantity += d;
+            if (item.quantity <= 0) {
+                removeItem(id);
+            } else {
+                saveCart();
+                renderCart();
             }
         }
-    });
+    }
+
+    function renderCart() {
+        var empty = document.getElementById('emptyCart');
+        var items = document.getElementById('cartItems');
+        var summary = document.getElementById('cartSummary');
+
+        if (cart.length === 0) {
+            empty.classList.remove('hidden');
+            items.classList.add('hidden');
+            summary.classList.add('hidden');
+            return;
+        }
+
+        empty.classList.add('hidden');
+        items.classList.remove('hidden');
+        summary.classList.remove('hidden');
+
+        items.innerHTML = '';
+        var subtotal = 0;
+
+        cart.forEach(function(item) {
+            subtotal += item.price * item.quantity;
+            var div = document.createElement('div');
+            div.className = 'bg-white/5 rounded p-3';
+            div.innerHTML =
+                '<div class="flex justify-between mb-2">' +
+                '<span class="text-white text-sm">' + item.name + '</span>' +
+                '<button onclick="removeItem(\'' + item.id + '\')" class="text-red-400"><i class="fas fa-times"></i></button>' +
+                '</div>' +
+                '<div class="flex justify-between items-center">' +
+                '<div class="flex gap-2">' +
+                '<button onclick="updateQty(\'' + item.id + '\', -1)" class="w-7 h-7 bg-white/10 rounded text-white text-sm">-</button>' +
+                '<span class="w-7 text-center text-white text-sm">' + item.quantity + '</span>' +
+                '<button onclick="updateQty(\'' + item.id + '\', 1)" class="w-7 h-7 bg-white/10 rounded text-white text-sm">+</button>' +
+                '</div>' +
+                '<span class="text-white font-bold">€' + (item.price * item.quantity).toFixed(2) + '</span>' +
+                '</div>';
+            items.appendChild(div);
+        });
+
+        var total = subtotal + config.deliveryFee;
+        document.getElementById('subtotal').textContent = '€' + subtotal.toFixed(2);
+        document.getElementById('deliveryDisplay').textContent = '€' + config.deliveryFee.toFixed(2);
+        document.getElementById('total').textContent = '€' + total.toFixed(2);
+    }
+
+    function saveCart() {
+        localStorage.setItem('cart_' + config.storeId, JSON.stringify(cart));
+    }
+
+    function loadCart() {
+        try {
+            var saved = localStorage.getItem('cart_' + config.storeId);
+            if (saved) {
+                cart = JSON.parse(saved);
+                renderCart();
+            }
+        } catch (e) {
+            cart = [];
+        }
+    }
 </script>
 </body>
 </html>
