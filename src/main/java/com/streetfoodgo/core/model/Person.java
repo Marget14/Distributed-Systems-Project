@@ -71,6 +71,14 @@ public final class Person {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /**
+     * Alias for createdAt, used as "member since" / join date.
+     */
+    @Transient
+    public Instant getJoinDate() {
+        return this.createdAt;
+    }
+
     // Constructors
     public Person() {}
 
