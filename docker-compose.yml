@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: streetfoodgo-db
+    environment:
+      POSTGRES_DB: streetfoodgo
+      POSTGRES_USER: streetfoodgo
+      POSTGRES_PASSWORD: streetfoodgo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: streetfoodgo-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/streetfoodgo
+      SPRING_DATASOURCE_USERNAME: streetfoodgo
+      SPRING_DATASOURCE_PASSWORD: streetfoodgo
+
+volumes:
+  postgres_data:
