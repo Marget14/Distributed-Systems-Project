@@ -14,8 +14,8 @@ import java.util.List;
 public record CreateOrderRequest(
         @NotNull @Positive Long customerId,
         @NotNull @Positive Long storeId,
+        Long deliveryAddressId,
         @NotNull OrderType orderType,
-        Long deliveryAddressId, // Required if orderType is DELIVERY
         @NotNull @NotEmpty List<OrderItemRequest> items,
         @Size(max = 1000) String customerNotes
 ) {}
