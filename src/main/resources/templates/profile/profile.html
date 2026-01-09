@@ -49,29 +49,11 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-400">Email Notifications</p>
-                        <div class="flex items-center">
-                            <div class="relative inline-block w-12 mr-2 align-middle select-none">
-                                <input type="checkbox" name="emailNotifications" id="emailNotifications"
-                                       class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
-                                       th:checked="${user.emailNotifications}">
-                                <label for="emailNotifications"
-                                       class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-                            <label for="emailNotifications" class="text-white" th:text="${user.emailNotifications ? 'Enabled' : 'Disabled'}"></label>
-                        </div>
+                        <p class="text-white">Enabled</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-400">SMS Notifications</p>
-                        <div class="flex items-center">
-                            <div class="relative inline-block w-12 mr-2 align-middle select-none">
-                                <input type="checkbox" name="smsNotifications" id="smsNotifications"
-                                       class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
-                                       th:checked="${user.smsNotifications}">
-                                <label for="smsNotifications"
-                                       class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-                            <label for="smsNotifications" class="text-white" th:text="${user.smsNotifications ? 'Enabled' : 'Disabled'}"></label>
-                        </div>
+                        <p class="text-white">Disabled</p>
                     </div>
                 </div>
             </div>
