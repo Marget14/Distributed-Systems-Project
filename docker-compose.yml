@@ -1,7 +1,8 @@
+version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: streetfoodgo-db
     environment:
       POSTGRES_DB: streetfoodgo
@@ -12,35 +13,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U streetfoodgo -d streetfoodgo"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U streetfoodgo"]
+      interval: 10s
       timeout: 5s
-      retries: 20
+      retries: 5
+    networks:
+      - streetfoodgo-network
 
   app:
-    # Αν έχεις Dockerfile που κάνει build το JAR:
     build:
-      context: ../../..
+      context: .
       dockerfile: Dockerfile
     container_name: streetfoodgo-app
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/streetfoodgo
+      SPRING_DATASOURCE_USERNAME: streetfoodgo
+      SPRING_DATASOURCE_PASSWORD: streetfoodgo
+      JWT_SECRET: Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - streetfoodgo-network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: streetfoodgo-pgadmin
     environment:
-      # ----- Spring override για Docker -----
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/streetfoodgo
-      SPRING_DATASOURCE_USERNAME: streetfoodgo
-      SPRING_DATASOURCE_PASSWORD: streetfoodgo
-
-      # Αν θέλεις να ενεργοποιήσεις συγκεκριμένο profile:
-      SPRING_PROFILES_ACTIVE: docker
-
-      # JWT secret από env (μην βάζεις production secret στο yml)
-      JWT_SECRET: Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=
-      # Προαιρετικά:
-      SERVER_PORT: 8080
+      PGADMIN_DEFAULT_EMAIL: admin@streetfoodgo.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - streetfoodgo-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  streetfoodgo-network:
+    driver: bridge
