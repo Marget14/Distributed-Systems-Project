@@ -1,12 +1,14 @@
-# Stage 1: Build the application
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests  # Skip tests for faster build; remove if needed
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Stage 2: Run the application
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar .
+COPY --from=build /app/target/streetfoodgo-0.0.1-SNAPSHOT.jar app.jar
+RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
+USER appuser
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "ls -la && exec java -jar $(ls *.jar | grep -v '\\.original$')"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
