@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: streetfoodgo-db
     environment:
       POSTGRES_DB: streetfoodgo
@@ -13,26 +11,71 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U streetfoodgo"]
+      test: ["CMD-SHELL", "pg_isready -U streetfoodgo -d streetfoodgo"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
+  hua-noc:
+    build:
+      context: ../DS-Lab-NOC
+      dockerfile: Dockerfile
+    container_name: hua-noc-service
+    environment:
+      SERVER_PORT: 8080
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: streetfoodgo-app
     depends_on:
       db:
         condition: service_healthy
+      hua-noc:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/streetfoodgo
       SPRING_DATASOURCE_USERNAME: streetfoodgo
       SPRING_DATASOURCE_PASSWORD: streetfoodgo
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
       JWT_SECRET: Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=
+      HUA_NOC_BASE_URL: http://hua-noc:8080
     ports:
       - "8080:8080"
-    # volumes:  # Comment out or remove this for JAR mode
-    #   - .:/app
+    networks:
+      - app-network
+    restart: on-failure:3
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: streetfoodgo-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@streetfoodgo.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
 
 volumes:
   db-data:
+
+networks:
+  app-network:
+    driver: bridge
