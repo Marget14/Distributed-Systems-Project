@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
+  db:
+    image: postgres:15
     container_name: streetfoodgo-db
     environment:
       POSTGRES_DB: streetfoodgo
@@ -11,53 +11,28 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U streetfoodgo"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - streetfoodgo-network
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: streetfoodgo-app
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/streetfoodgo
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/streetfoodgo
       SPRING_DATASOURCE_USERNAME: streetfoodgo
       SPRING_DATASOURCE_PASSWORD: streetfoodgo
       JWT_SECRET: Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - streetfoodgo-network
-    restart: unless-stopped
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: streetfoodgo-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@streetfoodgo.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
-    networks:
-      - streetfoodgo-network
-    restart: unless-stopped
+    # volumes:  # Comment out or remove this for JAR mode
+    #   - .:/app
 
 volumes:
-  postgres_data:
-    driver: local
-
-networks:
-  streetfoodgo-network:
-    driver: bridge
+  db-data:
