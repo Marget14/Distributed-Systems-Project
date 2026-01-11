@@ -71,6 +71,7 @@ public final class Person {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    // ✅ NEW FIELDS FOR PROFILE
     @Column(name = "birth_day")
     private Integer birthDay;
 
@@ -84,6 +85,17 @@ public final class Person {
     @Column(name = "gender", length = 20)
     private Gender gender;
 
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserPreferences preferences;
+
+    public UserPreferences getPreferences() { return preferences; }
+    public void setPreferences(UserPreferences preferences) {
+        this.preferences = preferences;
+        if (preferences != null) {
+            preferences.setPerson(this);
+        }
+    }
+
     /**
      * Alias for createdAt, used as "member since" / join date.
      */
@@ -92,6 +104,7 @@ public final class Person {
         return this.createdAt;
     }
 
+    // Constructors
     public Person() {}
 
     public Person(Long id, String firstName, String lastName, String mobilePhoneNumber,
@@ -106,6 +119,7 @@ public final class Person {
         this.createdAt = createdAt;
     }
 
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
