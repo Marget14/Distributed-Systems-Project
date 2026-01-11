@@ -21,6 +21,11 @@
     </div>
 
     <div class="max-w-4xl mx-auto">
+        <!-- Success Message -->
+        <div th:if="${success}" class="glass-panel p-4 mb-8 bg-green-500/20 border border-green-500/50">
+            <p class="text-green-400" th:text="${success}"></p>
+        </div>
+
         <!-- Tabs -->
         <div class="flex space-x-2 mb-8 overflow-x-auto">
             <button class="profile-tab active" data-tab="personal">
@@ -77,10 +82,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Email Address *</label>
-                            <input type="email" th:field="*{emailAddress}" required readonly
+                            <input type="email" th:field="*{emailAddress}" readonly
                                    class="quantum-input w-full bg-white/5 cursor-not-allowed"
                                    placeholder="your@email.com">
-                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('emailAddress')}" th:errors="*{emailAddress}"></div>
+                            <p class="text-gray-400 text-xs mt-1">Email cannot be changed</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number *</label>
@@ -103,13 +108,22 @@
                             </select>
                             <select th:field="*{birthMonth}" class="quantum-input">
                                 <option value="">Month</option>
-                                <option th:each="month,iter : ${#temporals.monthNames()}"
-                                        th:value="${iter.index + 1}"
-                                        th:text="${month}"></option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
                             </select>
                             <select th:field="*{birthYear}" class="quantum-input">
                                 <option value="">Year</option>
-                                <option th:each="year : ${#numbers.sequence(1950, 2020)}"
+                                <option th:each="year : ${#numbers.sequence(2006, 1950)}"
                                         th:value="${year}"
                                         th:text="${year}"></option>
                             </select>
@@ -141,10 +155,9 @@
 
                     <!-- Submit Buttons -->
                     <div class="flex justify-end space-x-4 pt-6 border-t border-white/10">
-                        <button type="button" onclick="window.history.back()"
-                                class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                        <a th:href="@{/profile}" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white">
                             Cancel
-                        </button>
+                        </a>
                         <button type="submit" class="cyber-button">
                             <i class="fas fa-save mr-2"></i>Save Changes
                         </button>
@@ -181,6 +194,8 @@
                             </div>
                         </div>
 
+                        <div id="passwordMessage" class="hidden p-3 rounded-lg"></div>
+
                         <div class="flex justify-end">
                             <button type="submit" class="cyber-button">
                                 Update Password
@@ -204,7 +219,7 @@
                 </div>
 
                 <!-- Active Sessions -->
-                <div class="border-t border-white/10 pt-8">
+                <div class="border-t border-white/10 pt-8 mt-8">
                     <h4 class="text-lg font-semibold text-white mb-4">Active Sessions</h4>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
@@ -213,19 +228,6 @@
                                 <div>
                                     <p class="text-white">Windows 10 • Chrome</p>
                                     <p class="text-gray-400 text-sm">Athens, Greece • Current session</p>
-                                </div>
-                            </div>
-                            <button class="text-gray-400 hover:text-white">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-mobile-alt text-cyber-blue mr-4"></i>
-                                <div>
-                                    <p class="text-white">iPhone 13 • Safari</p>
-                                    <p class="text-gray-400 text-sm">Last active 2 days ago</p>
                                 </div>
                             </div>
                             <button class="text-gray-400 hover:text-white">
@@ -409,7 +411,11 @@
 </div>
 
 <!-- JavaScript for Edit Profile -->
-<script>
+<script th:inline="javascript">
+    // Get CSRF token
+    const csrfToken = /*[[${_csrf.token}]]*/ 'default-token';
+    const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+
     // Tab switching
     document.querySelectorAll('.profile-tab').forEach(tab => {
         tab.addEventListener('click', function() {
@@ -457,69 +463,119 @@
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        const messageDiv = document.getElementById('passwordMessage');
 
         if (newPassword !== confirmPassword) {
-            alert('New passwords do not match');
+            messageDiv.className = 'p-3 rounded-lg bg-red-500/20 text-red-400';
+            messageDiv.textContent = 'New passwords do not match';
+            messageDiv.classList.remove('hidden');
             return;
         }
 
         if (newPassword.length < 6) {
-            alert('New password must be at least 6 characters');
+            messageDiv.className = 'p-3 rounded-lg bg-red-500/20 text-red-400';
+            messageDiv.textContent = 'New password must be at least 6 characters';
+            messageDiv.classList.remove('hidden');
             return;
         }
 
-        fetch('/api/profile/change-password', {
+        fetch('/profile/change-password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                [csrfHeader]: csrfToken
             },
             body: JSON.stringify({
                 currentPassword: currentPassword,
                 newPassword: newPassword
             })
         })
-            .then(response => {
-                if (response.ok) {
-                    alert('Password changed successfully');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageDiv.className = 'p-3 rounded-lg bg-green-500/20 text-green-400';
+                    messageDiv.textContent = data.message || 'Password changed successfully';
+                    messageDiv.classList.remove('hidden');
                     this.reset();
                 } else {
-                    alert('Failed to change password');
+                    messageDiv.className = 'p-3 rounded-lg bg-red-500/20 text-red-400';
+                    messageDiv.textContent = data.error || 'Failed to change password';
+                    messageDiv.classList.remove('hidden');
                 }
+            })
+            .catch(error => {
+                messageDiv.className = 'p-3 rounded-lg bg-red-500/20 text-red-400';
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                messageDiv.classList.remove('hidden');
             });
     });
 
     // Avatar upload
-    document.querySelector('button[type="button"]').addEventListener('click', function() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
+    const avatarButton = document.querySelector('.absolute.bottom-0.right-0');
+    if (avatarButton) {
+        avatarButton.addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
 
-        input.onchange = function(e) {
-            const file = e.target.files[0];
-            if (file) {                
-                alert('Avatar upload would be implemented here');
-            }
-        };
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    alert('Avatar upload would be implemented here');
+                }
+            };
 
-        input.click();
-    });
+            input.click();
+        });
+    }
 </script>
 
 <style>
     .toggle-checkbox {
-        @apply absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer;
+        position: absolute;
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 9999px;
+        background-color: white;
+        border-width: 4px;
+        appearance: none;
+        cursor: pointer;
         transition: all 0.3s;
     }
     .toggle-checkbox:checked {
-        @apply right-0 border-cyber-blue;
+        right: 0;
+        border-color: #00d4ff;
     }
     .toggle-label {
-        @apply block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer;
+        display: block;
+        overflow: hidden;
+        height: 1.5rem;
+        border-radius: 9999px;
+        background-color: #d1d5db;
+        cursor: pointer;
         transition: background-color 0.3s;
     }
     .toggle-checkbox:checked + .toggle-label {
-        @apply bg-cyber-blue;
+        background-color: #00d4ff;
+    }
+
+    .profile-tab {
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: #9ca3af;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+    .profile-tab:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    .profile-tab.active {
+        background: rgba(0, 212, 255, 0.2);
+        color: #00d4ff;
     }
 </style>
 </body>
