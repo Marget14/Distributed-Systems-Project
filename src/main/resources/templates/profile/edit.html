@@ -527,6 +527,81 @@
 
             input.click();
         });
+
+        // Save Preferences
+        document.querySelector('#preferencesTab button.cyber-button').addEventListener('click', function() {
+            const language = document.querySelector('#preferencesTab select').value;
+            const currency = document.querySelectorAll('#preferencesTab select')[1].value;
+
+            const dietaryPrefs = [];
+            document.querySelectorAll('#preferencesTab input[type="checkbox"]:checked').forEach(cb => {
+                const label = cb.parentElement.textContent.trim().toLowerCase().replace(/\s+/g, '-');
+                dietaryPrefs.push(label);
+            });
+
+            const cuisines = [];
+            document.querySelectorAll('#preferencesTab .px-3.py-2').forEach(span => {
+                if (span.classList.contains('bg-cyber-blue/20')) {
+                    cuisines.push(span.textContent.trim().toLowerCase());
+                }
+            });
+
+            fetch('/profile/preferences/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({
+                    language: language,
+                    currency: currency,
+                    dietaryPreferences: dietaryPrefs,
+                    preferredCuisines: cuisines
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Preferences saved successfully!');
+                    }
+                });
+        });
+
+// Toggle cuisine selection
+        document.querySelectorAll('#preferencesTab .px-3.py-2').forEach(span => {
+            span.addEventListener('click', function() {
+                this.classList.toggle('bg-white/10');
+                this.classList.toggle('text-gray-300');
+                this.classList.toggle('bg-cyber-blue/20');
+                this.classList.toggle('text-cyber-blue');
+            });
+        });
+
+// Save Notifications (on toggle change)
+        document.querySelectorAll('#notificationsTab .toggle-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const notifications = {
+                    emailOrderUpdates: document.querySelectorAll('#notificationsTab .toggle-checkbox')[0].checked,
+                    emailPromotions: document.querySelectorAll('#notificationsTab .toggle-checkbox')[1].checked,
+                    emailNewRestaurants: document.querySelectorAll('#notificationsTab .toggle-checkbox')[2].checked,
+                    emailNewsletter: document.querySelectorAll('#notificationsTab .toggle-checkbox')[3].checked,
+                    pushOrderStatus: document.querySelectorAll('#notificationsTab .toggle-checkbox')[4].checked,
+                    pushDeliveryUpdates: document.querySelectorAll('#notificationsTab .toggle-checkbox')[5].checked,
+                    pushSpecialOffers: document.querySelectorAll('#notificationsTab .toggle-checkbox')[6].checked,
+                    smsOrderConfirmations: document.querySelectorAll('#notificationsTab .toggle-checkbox')[7].checked,
+                    smsDeliveryUpdates: document.querySelectorAll('#notificationsTab .toggle-checkbox')[8].checked
+                };
+
+                fetch('/profile/notifications/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify(notifications)
+                });
+            });
+        });
     }
 </script>
 
