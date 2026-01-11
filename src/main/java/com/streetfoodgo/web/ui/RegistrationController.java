@@ -65,7 +65,7 @@ public class RegistrationController {
         try {
             final CreatePersonResult result = this.personBusinessLogicService.createPerson(request);
             if (result.created()) {
-                return "redirect:/auth/login?registered";
+                return "redirect:/login?registered";
             }
             model.addAttribute("errorMessage", result.reason());
         } catch (Exception e) {
