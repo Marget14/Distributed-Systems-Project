@@ -71,6 +71,20 @@ public final class Person {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    // ✅ NEW FIELDS FOR PROFILE
+    @Column(name = "birth_day")
+    private Integer birthDay;
+
+    @Column(name = "birth_month")
+    private Integer birthMonth;
+
+    @Column(name = "birth_year")
+    private Integer birthYear;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 20)
+    private Gender gender;
+
     /**
      * Alias for createdAt, used as "member since" / join date.
      */
@@ -118,6 +132,19 @@ public final class Person {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    // ✅ NEW GETTERS AND SETTERS
+    public Integer getBirthDay() { return birthDay; }
+    public void setBirthDay(Integer birthDay) { this.birthDay = birthDay; }
+
+    public Integer getBirthMonth() { return birthMonth; }
+    public void setBirthMonth(Integer birthMonth) { this.birthMonth = birthMonth; }
+
+    public Integer getBirthYear() { return birthYear; }
+    public void setBirthYear(Integer birthYear) { this.birthYear = birthYear; }
+
+    public Gender getGender() { return gender; }
+    public void setGender(Gender gender) { this.gender = gender; }
 
     public String getFullName() {
         return firstName + " " + lastName;
