@@ -70,27 +70,28 @@ public class SecurityConfig {
                 .securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                        .requestMatchers("/", "/stores", "/stores/**", "/login", "/register").permitAll()
-                        .requestMatchers("/profile", "/logout", "/cart", "/orders").authenticated()
+                        .requestMatchers("/", "/stores", "/stores/**", "/auth/login", "/auth/register", "/auth/logout").permitAll()
+                        .requestMatchers("/profile", "/cart", "/orders").authenticated()
                         .requestMatchers("/owner/**").hasRole("OWNER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/login")
                         .defaultSuccessUrl("/profile", true)
-                        .failureUrl("/login?error")
+                        .failureUrl("/auth/login?error")
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/login?logout")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                         .permitAll()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable);
+        // .csrf(AbstractHttpConfigurer::disable); // Enable CSRF protection for UI
 
         return http.build();
     }
