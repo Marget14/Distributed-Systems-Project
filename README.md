@@ -46,7 +46,7 @@ Wait for all services to start (this may take 1-2 minutes on first run).
 #### 3. Access the application
 
 - **Application API**: http://localhost:8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **Swagger UI**: http://localhost:8081
 - **pgAdmin**: http://localhost:5050
   - Email: `admin@streetfoodgo.com`
   - Password: `admin`
