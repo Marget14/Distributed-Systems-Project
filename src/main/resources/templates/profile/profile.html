@@ -7,19 +7,17 @@
 </head>
 <body>
 <div layout:fragment="main">
-    <!-- Profile Header (Simplified) -->
     <div class="glass-panel p-8 mb-8">
         <h1 class="text-3xl font-orbitron font-bold text-white mb-2" th:text="${user.firstName + ' ' + user.lastName}"></h1>
         <div class="flex items-center gap-4 mb-6">
             <span class="px-3 py-1 bg-cyber-blue/20 text-cyber-blue rounded-full text-sm font-semibold" th:text="${user.type}"></span>
             <span class="text-gray-400">Member since <span th:text="${memberSince}"></span></span>
         </div>
-        <a th:href="@{/edit}" class="cyber-button">
+        <a th:href="@{/profile/edit}" class="cyber-button">
             <i class="fas fa-edit mr-2"></i>Edit Profile
         </a>
     </div>
 
-    <!-- Account Details (Basic) -->
     <div class="glass-panel p-8">
         <h2 class="text-2xl font-bold text-white mb-6">Account Details</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -62,7 +60,6 @@
 </div>
 
 <script>
-    // Toggle switch functionality
     document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const setting = this.name;
