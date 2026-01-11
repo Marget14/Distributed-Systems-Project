@@ -68,8 +68,8 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         // Validate request
         final Set<ConstraintViolation<CreatePersonRequest>> violations = this.validator.validate(request);
         if (!violations.isEmpty()) {
-            final StringBuilder sb = new StringBuilder();
-            for (final ConstraintViolation<CreatePersonRequest> violation : violations) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation<CreatePersonRequest> violation : violations) {
                 sb.append(violation.getPropertyPath()).append(": ").append(violation.getMessage()).append("\n");
             }
             return CreatePersonResult.fail(sb.toString());
@@ -83,11 +83,16 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         final String rawPassword = request.rawPassword();
 
         // Validate phone number
-        final PhoneNumberValidationResult phoneResult = this.phoneNumberPort.validate(mobilePhoneNumber);
-        if (!phoneResult.isValidMobile()) {
-            return CreatePersonResult.fail("Mobile Phone Number is not valid");
+        try {
+            final PhoneNumberValidationResult phoneResult = this.phoneNumberPort.validate(mobilePhoneNumber);
+            if (!phoneResult.isValidMobile()) {
+                return CreatePersonResult.fail("Invalid mobile phone number");
+            }
+            mobilePhoneNumber = phoneResult.e164();
+        } catch (Exception e) {
+            LOGGER.error("Phone validation failed", e);
+            return CreatePersonResult.fail("Error validating phone number");
         }
-        mobilePhoneNumber = phoneResult.e164();
 
         // Check duplicates
         if (this.personRepository.existsByEmailAddressIgnoreCase(emailAddress)) {
@@ -119,7 +124,12 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         }
 
         // Save to database
-        person = this.personRepository.save(person);
+        try {
+            person = this.personRepository.save(person);
+        } catch (Exception e) {
+            LOGGER.error("Failed to save person", e);
+            return CreatePersonResult.fail("Database error during account creation");
+        }
 
         // Send SMS notification
         if (notify) {
