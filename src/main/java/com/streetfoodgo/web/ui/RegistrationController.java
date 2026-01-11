@@ -44,7 +44,7 @@ public class RegistrationController {
         );
         model.addAttribute("createPersonRequest", request);
 
-        return "/auth/register";
+        return "auth/register";
     }
 
     @PostMapping("/register")
@@ -59,7 +59,7 @@ public class RegistrationController {
         }
 
         if (bindingResult.hasErrors()) {
-            return "/auth/register";
+            return "auth/register";
         }
 
         try {
@@ -72,6 +72,6 @@ public class RegistrationController {
             model.addAttribute("errorMessage", "An unexpected error occurred during registration. Please try again.");
         }
         model.addAttribute("createPersonRequest", request);
-        return "/auth/register";
+        return "auth/register";
     }
 }
