@@ -41,7 +41,7 @@ A distributed street food marketplace built with Spring Boot.
 
 4. **Access the services:**
    - API: `http://localhost:8080`
-   - Swagger UI: `http://localhost:8081`
+   - Swagger UI: `http://localhost:8080/swagger-ui.html`
    - pgAdmin: `http://localhost:5050`  
      - Email: `admin@streetfoodgo.com`  
      - Password: `admin`
