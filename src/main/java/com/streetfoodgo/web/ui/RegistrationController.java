@@ -61,17 +61,15 @@ public class RegistrationController {
         if (bindingResult.hasErrors()) {
             return "/auth/register";
         }
-
-        final CreatePersonResult result = this.personBusinessLogicService.createPerson(request);
-
-        if (result.created()) {
-            // Success - redirect to login
-            return "redirect:/login?registered";
+        try {
+            final CreatePersonResult result = this.personBusinessLogicService.createPerson(request);
+            if (result.created()) {
+                return "redirect:/auth/login?registered";
+            }
+            model.addAttribute("errorMessage", result.reason());
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Unexpected error: " + e.getMessage());
         }
-
-        // Failed - show error message
-        model.addAttribute("createPersonRequest", request);
-        model.addAttribute("errorMessage", result.reason());
         return "/auth/register";
     }
 }
