@@ -20,7 +20,7 @@ services:
 
   hua-noc:
     build:
-      context: ../DS-Lab-NOC
+      context: ./services/Distributed-Systems-Project-NOC
       dockerfile: Dockerfile
     container_name: hua-noc-service
     environment:
@@ -79,3 +79,4 @@ volumes:
 networks:
   app-network:
     driver: bridge
+
