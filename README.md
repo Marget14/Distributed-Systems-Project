@@ -1,112 +1,101 @@
-# StreetFoodGo
+# StreetFoodGo 🍴
 
-A distributed street food marketplace application built with Spring Boot.
-
----
-
-## Prerequisites
-
-- **Docker Desktop** (recommended) or Docker + Docker Compose
-- **Git**
+A distributed street food marketplace built with Spring Boot.
 
 ---
 
-## Setup Instructions
+### 🚀 Prerequisites
 
-### Option 1: Run with Docker (Recommended)
-
-#### 1. Clone both repositories in the same parent folder
-```bash
-# Create a working directory
-mkdir distributed-systems
-cd distributed-systems
-
-# Clone the main project
-git clone https://github.com/Marget14/Distributed-Systems-Project.git streetfoodgo
-
-# Clone the external NOC service
-git clone https://github.com/gkoulis/DS-Lab-NOC.git DS-Lab-NOC
-```
-
-**Your folder structure should look like:**
-```
-📁 distributed-systems/
-  📁 streetfoodgo/
-  📁 DS-Lab-NOC/
-```
-
-#### 2. Run the application
-```bash
-cd streetfoodgo
-docker-compose up --build
-```
-
-Wait for all services to start (this may take 1-2 minutes on first run).
-
-#### 3. Access the application
-
-- **Application API**: http://localhost:8080
-- **Swagger UI**: http://localhost:8081
-- **pgAdmin**: http://localhost:5050
-  - Email: `admin@streetfoodgo.com`
-  - Password: `admin`
-
-#### 4. Stop the application
-```bash
-docker-compose down
-```
+- **Docker Desktop** (recommended) or Docker + Docker Compose  
+- **Git**  
+- *(For local development)* Java 21, Maven, PostgreSQL 15
 
 ---
 
-### Option 2: Run Locally (Development)
+### Setup Instructions
 
-**Prerequisites:**
-- Java 21
-- Maven
-- PostgreSQL 15
+#### Option 1: Run with Docker (Recommended)
 
-#### 1. Clone the repository
-```bash
-git clone https://github.com/Marget14/Distributed-Systems-Project.git
-cd Distributed-Systems-Project
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Marget14/Distributed-Systems-Project.git streetfoodgo
+   cd streetfoodgo
+   ```
 
-#### 2. Setup PostgreSQL database
+2. **Folder structure:**
+   ```
+   streetfoodgo/
+   ├─ services/
+   │   └─ Distributed-Systems-Project-NOC/
+   ├─ src/
+   ├─ docker-compose.yml
+   ├─ Dockerfile
+   └─ pom.xml
+   ```
 
-Create a database named `streetfoodgo` with user `streetfoodgo` and password `streetfoodgo`.
+3. **Start all services:**
+   ```bash
+   docker-compose up --build
+   ```
+   Wait ~1–2 minutes for full startup.
 
-#### 3. Run the external NOC service
+4. **Access the services:**
+   - API: `http://localhost:8080`
+   - Swagger UI: `http://localhost:8081`
+   - pgAdmin: `http://localhost:5050`  
+     - Email: `admin@streetfoodgo.com`  
+     - Password: `admin`
 
-In a separate terminal:
-```bash
-cd ../DS-Lab-NOC
-./mvnw spring-boot:run  # MacOS / Linux
-./mvnw.cmd spring-boot:run  # Windows
-```
-
-#### 4. Run the application
-```bash
-./mvnw spring-boot:run  # MacOS / Linux
-./mvnw.cmd spring-boot:run  # Windows
-```
-
-#### 5. Open in browser
-
-[localhost:8080](http://localhost:8080)
-
----
-
-## Technologies Used
-
-- Spring Boot 3.x
-- PostgreSQL 15
-- Docker & Docker Compose
-- Maven
-- JWT Authentication
+5. **Stop everything:**
+   ```bash
+   docker-compose down
+   ```
 
 ---
 
-## Project Structure
+#### Option 2: Run Locally (Development)
+
+1. **Clone the main repo:**
+   ```bash
+   git clone https://github.com/Marget14/Distributed-Systems-Project.git
+   cd Distributed-Systems-Project
+   ```
+
+2. **Set up PostgreSQL:**
+   - Create database: `streetfoodgo`
+   - User: `streetfoodgo`, Password: `streetfoodgo`
+
+3. **Run the NOC service (now inside services folder):**
+   ```bash
+   cd services/Distributed-Systems-Project-NOC
+   ./mvnw spring-boot:run           # macOS/Linux
+   ./mvnw.cmd spring-boot:run       # Windows
+   ```
+
+4. **Run the main app:**
+   ```bash
+   cd ../../
+   ./mvnw spring-boot:run           # macOS/Linux
+   ./mvnw.cmd spring-boot:run       # Windows
+   ```
+
+5. **Open the API:**  
+   `http://localhost:8080`
+
+---
+
+### 🛠️ Technologies Used
+
+- **Backend**: Spring Boot 3.x  
+- **Database**: PostgreSQL 15  
+- **Containerization**: Docker & Docker Compose  
+- **Build Tool**: Maven  
+- **Security**: JWT-based authentication
+
+---
+
+### 📁 Project Structure
+
 ```
 streetfoodgo/
 ├── src/
@@ -114,6 +103,8 @@ streetfoodgo/
 │   │   ├── java/
 │   │   └── resources/
 │   └── test/
+├── services/
+│   └── Distributed-Systems-Project-NOC/
 ├── docker-compose.yml
 ├── Dockerfile
 ├── pom.xml
@@ -122,21 +113,38 @@ streetfoodgo/
 
 ---
 
-## External Services
+### 🔗 External Services
 
-This project integrates with the HUA NOC (Notification Operations Center) service for:
-- Phone number validation
-- SMS notifications
-- User lookups
+The **Distributed-Systems-Project-NOC** service is now included inside the `services` folder and provides:
 
-Repository: https://github.com/gkoulis/DS-Lab-NOC
+- Phone number validation  
+- SMS notifications  
+- User lookups  
+
+---
+
+### 💡 Notes
+
+- Docker configuration handles all dependencies and DB initialization automatically.  
+- For local dev, ensure both PostgreSQL and the NOC service are running before the Spring Boot app.  
+- Default credentials are only for development — ensure you update them for production.
 
 ---
 
-## Notes
+### ✅ Quick Start (Docker)
 
-- The Docker setup automatically handles all dependencies and database initialization
-- For development, make sure both the NOC service and PostgreSQL are running before starting the application
-- Default database credentials are for development only - change them in production
+```bash
+git clone https://github.com/Marget14/Distributed-Systems-Project.git streetfoodgo
+cd streetfoodgo
+docker-compose up --build
+```
 
----
+Access:
+- API → `http://localhost:8080`
+- Swagger → `http://localhost:8081`
+- pgAdmin → `http://localhost:5050` (admin@streetfoodgo.com / admin)
+
+To stop, simply run:
+```bash
+docker-compose down
+```
