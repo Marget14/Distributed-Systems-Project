@@ -4,14 +4,6 @@
       layout:decorate="~{base}">
 <head>
     <title>Edit Profile - StreetFoodGo</title>
-    <style>
-        .profile-tab {
-            @apply px-6 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors;
-        }
-        .profile-tab.active {
-            @apply bg-cyber-blue/20 text-cyber-blue;
-        }
-    </style>
 </head>
 <body>
 <div layout:fragment="main">
@@ -85,17 +77,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Email Address *</label>
-                            <input type="email" th:field="*{email}" required
-                                   class="quantum-input w-full"
+                            <input type="email" th:field="*{emailAddress}" required readonly
+                                   class="quantum-input w-full bg-white/5 cursor-not-allowed"
                                    placeholder="your@email.com">
-                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('emailAddress')}" th:errors="*{emailAddress}"></div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number *</label>
-                            <input type="tel" th:field="*{phone}" required
+                            <input type="tel" th:field="*{mobilePhoneNumber}" required
                                    class="quantum-input w-full"
                                    placeholder="+30 69X XXX XXXX">
-                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                            <div class="text-red-400 text-sm mt-1" th:if="${#fields.hasErrors('mobilePhoneNumber')}" th:errors="*{mobilePhoneNumber}"></div>
                         </div>
                     </div>
 
@@ -505,8 +497,7 @@
 
         input.onchange = function(e) {
             const file = e.target.files[0];
-            if (file) {
-                // In a real app, you would upload the file
+            if (file) {                
                 alert('Avatar upload would be implemented here');
             }
         };
