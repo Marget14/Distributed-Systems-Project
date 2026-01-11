@@ -71,7 +71,6 @@ public final class Person {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    // ✅ NEW FIELDS FOR PROFILE
     @Column(name = "birth_day")
     private Integer birthDay;
 
@@ -93,7 +92,6 @@ public final class Person {
         return this.createdAt;
     }
 
-    // Constructors
     public Person() {}
 
     public Person(Long id, String firstName, String lastName, String mobilePhoneNumber,
@@ -108,7 +106,6 @@ public final class Person {
         this.createdAt = createdAt;
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -133,7 +130,6 @@ public final class Person {
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
-    // ✅ NEW GETTERS AND SETTERS
     public Integer getBirthDay() { return birthDay; }
     public void setBirthDay(Integer birthDay) { this.birthDay = birthDay; }
 
