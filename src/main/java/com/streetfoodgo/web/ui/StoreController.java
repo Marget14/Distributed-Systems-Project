@@ -37,7 +37,17 @@ public class StoreController {
         this.menuItemService = menuItemService;
     }
 
+    // ✅ ΠΡΟΣΘΗΚΗ - Default mapping για /stores
     @GetMapping
+    public String stores(
+            @RequestParam(required = false) String area,
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) String search,
+            final Model model) {
+        return listStores(area, cuisine, search, model);
+    }
+
+    @GetMapping("/list")
     public String listStores(
             @RequestParam(required = false) String area,
             @RequestParam(required = false) String cuisine,
