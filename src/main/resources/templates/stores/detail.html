@@ -4,6 +4,9 @@
       layout:decorate="~{base}">
 <head>
     <title>Store Details</title>
+    <!-- CSRF Meta Tags for JavaScript -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div layout:fragment="main">
@@ -95,6 +98,61 @@
                 isUpdating: false
             };
 
+            // ==================== CSRF UTILITIES ====================
+            function getCsrfToken() {
+                const metaTag = document.querySelector('meta[name="_csrf"]');
+                if (metaTag && metaTag.content) {
+                    console.log('🔑 Found CSRF token in meta tag');
+                    return metaTag.content;
+                }
+
+                const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+                if (cookieMatch && cookieMatch[1]) {
+                    console.log('🔑 Found CSRF token in cookie');
+                    return decodeURIComponent(cookieMatch[1]);
+                }
+
+                const inputToken = document.querySelector('input[name="_csrf"]');
+                if (inputToken && inputToken.value) {
+                    console.log('🔑 Found CSRF token in hidden input');
+                    return inputToken.value;
+                }
+
+                console.warn('⚠️ No CSRF token found! Requests may fail.');
+                return '';
+            }
+
+            function getCsrfHeaderName() {
+                const metaTag = document.querySelector('meta[name="_csrf_header"]');
+                return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
+            }
+
+            function makeAuthenticatedRequest(url, options = {}) {
+                const csrfToken = getCsrfToken();
+                const csrfHeader = getCsrfHeaderName();
+
+                const defaultHeaders = {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    [csrfHeader]: csrfToken
+                };
+
+                const method = (options.method || 'GET').toUpperCase();
+                if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                    defaultHeaders['Content-Type'] = 'application/json';
+                }
+
+                return fetch(url, {
+                    ...options,
+                    headers: {
+                        ...defaultHeaders,
+                        ...options.headers
+                    },
+                    credentials: 'same-origin'
+                });
+            }
+
+            // ==================== INITIALIZATION ====================
             function init() {
                 console.log('🔄 Initializing cart system');
 
@@ -112,7 +170,6 @@
                 console.log('🆔 Session will be used via JSESSIONID cookie');
 
                 loadCartFromServer();
-
                 setupEventListeners();
 
                 document.addEventListener('visibilitychange', function() {
@@ -163,7 +220,7 @@
                 }
             }
 
-
+            // ==================== CART API FUNCTIONS ====================
             function loadCartFromServer() {
                 if (config.isUpdating) {
                     console.log('⏳ Skipping load - already updating');
@@ -172,14 +229,7 @@
 
                 console.log('🔄 Loading cart from server session');
 
-                fetch('/api/cart/items', {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                })
+                makeAuthenticatedRequest('/api/cart/items')
                     .then(function(response) {
                         if (!response.ok) {
                             throw new Error('HTTP ' + response.status);
@@ -228,16 +278,10 @@
                 originalButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 originalButton.disabled = true;
 
-                console.log('📤 Sending to server:', item);
+                console.log('📤 Sending to server with CSRF protection:', item);
 
-                fetch('/api/cart/items', {
+                makeAuthenticatedRequest('/api/cart/items', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
                     body: JSON.stringify({
                         menuItemId: parseInt(item.id),
                         quantity: item.quantity
@@ -266,10 +310,14 @@
                     })
                     .catch(function(error) {
                         console.error('❌ Error adding to cart:', error);
-                        showNotification('❌ Failed to add item: ' + error.message, 'error');
+
+                        if (error.message.includes('403')) {
+                            showNotification('❌ Please refresh the page and try again', 'error');
+                        } else {
+                            showNotification('❌ Failed to add item: ' + error.message, 'error');
+                        }
                     })
                     .finally(function() {
-                        // Επαναφορά κουμπιού
                         originalButton.innerHTML = originalText;
                         originalButton.disabled = false;
                         config.isUpdating = false;
@@ -280,7 +328,6 @@
                 var badge = document.getElementById('cartBadge');
                 if (badge) {
                     badge.textContent = count;
-                    // Animation
                     badge.classList.add('pulse');
                     setTimeout(function() {
                         badge.classList.remove('pulse');
@@ -365,16 +412,12 @@
                 updateCartBadge(totalItems);
             }
 
-
+            // ==================== GLOBAL FUNCTIONS ====================
             window.removeItemFromServer = function(itemId) {
                 console.log('🗑️ Removing item:', itemId);
 
-                fetch('/api/cart/items/' + itemId, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
+                makeAuthenticatedRequest('/api/cart/items/' + itemId, {
+                    method: 'DELETE'
                 })
                     .then(function(response) {
                         if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -390,13 +433,8 @@
             window.updateQuantityOnServer = function(itemId, change) {
                 console.log('🔄 Updating quantity for', itemId, 'change:', change);
 
-                fetch('/api/cart/items/' + itemId + '/quantity', {
+                makeAuthenticatedRequest('/api/cart/items/' + itemId + '/quantity', {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
                     body: JSON.stringify({ change: change })
                 })
                     .then(function(response) {
@@ -444,13 +482,24 @@
                 }, 3000);
             }
 
-
+            // ==================== STARTUP ====================
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
                 init();
             }
 
+            // ==================== DEBUG HELPER ====================
+            window.debugCsrf = function() {
+                console.group('🔐 CSRF Debug Info');
+                console.log('Token:', getCsrfToken());
+                console.log('Header Name:', getCsrfHeaderName());
+                console.log('Meta Tag exists:', !!document.querySelector('meta[name="_csrf"]'));
+                console.log('Cookies:', document.cookie);
+                console.groupEnd();
+            };
+
+            // CSS για animations
             var style = document.createElement('style');
             style.textContent = `
             .pulse {
