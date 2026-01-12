@@ -71,8 +71,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers("/", "/stores", "/stores/**", "/login", "/register").permitAll()
-                        .requestMatchers("/api/cart/**").permitAll()  // ✅ ΠΡΟΣΘΗΚΗ - Allow cart API for guests
-                        .requestMatchers("/profile", "/profile/**", "/logout", "/cart", "/orders").authenticated()
+                        .requestMatchers("/profile", "/logout", "/cart", "/orders").authenticated()
                         .requestMatchers("/owner/**").hasRole("OWNER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
