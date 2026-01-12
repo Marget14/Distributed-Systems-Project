@@ -1,5 +1,8 @@
 package com.streetfoodgo.web.ui;
 
+import com.streetfoodgo.core.model.Person;
+import com.streetfoodgo.core.repository.PersonRepository;
+import com.streetfoodgo.core.service.DeliveryAddressService;
 import com.streetfoodgo.core.service.MenuItemService;
 import com.streetfoodgo.core.service.StoreService;
 import com.streetfoodgo.core.service.model.MenuItemView;
@@ -22,12 +25,18 @@ public class CartController {
 
     private final StoreService storeService;
     private final MenuItemService menuItemService;
+    private final DeliveryAddressService deliveryAddressService;
+    private final PersonRepository personRepository;
 
     public CartController(
             final StoreService storeService,
-            final MenuItemService menuItemService) {
+            final MenuItemService menuItemService,
+            final DeliveryAddressService deliveryAddressService,
+            final PersonRepository personRepository) {
         this.storeService = storeService;
         this.menuItemService = menuItemService;
+        this.deliveryAddressService = deliveryAddressService;
+        this.personRepository = personRepository;
     }
 
     @GetMapping
@@ -111,6 +120,19 @@ public class CartController {
 
             model.addAttribute("cart", cart);
 
+            if (userDetails != null) {
+                Long customerId = getCustomerIdFromUserDetails(userDetails);
+                if (customerId != null) {
+                    List<com.streetfoodgo.core.service.model.DeliveryAddressView> userAddresses =
+                            deliveryAddressService.getCustomerAddresses(customerId);
+                    model.addAttribute("userAddresses", userAddresses);
+                } else {
+                    model.addAttribute("userAddresses", Collections.emptyList());
+                }
+            } else {
+                model.addAttribute("userAddresses", Collections.emptyList());
+            }
+
             return "cart/cart";
 
         } catch (Exception e) {
@@ -118,6 +140,29 @@ public class CartController {
             model.addAttribute("cart", null);
             model.addAttribute("error", "Failed to load cart: " + e.getMessage());
             return "cart/cart";
+        }
+    }
+
+    private Long getCustomerIdFromUserDetails(UserDetails userDetails) {
+        if (userDetails == null) {
+            return null;
+        }
+
+        try {
+            String email = userDetails.getUsername();
+
+            Optional<Person> personOpt = personRepository.findByEmailAddressIgnoreCase(email);
+
+            if (personOpt.isPresent()) {
+                Person person = personOpt.get();
+                if (person.getType() != null && person.getType().name().equals("CUSTOMER")) {
+                    return person.getId();
+                }
+            }
+
+            return null;
+        } catch (Exception e) {
+            return null;
         }
     }
 }
