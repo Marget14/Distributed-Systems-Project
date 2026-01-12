@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.math.BigDecimal;
 import java.util.*;
 
-/**
- * Controller for shopping cart page.
- */
 @Controller
 @RequestMapping("/cart")
 public class CartController {
@@ -40,7 +37,6 @@ public class CartController {
             final Model model) {
 
         try {
-            // Get cart from session
             @SuppressWarnings("unchecked")
             Map<Long, CartItem> cartItems = (Map<Long, CartItem>) session.getAttribute("cart");
 
@@ -49,57 +45,71 @@ public class CartController {
                 return "cart/cart";
             }
 
-            // Get the first item to determine store
-            CartItem firstItem = cartItems.values().iterator().next();
-            Long storeId = firstItem.getStoreId(); // ΧΡΗΣΙΜΟΠΟΙΗΣΕ το storeId που έχεις ήδη στο CartItem!
-
-            // Get store info
-            StoreView store = storeService.getStore(storeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Store not found"));
-
-            // Build cart structure
-            List<Map<String, Object>> cartItemsList = new ArrayList<>();
-            BigDecimal subtotal = BigDecimal.ZERO;
-
+            Map<Long, List<CartItem>> itemsByStore = new HashMap<>();
             for (CartItem item : cartItems.values()) {
-                MenuItemView menuItem = menuItemService.getMenuItem(item.getId())
-                        .orElse(null);
-
-                if (menuItem != null) {
-                    Map<String, Object> cartItemMap = new HashMap<>();
-                    cartItemMap.put("id", menuItem.id());
-                    cartItemMap.put("name", menuItem.name());
-                    cartItemMap.put("description", menuItem.description());
-                    cartItemMap.put("unitPrice", menuItem.price());
-                    cartItemMap.put("quantity", item.getQuantity());
-                    cartItemMap.put("totalPrice", menuItem.price().multiply(BigDecimal.valueOf(item.getQuantity())));
-                    cartItemMap.put("imageUrl", menuItem.imageUrl());
-
-                    cartItemsList.add(cartItemMap);
-                    subtotal = subtotal.add(menuItem.price().multiply(BigDecimal.valueOf(item.getQuantity())));
-                }
+                itemsByStore.computeIfAbsent(item.getStoreId(), k -> new ArrayList<>()).add(item);
             }
 
-            // Build store group
-            Map<String, Object> storeGroup = new HashMap<>();
-            storeGroup.put("storeName", store.name());
-            storeGroup.put("storeArea", store.area());
-            storeGroup.put("items", cartItemsList);
-            storeGroup.put("subtotal", subtotal);
-            storeGroup.put("deliveryFee", store.deliveryFee());
-            storeGroup.put("minimumOrder", store.minimumOrderAmount());
+            List<Map<String, Object>> storeGroups = new ArrayList<>();
+            BigDecimal totalSubtotal = BigDecimal.ZERO;
+            BigDecimal totalDelivery = BigDecimal.ZERO;
 
-            // Build cart
+            for (Map.Entry<Long, List<CartItem>> entry : itemsByStore.entrySet()) {
+                Long storeId = entry.getKey();
+                List<CartItem> storeItems = entry.getValue();
+
+                StoreView store = storeService.getStore(storeId)
+                        .orElseThrow(() -> new IllegalArgumentException("Store not found: " + storeId));
+
+                BigDecimal storeSubtotal = BigDecimal.ZERO;
+                List<Map<String, Object>> storeItemsList = new ArrayList<>();
+
+                for (CartItem cartItem : storeItems) {
+                    MenuItemView menuItem = menuItemService.getMenuItem(cartItem.getId())
+                            .orElse(null);
+
+                    if (menuItem != null) {
+                        BigDecimal itemTotal = menuItem.price()
+                                .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+                        storeSubtotal = storeSubtotal.add(itemTotal);
+
+                        Map<String, Object> itemMap = new HashMap<>();
+                        itemMap.put("id", menuItem.id());
+                        itemMap.put("name", menuItem.name());
+                        itemMap.put("description", menuItem.description());
+                        itemMap.put("unitPrice", menuItem.price());
+                        itemMap.put("quantity", cartItem.getQuantity());
+                        itemMap.put("totalPrice", itemTotal);
+                        itemMap.put("imageUrl", menuItem.imageUrl());
+
+                        storeItemsList.add(itemMap);
+                    }
+                }
+
+                Map<String, Object> storeGroup = new HashMap<>();
+                storeGroup.put("storeId", store.id());
+                storeGroup.put("storeName", store.name());
+                storeGroup.put("storeArea", store.area());
+                storeGroup.put("items", storeItemsList);
+                storeGroup.put("subtotal", storeSubtotal);
+                storeGroup.put("deliveryFee", store.deliveryFee());
+                storeGroup.put("minimumOrder", store.minimumOrderAmount());
+
+                storeGroups.add(storeGroup);
+
+                totalSubtotal = totalSubtotal.add(storeSubtotal);
+                totalDelivery = totalDelivery.add(store.deliveryFee());
+            }
+
             Map<String, Object> cart = new HashMap<>();
-            cart.put("storeGroups", Collections.singletonList(storeGroup));
-            cart.put("items", cartItemsList);
-            cart.put("subtotal", subtotal);
-            cart.put("deliveryTotal", store.deliveryFee());
+            cart.put("storeGroups", storeGroups);
+            cart.put("items", cartItems.values());
+            cart.put("subtotal", totalSubtotal);
+            cart.put("deliveryTotal", totalDelivery);
             cart.put("serviceFee", BigDecimal.ZERO);
-            cart.put("total", subtotal.add(store.deliveryFee()));
+            cart.put("total", totalSubtotal.add(totalDelivery));
 
             model.addAttribute("cart", cart);
-            model.addAttribute("storeId", store.id());
 
             return "cart/cart";
 
