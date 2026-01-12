@@ -118,6 +118,15 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Special Instructions -->
+            <div class="glass-panel p-6">
+                <h4 class="text-white mb-3">Special Instructions</h4>
+                <textarea id="specialInstructions"
+                          class="quantum-input w-full h-24"
+                          placeholder="Any special requests for your order?"
+                          onblur="saveSpecialInstructions()"></textarea>
+            </div>
         </div>
 
         <!-- Right: Order Summary -->
@@ -144,139 +153,26 @@
                     </div>
                 </div>
 
-                <!-- Delivery Address Section (Visible only for DELIVERY) -->
-                <div id="deliveryAddressSection" class="mb-6 hidden">
-                    <h4 class="text-white mb-3">Delivery Address</h4>
-
-                    <!-- Saved Addresses -->
-                    <div th:if="${userAddresses != null && !userAddresses.empty}" class="mb-4">
-                        <label class="block text-sm text-gray-300 mb-2">Choose a saved address:</label>
-                        <select id="savedAddressSelect"
-                                class="quantum-input w-full"
-                                onchange="onAddressSelect(this.value)">
-                            <option value="">-- Select Address --</option>
-                            <option th:each="addr : ${userAddresses}"
-                                    th:value="${addr.id}"
-                                    th:text="${addr.label + ' - ' + addr.street}">
-                            </option>
-                            <option value="new">+ Add New Address</option>
-                        </select>
-                    </div>
-
-                    <!-- New Address Form -->
-                    <div id="newAddressForm" class="space-y-3 hidden">
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Address Label *</label>
-                            <input type="text" id="addressLabel"
-                                   class="quantum-input w-full"
-                                   placeholder="Home, Work, etc.">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Street Address *</label>
-                            <input type="text" id="streetAddress"
-                                   class="quantum-input w-full"
-                                   placeholder="123 Main Street">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">City *</label>
-                            <input type="text" id="city"
-                                   class="quantum-input w-full"
-                                   placeholder="Athens">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Postal Code *</label>
-                            <input type="text" id="postalCode"
-                                   class="quantum-input w-full"
-                                   placeholder="10431">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Phone Number</label>
-                            <input type="text" id="phoneNumber"
-                                   class="quantum-input w-full"
-                                   placeholder="+30 123 456 7890">
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="saveNewAddress()"
-                                    class="flex-1 cyber-button-secondary py-2 text-sm">
-                                <i class="fas fa-save mr-2"></i>Save Address
-                            </button>
-                            <button onclick="cancelNewAddress()"
-                                    class="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 text-sm rounded-lg">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Current Address Display -->
-                    <div id="currentAddressDisplay" class="mt-4 p-3 bg-white/5 rounded-lg hidden">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-white font-medium" id="displayLabel"></p>
-                                <p class="text-gray-400 text-sm" id="displayStreet"></p>
-                                <p class="text-gray-400 text-sm" id="displayCityPostal"></p>
-                                <p class="text-gray-400 text-sm" id="displayPhone"></p>
-                            </div>
-                            <button onclick="changeAddress()" class="text-cyber-blue hover:text-cyber-blue-light text-sm">
-                                Change
-                            </button>
-                        </div>
-                        <input type="hidden" id="selectedAddressId">
-                    </div>
-
-                    <!-- No Address Warning -->
-                    <div id="noAddressWarning" class="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg hidden">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle text-red-400 mr-2"></i>
-                            <p class="text-red-300 text-sm">Please select or add a delivery address</p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Summary Details -->
                 <div class="space-y-3 mb-6">
-                    <div th:each="storeGroup : ${cart.storeGroups}">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-300" th:text="${storeGroup.storeName}">Store</span>
-                            <span class="text-white">€<span th:text="${#numbers.formatDecimal(storeGroup.subtotal, 1, 2)}">0</span></span>
-                        </div>
-                        <div class="flex justify-between text-xs text-gray-500 ml-4">
-                            <span>Delivery fee</span>
-                            <span>€<span th:text="${#numbers.formatDecimal(storeGroup.deliveryFee, 1, 2)}">0</span></span>
-                        </div>
+                    <div class="flex justify-between text-gray-300">
+                        <span>Subtotal</span>
+                        <span>€<span th:text="${#numbers.formatDecimal(cart.subtotal, 1, 2)}">0.00</span></span>
                     </div>
-
-                    <div class="border-t border-white/10 pt-3">
-                        <div class="flex justify-between text-gray-300 text-sm">
-                            <span>Subtotal</span>
-                            <span>€<span th:text="${#numbers.formatDecimal(cart.subtotal, 1, 2)}">0</span></span>
-                        </div>
-                        <div class="flex justify-between text-gray-300 text-sm">
-                            <span>Delivery Total</span>
-                            <span>€<span th:text="${#numbers.formatDecimal(cart.deliveryTotal, 1, 2)}">0</span></span>
-                        </div>
+                    <div class="flex justify-between text-gray-300">
+                        <span>Delivery Fee</span>
+                        <span>€<span th:text="${#numbers.formatDecimal(cart.deliveryTotal, 1, 2)}">0.00</span></span>
                     </div>
-
-                    <div class="border-t border-white/10 pt-3">
-                        <div class="flex justify-between text-xl font-bold">
-                            <span class="text-white">Total</span>
-                            <span class="text-cyber-blue">€<span th:text="${#numbers.formatDecimal(cart.total, 1, 2)}">0</span></span>
-                        </div>
+                    <div class="flex justify-between text-white font-bold text-xl border-t border-white/10 pt-3">
+                        <span>Total</span>
+                        <span>€<span th:text="${#numbers.formatDecimal(cart.total, 1, 2)}">0.00</span></span>
                     </div>
                 </div>
 
-                <!-- Special Instructions -->
-                <div class="mb-6">
-                    <label class="block text-sm text-gray-300 mb-2">Special Instructions</label>
-                    <textarea id="specialInstructions"
-                              class="quantum-input w-full"
-                              rows="3"
-                              placeholder="Any special requests..."></textarea>
-                </div>
-
-                <!-- Checkout Button -->
-                <button id="checkoutButton" class="w-full cyber-button py-3" onclick="validateAndCheckout()">
-                    <i class="fas fa-lock mr-2"></i>Proceed to Checkout
-                </button>
+                <!-- Proceed to Checkout Link -->
+                <a id="checkoutButton" th:href="@{/checkout}" class="cyber-button block text-center py-3">
+                    Proceed to Checkout
+                </a>
             </div>
         </div>
     </div>
@@ -284,551 +180,102 @@
 
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // ==================== DEBUGGING UTILITIES ====================
-    window.debugMode = true;
 
-    function logDebug(...args) {
-        if (window.debugMode) {
-            console.log('🛒 DEBUG:', ...args);
-        }
-    }
+    // ... (Keep existing JS for updateQuantity, removeItem, showNotification, initEventListeners)
 
-    function logError(...args) {
-        console.error('🛒 ERROR:', ...args);
-    }
+    let orderType = 'DELIVERY'; // Default
 
-    // ==================== CSRF UTILITIES ====================
-    function getCsrfToken() {
-        const metaTag = document.querySelector('meta[name="_csrf"]');
-        if (metaTag && metaTag.content) {
-            logDebug('CSRF token from meta tag:', metaTag.content.substring(0, 10) + '...');
-            return metaTag.content;
-        }
-        const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-        if (cookieMatch && cookieMatch[1]) {
-            logDebug('CSRF token from cookie:', cookieMatch[1].substring(0, 10) + '...');
-            return decodeURIComponent(cookieMatch[1]);
-        }
-        logError('No CSRF token found');
-        return '';
-    }
-
-    function getCsrfHeaderName() {
-        const metaTag = document.querySelector('meta[name="_csrf_header"]');
-        const headerName = (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
-        logDebug('CSRF header name:', headerName);
-        return headerName;
-    }
-
-    function makeAuthenticatedRequest(url, options = {}) {
-        const csrfToken = getCsrfToken();
-        const csrfHeader = getCsrfHeaderName();
-
-        const defaultHeaders = {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            [csrfHeader]: csrfToken
-        };
-
-        const method = (options.method || 'GET').toUpperCase();
-        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-            defaultHeaders['Content-Type'] = 'application/json';
-        }
-
-        logDebug('Making request:', method, url);
-        logDebug('Headers:', defaultHeaders);
-        if (options.body) {
-            logDebug('Body:', options.body);
-        }
-
-        return fetch(url, {
-            ...options,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers
-            },
-            credentials: 'same-origin'
-        });
-    }
-
-    // ==================== ADDRESS MANAGEMENT ====================
-    let orderType = 'DELIVERY';
-    let selectedAddressId = null;
-    let selectedAddressData = null;
-
-    function toggleAddressSection() {
-        const addressSection = document.getElementById('deliveryAddressSection');
-        if (orderType === 'DELIVERY') {
-            addressSection.classList.remove('hidden');
-            // Show initial state
-            showAddressSelection();
-        } else {
-            addressSection.classList.add('hidden');
-        }
-    }
-
-    function showAddressSelection() {
-        document.getElementById('newAddressForm').classList.add('hidden');
-        document.getElementById('currentAddressDisplay').classList.add('hidden');
-        document.getElementById('noAddressWarning').classList.add('hidden');
-
-        // If user has saved addresses, show select
-        const hasAddresses = /*[[${userAddresses != null && !userAddresses.empty}]]*/ false;
-        logDebug('User has addresses:', hasAddresses);
-        if (hasAddresses) {
-            document.getElementById('savedAddressSelect').value = '';
-        } else {
-            // If no saved addresses, show new address form
-            document.getElementById('savedAddressSelect').value = 'new';
-            onAddressSelect('new');
-        }
-    }
-
-    function onAddressSelect(value) {
-        logDebug('Address selected:', value);
-        if (value === 'new') {
-            document.getElementById('newAddressForm').classList.remove('hidden');
-            document.getElementById('currentAddressDisplay').classList.add('hidden');
-            document.getElementById('noAddressWarning').classList.add('hidden');
-            selectedAddressId = null;
-            selectedAddressData = null;
-        } else if (value === '') {
-            document.getElementById('newAddressForm').classList.add('hidden');
-            document.getElementById('currentAddressDisplay').classList.add('hidden');
-            document.getElementById('noAddressWarning').classList.remove('hidden');
-            selectedAddressId = null;
-            selectedAddressData = null;
-        } else {
-            // Load selected address
-            loadAddressDetails(value);
-        }
-    }
-
-    function loadAddressDetails(addressId) {
-        logDebug('Loading address details for ID:', addressId);
-        makeAuthenticatedRequest('/api/addresses/' + addressId)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load address: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(address => {
-                selectedAddressId = address.id;
-                selectedAddressData = address;
-
-                // Update display
-                document.getElementById('displayLabel').textContent = address.label || 'Address';
-                document.getElementById('displayStreet').textContent = address.street;
-                document.getElementById('displayCityPostal').textContent = address.city + ', ' + address.postalCode;
-                document.getElementById('displayPhone').textContent = address.phoneNumber || '';
-                document.getElementById('selectedAddressId').value = address.id;
-
-                document.getElementById('currentAddressDisplay').classList.remove('hidden');
-                document.getElementById('newAddressForm').classList.add('hidden');
-                document.getElementById('noAddressWarning').classList.add('hidden');
-                logDebug('Address loaded successfully:', address);
-            })
-            .catch(error => {
-                logError('Error loading address:', error);
-                showNotification('Failed to load address: ' + error.message, 'error');
-            });
-    }
-
-    function saveNewAddress() {
-        const label = document.getElementById('addressLabel').value.trim() || 'Home';
-        const street = document.getElementById('streetAddress').value.trim();
-        const city = document.getElementById('city').value.trim();
-        const postalCode = document.getElementById('postalCode').value.trim();
-        const phoneNumber = document.getElementById('phoneNumber').value.trim();
-
-        if (!street || !city || !postalCode) {
-            showNotification('Please fill in all required fields (street, city, postal code)', 'error');
-            return;
-        }
-
-        const addressData = {
-            label: label,
-            street: street,
-            city: city,
-            postalCode: postalCode,
-            phoneNumber: phoneNumber,
-            latitude: null,
-            longitude: null
-        };
-
-        logDebug('Saving new address:', addressData);
-
-        makeAuthenticatedRequest('/api/addresses', {
-            method: 'POST',
-            body: JSON.stringify(addressData)
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(text || 'Failed to save address: ' + response.status);
-                    });
-                }
-                return response.json();
-            })
-            .then(savedAddress => {
-                showNotification('Address saved successfully');
-                selectedAddressId = savedAddress.id;
-                selectedAddressData = savedAddress;
-
-                // Add to select and select it
-                const select = document.getElementById('savedAddressSelect');
-                const option = document.createElement('option');
-                option.value = savedAddress.id;
-                option.textContent = savedAddress.label + ' - ' + savedAddress.street;
-                select.appendChild(option);
-                select.value = savedAddress.id;
-
-                // Show in display
-                onAddressSelect(savedAddress.id);
-                logDebug('Address saved successfully:', savedAddress);
-            })
-            .catch(error => {
-                logError('Error saving address:', error);
-                showNotification('Failed to save address: ' + error.message, 'error');
-            });
-    }
-
-    function cancelNewAddress() {
-        showAddressSelection();
-    }
-
-    function changeAddress() {
-        showAddressSelection();
-    }
-
-    // ==================== CART FUNCTIONS ====================
     function setOrderType(type) {
-        logDebug('Setting order type:', type);
         orderType = type;
 
-        const deliveryBtn = document.getElementById('deliveryBtn');
-        const pickupBtn = document.getElementById('pickupBtn');
-
         if (type === 'DELIVERY') {
-            deliveryBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
-            pickupBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
+            document.getElementById('deliveryBtn').classList.add('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
+            document.getElementById('deliveryBtn').classList.remove('border-white/10', 'text-gray-300');
+            document.getElementById('pickupBtn').classList.add('border-white/10', 'text-gray-300');
+            document.getElementById('pickupBtn').classList.remove('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
         } else {
-            pickupBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
-            deliveryBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
+            document.getElementById('pickupBtn').classList.add('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
+            document.getElementById('pickupBtn').classList.remove('border-white/10', 'text-gray-300');
+            document.getElementById('deliveryBtn').classList.add('border-white/10', 'text-gray-300');
+            document.getElementById('deliveryBtn').classList.remove('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
         }
-
-        // Toggle address section
-        toggleAddressSection();
 
         makeAuthenticatedRequest('/api/cart/order-type', {
             method: 'PUT',
             body: JSON.stringify({ orderType: type })
         })
-            .then(function(response) {
+            .then(response => {
                 if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(text || 'HTTP ' + response.status);
-                    });
+                    throw new Error('Failed to save order type');
                 }
-                logDebug('Order type saved to session');
                 return response.json();
             })
             .then(data => {
-                logDebug('Order type response:', data);
-            })
-            .catch(function(error) {
-                logError('Error saving order type:', error);
-                showNotification('Failed to save order type: ' + error.message, 'error');
-            });
-    }
-
-    function validateAndCheckout() {
-        // Validate delivery address for delivery orders
-        if (orderType === 'DELIVERY' && !selectedAddressId) {
-            document.getElementById('noAddressWarning').classList.remove('hidden');
-            showNotification('Please select or add a delivery address', 'error');
-            return;
-        }
-
-        checkout();
-    }
-
-    function checkout() {
-        logDebug('Starting checkout process');
-        logDebug('Order type:', orderType);
-        logDebug('Selected address ID:', selectedAddressId);
-
-        const checkoutBtn = document.getElementById('checkoutButton');
-        const originalText = checkoutBtn.innerHTML;
-        checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-        checkoutBtn.disabled = true;
-
-        const instructions = document.getElementById('specialInstructions').value;
-        logDebug('Special instructions:', instructions);
-
-        const checkoutData = {
-            deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
-            orderType: orderType,
-            specialInstructions: instructions
-        };
-
-        logDebug('Checkout data:', checkoutData);
-
-        makeAuthenticatedRequest('/api/cart/checkout', {
-            method: 'POST',
-            body: JSON.stringify(checkoutData)
-        })
-            .then(function(response) {
-                logDebug('Checkout response status:', response.status);
-                if (!response.ok) {
-                    return response.text().then(function(text) {
-                        logError('Checkout error response:', text);
-                        throw new Error(text || 'HTTP ' + response.status);
-                    });
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                logDebug('Checkout successful:', data);
-
-                if (data.orderIds && data.orderIds.length > 0) {
-                    if (data.orderIds.length === 1) {
-                        showNotification('Order placed successfully! Redirecting...');
-                        setTimeout(function() {
-                            window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
-                        }, 1000);
-                    } else {
-                        showNotification(data.storeCount + ' orders placed successfully! Redirecting...');
-                        setTimeout(function() {
-                            window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
-                        }, 1000);
-                    }
-                } else {
-                    showNotification('❌ No order IDs returned', 'error');
-                    checkoutBtn.innerHTML = originalText;
-                    checkoutBtn.disabled = false;
-                }
-            })
-            .catch(function(error) {
-                logError('Checkout failed:', error);
-                showNotification('❌ Checkout failed: ' + error.message, 'error');
-                checkoutBtn.innerHTML = originalText;
-                checkoutBtn.disabled = false;
-            });
-    }
-
-    function updateQuantity(itemId, change) {
-        logDebug('Updating quantity for item', itemId, 'change:', change);
-
-        if (!itemId) {
-            logError('No itemId provided');
-            showNotification('❌ Cannot update quantity: No item ID', 'error');
-            return;
-        }
-
-        // Parse itemId to number if it's a string
-        const numericItemId = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
-
-        if (isNaN(numericItemId)) {
-            logError('Invalid itemId:', itemId);
-            showNotification('❌ Cannot update quantity: Invalid item ID', 'error');
-            return;
-        }
-
-        // Create the request body
-        const requestBody = { change: change };
-        logDebug('Update quantity request:', {
-            url: '/api/cart/items/' + numericItemId + '/quantity',
-            method: 'PUT',
-            body: requestBody
-        });
-
-        makeAuthenticatedRequest('/api/cart/items/' + numericItemId + '/quantity', {
-            method: 'PUT',
-            body: JSON.stringify(requestBody)
-        })
-            .then(function(response) {
-                logDebug('Update quantity response status:', response.status);
-                logDebug('Update quantity response headers:', Object.fromEntries(response.headers.entries()));
-
-                if (!response.ok) {
-                    return response.text().then(function(text) {
-                        logError('Update quantity error response:', text);
-                        throw new Error(text || 'HTTP ' + response.status);
-                    });
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                logDebug('Quantity updated successfully:', data);
-                showNotification('Quantity updated successfully');
-
-                // Force reload after a short delay
-                setTimeout(function() {
-                    window.location.reload();
-                }, 300);
-            })
-            .catch(function(error) {
-                logError('Error updating quantity:', error);
-                let errorMessage = 'Failed to update quantity';
-
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Network error. Please check your connection.';
-                } else if (error.message.includes('404')) {
-                    errorMessage = 'Item not found in cart.';
-                } else if (error.message.includes('400')) {
-                    errorMessage = 'Invalid request. Please try again.';
-                } else if (error.message.includes('401') || error.message.includes('403')) {
-                    errorMessage = 'Authentication required. Please log in again.';
-                }
-
-                showNotification('❌ ' + errorMessage, 'error');
-
-                // Try to get current cart for debugging
-                makeAuthenticatedRequest('/api/cart/items')
-                    .then(res => res.json())
-                    .then(cartData => {
-                        logDebug('Current cart after error:', cartData);
-                    })
-                    .catch(e => logError('Failed to get cart:', e));
-            });
-    }
-
-    function removeItem(itemId) {
-        if (!confirm('Are you sure you want to remove this item from your cart?')) {
-            return;
-        }
-
-        logDebug('Removing item:', itemId);
-
-        if (!itemId) {
-            logError('No itemId provided');
-            showNotification('❌ Cannot remove item: No item ID', 'error');
-            return;
-        }
-
-        // Parse itemId to number if it's a string
-        const numericItemId = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
-
-        if (isNaN(numericItemId)) {
-            logError('Invalid itemId:', itemId);
-            showNotification('❌ Cannot remove item: Invalid item ID', 'error');
-            return;
-        }
-
-        makeAuthenticatedRequest('/api/cart/items/' + numericItemId, {
-            method: 'DELETE'
-        })
-            .then(function(response) {
-                logDebug('Remove item response status:', response.status);
-                if (!response.ok) {
-                    return response.text().then(function(text) {
-                        logError('Remove item error response:', text);
-                        throw new Error(text || 'HTTP ' + response.status);
-                    });
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                logDebug('Item removed successfully:', data);
-                showNotification('Item removed from cart');
-
-                setTimeout(function() {
-                    window.location.reload();
-                }, 300);
-            })
-            .catch(function(error) {
-                logError('Error removing item:', error);
-                showNotification('❌ Failed to remove item: ' + error.message, 'error');
-            });
-    }
-
-    function showNotification(message, type = 'success') {
-        logDebug('Showing notification:', type, message);
-        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
-        const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
-        const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
-
-        const notification = document.createElement('div');
-        notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor}
-                                 rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
-        notification.innerHTML = `
-            <div class="flex items-center">
-                <i class="fas ${icon} mr-3"></i>
-                <span class="font-medium">${message}</span>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => notification.classList.remove('translate-x-full'), 10);
-
-        setTimeout(() => {
-            notification.classList.add('translate-x-full');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
-    }
-
-    // ==================== EVENT LISTENER INITIALIZATION ====================
-    function initEventListeners() {
-        logDebug('Initializing event listeners');
-
-        // Add event listeners to quantity buttons using event delegation
-        document.addEventListener('click', function(e) {
-            // Check if clicked element is a quantity button
-            if (e.target.closest('.quantity-btn')) {
-                e.preventDefault();
-                const button = e.target.closest('.quantity-btn');
-                const itemId = button.getAttribute('data-item-id');
-                const change = parseInt(button.getAttribute('data-change') || '0');
-                if (itemId && !isNaN(change)) {
-                    updateQuantity(itemId, change);
-                }
-            }
-
-            // Check if clicked element is a remove button
-            if (e.target.closest('.remove-btn')) {
-                e.preventDefault();
-                const button = e.target.closest('.remove-btn');
-                const itemId = button.getAttribute('data-item-id');
-                if (itemId) {
-                    removeItem(itemId);
-                }
-            }
-        });
-    }
-
-    // ==================== INITIALIZATION ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        logDebug('🛒 Cart page loaded');
-        logDebug('CSRF Token available:', getCsrfToken() ? 'YES' : 'NO');
-
-        // Initialize event listeners
-        initEventListeners();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('orderType')) {
-            setOrderType(urlParams.get('orderType'));
-        } else {
-            // Initialize address section
-            toggleAddressSection();
-        }
-
-        // Test API connectivity
-        makeAuthenticatedRequest('/api/cart/items')
-            .then(response => response.json())
-            .then(data => {
-                logDebug('Cart API test successful:', data);
+                // Success
             })
             .catch(error => {
-                logError('Cart API test failed:', error);
+                showNotification('Failed to save order type: ' + error.message, 'error');
             });
+
+        updateCheckoutButton();
+    }
+
+    function saveSpecialInstructions() {
+        const instructions = document.getElementById('specialInstructions').value;
+
+        makeAuthenticatedRequest('/api/cart/special-instructions', {
+            method: 'PUT',
+            body: JSON.stringify({ instructions: instructions })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to save instructions');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Success
+            })
+            .catch(error => {
+                showNotification('Failed to save special instructions: ' + error.message, 'error');
+            });
+    }
+
+    function isCartValid() {
+        let isValid = true;
+
+        // Check minimum order for each store group
+        const storeGroups = document.querySelectorAll('.store-group');
+        storeGroups.forEach(group => {
+            const warning = group.querySelector('.bg-yellow-500\\/20');
+            if (warning) {
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    function updateCheckoutButton() {
+        const checkoutBtn = document.getElementById('checkoutButton');
+        if (isCartValid()) {
+            checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        } else {
+            checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
+    }
+
+    // In updateQuantity and removeItem success .then, add:
+    // setTimeout(() => { window.location.reload(); }, 300);
+    // and updateCheckoutButton();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initEventListeners();
+        updateCheckoutButton();
+        // Set initial order type buttons state
+        setOrderType('DELIVERY'); // Or fetch from session if needed
     });
+
     /*]]>*/
 </script>
 </body>
