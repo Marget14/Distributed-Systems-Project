@@ -8,6 +8,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- CSRF Token για AJAX requests -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
     <title layout:title-pattern="$CONTENT_TITLE - StreetFoodGo">StreetFoodGo</title>
 
     <!-- FONTS -->
@@ -250,12 +255,32 @@
                     <i class="fas fa-home mr-2"></i>Home
                 </a>
                 <a th:href="@{/stores}" class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
-                    <i class="fas fa-store mr-2"></i>3D Stores
+                    <i class="fas fa-store mr-2"></i>Stores
                 </a>
-                <a th:href="@{/templates/owner/orders}" class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
+
+                <!--- Dynamic routing based on role -->
+                <a th:if="${#authorization.expression('hasRole(''OWNER'')')}"
+                   th:href="@{/owner/orders}"
+                   class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
+                    <i class="fas fa-clipboard-list mr-2"></i>My Orders
+                </a>
+
+                <a th:if="${#authorization.expression('hasRole(''CUSTOMER'')')}"
+                   th:href="@{/orders}"
+                   class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
                     <i class="fas fa-clock mr-2"></i>My Orders
                 </a>
-                <a th:href="@{/profile}" class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
+
+                <!-- Show for non-authenticated users -->
+                <a th:if="${!#authorization.expression('isAuthenticated()')}"
+                   th:href="@{/login}"
+                   class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
+                    <i class="fas fa-clock mr-2"></i>Orders
+                </a>
+
+                <a th:href="@{/profile}"
+                   th:if="${#authorization.expression('isAuthenticated()')}"
+                   class="px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-rajdhani">
                     <i class="fas fa-user mr-2"></i>Profile
                 </a>
 
@@ -270,7 +295,7 @@
                     </div>
                     <div th:unless="${#authorization.expression('isAuthenticated()')}">
                         <a th:href="@{/login}" class="cyber-button text-sm">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Quantum Login
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
                         </a>
                     </div>
                 </div>
@@ -345,7 +370,7 @@
         <!-- Copyright -->
         <div class="border-t border-white/10 mt-8 pt-8 text-center">
             <p class="text-gray-500 text-sm">
-                &copy; <span id="currentYear">2025</span> StreetFoodGo. All rights reserved.
+                &copy; <span id="currentYear">2026</span> StreetFoodGo. All rights reserved.
                 <span class="text-cyber-blue font-rajdhani">v2.0.quantum</span>
             </p>
             <p class="text-gray-600 text-xs mt-2">
