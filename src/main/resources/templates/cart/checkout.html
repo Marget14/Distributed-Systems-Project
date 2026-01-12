@@ -109,6 +109,44 @@
                     </div>
                 </div>
 
+                <!-- Payment Method Section (ADD THIS) -->
+                <div class="mb-4">
+                    <h4 class="text-white mb-3 text-sm font-semibold">Payment Method *</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center p-3 border border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer">
+                            <input type="radio" name="paymentMethod" value="CASH" class="mr-3" checked
+                                   onchange="setPaymentMethod('CASH')">
+                            <div>
+                                <p class="text-white font-medium">Cash on Delivery</p>
+                                <p class="text-gray-400 text-xs">Pay with cash when you receive your order</p>
+                            </div>
+                            <i class="fas fa-money-bill-wave ml-auto text-green-400"></i>
+                        </label>
+
+                        <label class="flex items-center p-3 border border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer">
+                            <input type="radio" name="paymentMethod" value="CARD" class="mr-3"
+                                   onchange="setPaymentMethod('CARD')">
+                            <div>
+                                <p class="text-white font-medium">Credit/Debit Card</p>
+                                <p class="text-gray-400 text-xs">Pay securely with your card</p>
+                            </div>
+                            <i class="fas fa-credit-card ml-auto text-blue-400"></i>
+                        </label>
+                    </div>
+                    <div id="cardDetailsSection" class="mt-3 hidden">
+                        <div class="space-y-3">
+                            <input type="text" placeholder="Card Number"
+                                   class="quantum-input w-full text-sm" maxlength="19">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" placeholder="MM/YY"
+                                       class="quantum-input text-sm">
+                                <input type="text" placeholder="CVV"
+                                       class="quantum-input text-sm" maxlength="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Delivery Address Section (Visible only for DELIVERY) -->
                 <div id="deliveryAddressSection" th:if="${orderType == 'DELIVERY'}">
                     <h4 class="text-white mb-3 text-sm font-semibold">Delivery Address</h4>
@@ -275,7 +313,24 @@
 
     // ==================== GLOBAL STATE ====================
     let selectedAddressId = null;
-    let orderType = 'DELIVERY'; // Will be set from server
+    let orderType = 'DELIVERY';
+    let selectedPaymentMethod = 'CASH'; // Default
+
+    // ==================== PAYMENT METHOD ====================
+    function setPaymentMethod(method) {
+        console.log('💳 Setting payment method:', method);
+        selectedPaymentMethod = method;
+
+        // Show/hide card details
+        const cardSection = document.getElementById('cardDetailsSection');
+        if (method === 'CARD') {
+            cardSection.classList.remove('hidden');
+        } else {
+            cardSection.classList.add('hidden');
+        }
+
+        updatePlaceOrderButton();
+    }
 
     // ==================== ADDRESS FUNCTIONS ====================
     function showNewAddressForm() {
@@ -413,6 +468,9 @@
     // ==================== VALIDATION ====================
     function isOrderValid() {
         if (orderType === 'DELIVERY' && !selectedAddressId) {
+            return false;
+        }
+        if (!selectedPaymentMethod) {
             return false;
         }
         return true;
