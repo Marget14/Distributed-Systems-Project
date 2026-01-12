@@ -5,8 +5,8 @@
 <head>
     <title>Shopping Cart</title>
     <!-- CSRF Meta Tags -->
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div layout:fragment="main">
@@ -25,8 +25,7 @@
     </div>
 
     <!-- Empty Cart -->
-    <div th:if="${cart == null || cart.storeGroups == null || cart.storeGroups.empty}"
-         class="glass-panel p-12 text-center">
+    <div th:if="${cart == null || cart.storeGroups == null || cart.storeGroups.empty}" class="glass-panel p-12 text-center">
         <i class="fas fa-shopping-cart text-4xl text-gray-500 mb-4"></i>
         <h3 class="text-xl font-bold text-white mb-2">Your cart is empty</h3>
         <p class="text-gray-400 mb-6">Add delicious items from our stores</p>
@@ -113,10 +112,8 @@
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
                         <p class="text-yellow-300 text-sm">
-                            Minimum order is €<span th:text="${#numbers.formatDecimal(storeGroup.minimumOrder, 1, 2)}">0.00</span>.
-                            Add €<span
-                                th:text="${#numbers.formatDecimal(storeGroup.minimumOrder - storeGroup.subtotal, 1, 2)}">0.00</span>
-                            more.
+                            Minimum order is €<span th:text="${storeGroup.minimumOrder}">0</span>.
+                            Add €<span th:text="${#numbers.formatDecimal(storeGroup.minimumOrder - storeGroup.subtotal, 1, 2)}">0</span> more.
                         </p>
                     </div>
                 </div>
@@ -172,215 +169,143 @@
                     </div>
                 </div>
 
-                <!-- Proceed to Checkout Link -->
-                <button id="checkoutButton" type="button" class="w-full cyber-button py-3" onclick="goToCheckout()">
-                    <i class="fas fa-lock mr-2"></i>Proceed to Checkout
+                <!-- Proceed to Checkout Button -->
+                <button type="button" id="checkoutButton" class="cyber-button w-full py-3" onclick="proceedToCheckout()">
+                    Proceed to Checkout
                 </button>
             </div>
         </div>
     </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        function getCsrfToken() {
+            return document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        }
+
+        function getCsrfHeader() {
+            return document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        }
+
+        function makeAuthenticatedRequest(url, options = {}) {
+            const csrfToken = getCsrfToken();
+            const csrfHeader = getCsrfHeader();
+
+            const headers = new Headers(options.headers || {});
+            headers.append(csrfHeader, csrfToken);
+            headers.append('Content-Type', 'application/json');
+            headers.append('Accept', 'application/json');
+
+            return fetch(url, {
+                ...options,
+                headers: headers,
+                credentials: 'include'
+            });
+        }
+
+        function updateQuantity(itemId, change) {
+            makeAuthenticatedRequest(`/api/cart/items/${itemId}/quantity`, {
+                method: 'PUT',
+                body: JSON.stringify({ change: change })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update quantity');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error updating quantity:', error);
+                });
+        }
+
+        function removeItem(itemId) {
+            if (confirm('Are you sure you want to remove this item?')) {
+                makeAuthenticatedRequest(`/api/cart/items/${itemId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to remove item');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error removing item:', error);
+                    });
+            }
+        }
+
+        let orderType = 'DELIVERY'; // Default
+
+        function setOrderType(type) {
+            orderType = type;
+
+            const deliveryBtn = document.getElementById('deliveryBtn');
+            const pickupBtn = document.getElementById('pickupBtn');
+
+            if (type === 'DELIVERY') {
+                deliveryBtn.classList.add('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
+                deliveryBtn.classList.remove('border-white/10', 'text-gray-300');
+                pickupBtn.classList.add('border-white/10', 'text-gray-300');
+                pickupBtn.classList.remove('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
+            } else {
+                pickupBtn.classList.add('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
+                pickupBtn.classList.remove('border-white/10', 'text-gray-300');
+                deliveryBtn.classList.add('border-white/10', 'text-gray-300');
+                deliveryBtn.classList.remove('border-cyber-blue', 'bg-cyber-blue/10', 'text-cyber-blue');
+            }
+
+            makeAuthenticatedRequest('/api/cart/order-type', {
+                method: 'PUT',
+                body: JSON.stringify({ orderType: type })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to set order type');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error setting order type:', error);
+                });
+        }
+
+        function saveSpecialInstructions() {
+            const instructions = document.getElementById('specialInstructions').value;
+
+            makeAuthenticatedRequest('/api/cart/special-instructions', {
+                method: 'PUT',
+                body: JSON.stringify({ instructions: instructions })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to save instructions');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving instructions:', error);
+                });
+        }
+
+        function proceedToCheckout() {
+            window.location.href = '/checkout';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setOrderType(window.orderTypeFromServer || 'DELIVERY');
+        });
+
+        /*]]>*/
+    </script>
 </div>
 
-<script th:inline="none">
-    // ==================== CSRF UTILITIES ====================
-    function getCsrfToken() {
-        const metaTag = document.querySelector('meta[name="_csrf"]');
-        if (metaTag && metaTag.content) {
-            return metaTag.content;
-        }
-        const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-        if (cookieMatch && cookieMatch[1]) {
-            return decodeURIComponent(cookieMatch[1]);
-        }
-        return '';
-    }
 
-    function getCsrfHeaderName() {
-        const metaTag = document.querySelector('meta[name="_csrf_header"]');
-        return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
-    }
-
-    function makeAuthenticatedRequest(url, options = {}) {
-        const csrfToken = getCsrfToken();
-        const csrfHeader = getCsrfHeaderName();
-
-        const defaultHeaders = {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            [csrfHeader]: csrfToken
-        };
-
-        const method = (options.method || 'GET').toUpperCase();
-        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-            defaultHeaders['Content-Type'] = 'application/json';
-        }
-
-        return fetch(url, {
-            ...options,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers
-            },
-            credentials: 'same-origin'
-        });
-    }
-
-    // ==================== CART FUNCTIONS ====================
-    let orderType = 'DELIVERY';
-
-    function updateQuantity(itemId, change) {
-        console.log('🔄 Updating quantity for item', itemId, 'change:', change);
-
-        makeAuthenticatedRequest('/api/cart/items/' + itemId + '/quantity', {
-            method: 'PUT',
-            body: JSON.stringify({change: change})
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    return response.text().then(function (text) {
-                        throw new Error(text || 'HTTP ' + response.status);
-                    });
-                }
-                return response.json();
-            })
-            .then(function (data) {
-                console.log('✅ Quantity updated:', data);
-                showNotification('Quantity updated successfully');
-
-                setTimeout(function () {
-                    window.location.reload();
-                }, 500);
-            })
-            .catch(function (error) {
-                console.error('❌ Error updating quantity:', error);
-                showNotification('❌ Failed to update quantity: ' + error.message, 'error');
-            });
-    }
-
-    function removeItem(itemId) {
-        if (!confirm('Are you sure you want to remove this item from your cart?')) {
-            return;
-        }
-
-        console.log('🗑️ Removing item:', itemId);
-
-        makeAuthenticatedRequest('/api/cart/items/' + itemId, {
-            method: 'DELETE'
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                return response.json();
-            })
-            .then(function (data) {
-                console.log('✅ Item removed:', data);
-                showNotification('Item removed from cart');
-
-                setTimeout(function () {
-                    window.location.reload();
-                }, 500);
-            })
-            .catch(function (error) {
-                console.error('❌ Error removing item:', error);
-                showNotification('❌ Failed to remove item: ' + error.message, 'error');
-            });
-    }
-
-    function setOrderType(type) {
-        console.log('📦 Setting order type:', type);
-        orderType = type;
-
-        const deliveryBtn = document.getElementById('deliveryBtn');
-        const pickupBtn = document.getElementById('pickupBtn');
-
-        if (type === 'DELIVERY') {
-            deliveryBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
-            pickupBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
-        } else {
-            pickupBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
-            deliveryBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
-        }
-
-        makeAuthenticatedRequest('/api/cart/order-type', {
-            method: 'PUT',
-            body: JSON.stringify({orderType: type})
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                console.log('✅ Order type saved to session');
-                return response.json();
-            })
-            .catch(function (error) {
-                console.error('❌ Error saving order type:', error);
-                showNotification('❌ Failed to save order type', 'error');
-            });
-    }
-
-    function saveSpecialInstructions() {
-        const instructions = document.getElementById('specialInstructions').value;
-
-        makeAuthenticatedRequest('/api/cart/special-instructions', {
-            method: 'PUT',
-            body: JSON.stringify({instructions: instructions})
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('Failed to save instructions');
-                }
-                return response.json();
-            })
-            .then(function (data) {
-                console.log('✅ Special instructions saved');
-            })
-            .catch(function (error) {
-                console.error('❌ Error saving instructions:', error);
-            });
-    }
-
-    function goToCheckout() {
-        console.log('🛒 Navigating to checkout page');
-        window.location.href = '/checkout';
-    }
-
-    function showNotification(message, type) {
-        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
-        const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
-        const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
-
-        const notification = document.createElement('div');
-        notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor} rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
-        notification.innerHTML = `
-            <div class="flex items-center">
-                <i class="fas ${icon} mr-3"></i>
-                <span class="font-medium">${message}</span>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => notification.classList.remove('translate-x-full'), 10);
-
-        setTimeout(() => {
-            notification.classList.add('translate-x-full');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
-    }
-
-    // ==================== INITIALIZATION ====================
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log('🛒 Cart page loaded');
-        console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
-
-        // Set initial order type to DELIVERY
-        setOrderType('DELIVERY');
-    });
-</script>
 </body>
 </html>
