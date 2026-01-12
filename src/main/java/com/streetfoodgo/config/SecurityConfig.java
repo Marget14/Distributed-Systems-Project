@@ -7,6 +7,7 @@ import com.streetfoodgo.web.rest.error.RestApiAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -71,7 +72,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers("/", "/stores", "/stores/**", "/login", "/register").permitAll()
-                        .requestMatchers("/api/cart/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/cart/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/cart/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/cart/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/cart/**").permitAll()
+
+                        .requestMatchers("/api/cart/checkout").authenticated()
+
                         .requestMatchers("/profile", "/logout", "/cart", "/orders").authenticated()
                         .requestMatchers("/owner/**").hasRole("OWNER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
