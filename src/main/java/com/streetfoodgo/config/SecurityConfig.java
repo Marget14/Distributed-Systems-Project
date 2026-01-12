@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/client-tokens").permitAll()
-                        .requestMatchers("/api/v1/stores/**").permitAll() // Public store viewing
+                        .requestMatchers("/api/v1/stores/**").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                 )
                 .exceptionHandling(exh -> exh
