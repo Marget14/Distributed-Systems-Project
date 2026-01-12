@@ -268,327 +268,335 @@
         </div>
     </div>
 
-<script th:inline="javascript">
-    // ==================== CSRF UTILITIES ====================
-    function getCsrfToken() {
-        const metaTag = document.querySelector('meta[name="_csrf"]');
-        if (metaTag && metaTag.content) return metaTag.content;
+    <script th:inline="javascript">
+        // ==================== CSRF UTILITIES ====================
+        function getCsrfToken() {
+            const metaTag = document.querySelector('meta[name="_csrf"]');
+            if (metaTag && metaTag.content) return metaTag.content;
 
-        const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-        if (cookieMatch && cookieMatch[1]) return decodeURIComponent(cookieMatch[1]);
+            const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+            if (cookieMatch && cookieMatch[1]) return decodeURIComponent(cookieMatch[1]);
 
-        return '';
-    }
-
-    function getCsrfHeaderName() {
-        const metaTag = document.querySelector('meta[name="_csrf_header"]');
-        return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
-    }
-
-    function makeAuthenticatedRequest(url, options = {}) {
-        const csrfToken = getCsrfToken();
-        const csrfHeader = getCsrfHeaderName();
-
-        const defaultHeaders = {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            [csrfHeader]: csrfToken
-        };
-
-        const method = (options.method || 'GET').toUpperCase();
-        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-            defaultHeaders['Content-Type'] = 'application/json';
+            return '';
         }
 
-        return fetch(url, {
-            ...options,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers
-            },
-            credentials: 'same-origin'
-        });
-    }
-
-    // ==================== GLOBAL STATE ====================
-    let selectedAddressId = null;
-    let orderType = /*[[${orderType}]]*/ 'DELIVERY';
-    let selectedPaymentMethod = 'CASH'; // Default
-
-    // ==================== PAYMENT METHOD ====================
-    function setPaymentMethod(method) {
-        console.log('💳 Setting payment method:', method);
-        selectedPaymentMethod = method;
-
-        // Show/hide card details
-        const cardSection = document.getElementById('cardDetailsSection');
-        if (method === 'CARD') {
-            cardSection.classList.remove('hidden');
-        } else {
-            cardSection.classList.add('hidden');
+        function getCsrfHeaderName() {
+            const metaTag = document.querySelector('meta[name="_csrf_header"]');
+            return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
         }
 
-        setPaymentMethod(selectedPaymentMethod);
-  updatePlaceOrderButton();
-    }
+        function makeAuthenticatedRequest(url, options = {}) {
+            const csrfToken = getCsrfToken();
+            const csrfHeader = getCsrfHeaderName();
 
-    // ==================== ADDRESS FUNCTIONS ====================
-    function showNewAddressForm() {
-        document.getElementById('newAddressForm').classList.remove('hidden');
-        const select = document.getElementById('savedAddressSelect');
-        if (select) select.classList.add('hidden');
-    }
+            const defaultHeaders = {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                [csrfHeader]: csrfToken
+            };
 
-    function onAddressSelect(value) {
-        console.log('📍 Address selected:', value);
-
-        if (value === 'new') {
-            showNewAddressForm();
-            return;
-        } else if (value === '') {
-            selectedAddressId = null;
-            document.getElementById('currentAddressDisplay').classList.add('hidden');
-            document.getElementById('noAddressWarning').classList.remove('hidden');
-            updatePlaceOrderButton();
-            return;
-        }
-
-        // For now, just set the ID (assuming addresses are already loaded)
-        // In a real app, you'd fetch from /api/addresses/{id}
-        selectedAddressId = value;
-
-        // Show selected address display
-        document.getElementById('savedAddressSelect').classList.add('hidden');
-        document.getElementById('currentAddressDisplay').classList.remove('hidden');
-        document.getElementById('noAddressWarning').classList.add('hidden');
-
-        // Get the selected option text
-        const select = document.getElementById('savedAddressSelect');
-        const selectedOption = select.options[select.selectedIndex];
-        const addressText = selectedOption.text;
-
-        document.getElementById('displayLabel').textContent = addressText.split(' - ')[0];
-        document.getElementById('displayStreet').textContent = addressText.split(' - ')[1] || '';
-        document.getElementById('displayCityPostal').textContent = '';
-        document.getElementById('displayPhone').textContent = '';
-
-        updatePlaceOrderButton();
-    }
-
-    function cancelNewAddress() {
-        console.log('❌ Cancelled new address');
-        document.getElementById('newAddressForm').classList.add('hidden');
-        const select = document.getElementById('savedAddressSelect');
-        if (select) {
-            select.classList.remove('hidden');
-        }
-
-        // Clear form fields
-        document.getElementById('addressLabel').value = '';
-        document.getElementById('streetAddress').value = '';
-        document.getElementById('city').value = '';
-        document.getElementById('postalCode').value = '';
-        document.getElementById('phoneNumber').value = '';
-    }
-
-    function saveNewAddress() {
-        console.log('💾 Saving new address');
-
-        const label = document.getElementById('addressLabel').value.trim();
-        const street = document.getElementById('streetAddress').value.trim();
-        const city = document.getElementById('city').value.trim();
-        const postalCode = document.getElementById('postalCode').value.trim();
-        const phone = document.getElementById('phoneNumber').value.trim();
-
-        if (!label || !street || !city || !postalCode) {
-            showNotification('Please fill all required fields', 'error');
-            return;
-        }
-
-        const newAddress = {
-            label: label,
-            street: street,
-            city: city,
-            postalCode: postalCode,
-            phoneNumber: phone
-        };
-
-        makeAuthenticatedRequest('/api/addresses', {
-            method: 'POST',
-            body: JSON.stringify(newAddress)
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to save address');
-                return response.json();
-            })
-            .then(data => {
-                console.log('✅ Address saved:', data);
-                selectedAddressId = data.id;
-
-                document.getElementById('displayLabel').textContent = data.label;
-                document.getElementById('displayStreet').textContent = data.street;
-                document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
-                document.getElementById('displayPhone').textContent = data.phoneNumber || '';
-
-                document.getElementById('currentAddressDisplay').classList.remove('hidden');
-                document.getElementById('newAddressForm').classList.add('hidden');
-                document.getElementById('noAddressWarning').classList.add('hidden');
-
-                const select = document.getElementById('savedAddressSelect');
-                if (select) {
-                    select.classList.remove('hidden');
-                    const option = document.createElement('option');
-                    option.value = data.id;
-                    option.textContent = data.label + ' - ' + data.street;
-                    select.insertBefore(option, select.lastElementChild);
-                    select.value = data.id;
-                }
-
-                showNotification('✅ Address saved successfully');
-                updatePlaceOrderButton();
-            })
-            .catch(error => {
-                console.error('❌ Failed to save address:', error);
-                showNotification('❌ Failed to save address: ' + error.message, 'error');
-            });
-    }
-
-    function changeAddress() {
-        console.log('🔄 Change address clicked');
-        document.getElementById('currentAddressDisplay').classList.add('hidden');
-        const select = document.getElementById('savedAddressSelect');
-        if (select) {
-            select.classList.remove('hidden');
-            select.value = '';
-        }
-        selectedAddressId = null;
-        updatePlaceOrderButton();
-    }
-
-    // ==================== VALIDATION ====================
-    function isOrderValid() {
-        if (orderType === 'DELIVERY' && !selectedAddressId) {
-            return false;
-        }
-        if (!selectedPaymentMethod) {
-            return false;
-        }
-        return true;
-    }
-
-    function updatePlaceOrderButton() {
-        const button = document.getElementById('placeOrderButton');
-        if (isOrderValid()) {
-            button.disabled = false;
-            button.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-            button.disabled = true;
-            button.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-    }
-
-    function validateAndPlaceOrder() {
-        console.log('🔍 Validating order...');
-
-        if (!isOrderValid()) {
-            if (orderType === 'DELIVERY') {
-                document.getElementById('noAddressWarning').classList.remove('hidden');
-                showNotification('⚠️ Please select or add a delivery address', 'error');
+            const method = (options.method || 'GET').toUpperCase();
+            if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                defaultHeaders['Content-Type'] = 'application/json';
             }
-            return;
+
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...defaultHeaders,
+                    ...options.headers
+                },
+                credentials: 'same-origin'
+            });
         }
 
-        placeOrder();
-    }
+        // ==================== GLOBAL STATE ====================
+        let selectedAddressId = null;
+        let orderType = /*[[${orderType}]]*/ 'DELIVERY';
+        let selectedPaymentMethod = 'CASH'; // Default
 
-    // ==================== CHECKOUT ====================
-    function placeOrder() {
-        console.log('💳 Placing order...');
+        // ==================== PAYMENT METHOD ====================
+        function setPaymentMethod(method) {
+  // Avoid infinite loops and unnecessary DOM work
+  if (!method) return;
+  if (selectedPaymentMethod === method) {
+    // Ensure UI is consistent anyway
+  } else {
+    selectedPaymentMethod = method;
+  }
 
-        const button = document.getElementById('placeOrderButton');
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-        button.disabled = true;
+  // Keep radio UI in sync WITHOUT triggering recursion
+  const radios = document.querySelectorAll('input[name="paymentMethod"]');
+  radios.forEach(r => { r.checked = (r.value === selectedPaymentMethod); });
 
-        const instructions = document.getElementById('specialInstructions').value;
-        const checkoutData = {
-            deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
-            orderType: orderType,
-            specialInstructions: instructions,
-            paymentMethod: selectedPaymentMethod
-        };
+  // Show/hide card details
+  const cardSection = document.getElementById('cardDetailsSection');
+  if (cardSection) {
+    if (selectedPaymentMethod === 'CARD') cardSection.classList.remove('hidden');
+    else cardSection.classList.add('hidden');
+  }
 
-        console.log('📤 Checkout data:', checkoutData);
+  updatePlaceOrderButton();
+}
 
-        makeAuthenticatedRequest('/api/cart/checkout', {
-            method: 'POST',
-            body: JSON.stringify(checkoutData)
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.error || 'HTTP ' + response.status);
-                    });
-                }
-                return response.json();
+        // ==================== ADDRESS FUNCTIONS ====================
+        function showNewAddressForm() {
+            document.getElementById('newAddressForm').classList.remove('hidden');
+            const select = document.getElementById('savedAddressSelect');
+            if (select) select.classList.add('hidden');
+        }
+
+        function onAddressSelect(value) {
+            console.log('📍 Address selected:', value);
+
+            if (value === 'new') {
+                showNewAddressForm();
+                return;
+            } else if (value === '') {
+                selectedAddressId = null;
+                document.getElementById('currentAddressDisplay').classList.add('hidden');
+                document.getElementById('noAddressWarning').classList.remove('hidden');
+                updatePlaceOrderButton();
+                return;
+            }
+
+            // For now, just set the ID (assuming addresses are already loaded)
+            // In a real app, you'd fetch from /api/addresses/{id}
+            selectedAddressId = value;
+
+            // Show selected address display
+            document.getElementById('savedAddressSelect').classList.add('hidden');
+            document.getElementById('currentAddressDisplay').classList.remove('hidden');
+            document.getElementById('noAddressWarning').classList.add('hidden');
+
+            // Get the selected option text
+            const select = document.getElementById('savedAddressSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            const addressText = selectedOption.text;
+
+            document.getElementById('displayLabel').textContent = addressText.split(' - ')[0];
+            document.getElementById('displayStreet').textContent = addressText.split(' - ')[1] || '';
+            document.getElementById('displayCityPostal').textContent = '';
+            document.getElementById('displayPhone').textContent = '';
+
+            updatePlaceOrderButton();
+        }
+
+        function cancelNewAddress() {
+            console.log('❌ Cancelled new address');
+            document.getElementById('newAddressForm').classList.add('hidden');
+            const select = document.getElementById('savedAddressSelect');
+            if (select) {
+                select.classList.remove('hidden');
+            }
+
+            // Clear form fields
+            document.getElementById('addressLabel').value = '';
+            document.getElementById('streetAddress').value = '';
+            document.getElementById('city').value = '';
+            document.getElementById('postalCode').value = '';
+            document.getElementById('phoneNumber').value = '';
+        }
+
+        function saveNewAddress() {
+            console.log('💾 Saving new address');
+
+            const label = document.getElementById('addressLabel').value.trim();
+            const street = document.getElementById('streetAddress').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const postalCode = document.getElementById('postalCode').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+
+            if (!label || !street || !city || !postalCode) {
+                showNotification('Please fill all required fields', 'error');
+                return;
+            }
+
+            const newAddress = {
+                label: label,
+                street: street,
+                city: city,
+                postalCode: postalCode,
+                phoneNumber: phone
+            };
+
+            makeAuthenticatedRequest('/api/addresses', {
+                method: 'POST',
+                body: JSON.stringify(newAddress)
             })
-            .then(data => {
-                console.log('✅ Checkout successful:', data);
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to save address');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ Address saved:', data);
+                    selectedAddressId = data.id;
 
-                if (data.orderIds && data.orderIds.length > 0) {
-                    showNotification('✅ ' + data.message);
+                    document.getElementById('displayLabel').textContent = data.label;
+                    document.getElementById('displayStreet').textContent = data.street;
+                    document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
+                    document.getElementById('displayPhone').textContent = data.phoneNumber || '';
 
-                    setTimeout(() => {
-                        if (data.orderIds.length === 1) {
-                            window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
-                        } else {
-                            window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
-                        }
-                    }, 1000);
-                } else {
-                    throw new Error('No order IDs returned');
-                }
-            })
-            .catch(error => {
-                console.error('❌ Checkout failed:', error);
-                showNotification('❌ Checkout failed: ' + error.message, 'error');
-                button.innerHTML = originalText;
+                    document.getElementById('currentAddressDisplay').classList.remove('hidden');
+                    document.getElementById('newAddressForm').classList.add('hidden');
+                    document.getElementById('noAddressWarning').classList.add('hidden');
+
+                    const select = document.getElementById('savedAddressSelect');
+                    if (select) {
+                        select.classList.remove('hidden');
+                        const option = document.createElement('option');
+                        option.value = data.id;
+                        option.textContent = data.label + ' - ' + data.street;
+                        select.insertBefore(option, select.lastElementChild);
+                        select.value = data.id;
+                    }
+
+                    showNotification('✅ Address saved successfully');
+                    updatePlaceOrderButton();
+                })
+                .catch(error => {
+                    console.error('❌ Failed to save address:', error);
+                    showNotification('❌ Failed to save address: ' + error.message, 'error');
+                });
+        }
+
+        function changeAddress() {
+            console.log('🔄 Change address clicked');
+            document.getElementById('currentAddressDisplay').classList.add('hidden');
+            const select = document.getElementById('savedAddressSelect');
+            if (select) {
+                select.classList.remove('hidden');
+                select.value = '';
+            }
+            selectedAddressId = null;
+            updatePlaceOrderButton();
+        }
+
+        // ==================== VALIDATION ====================
+        function isOrderValid() {
+            if (orderType === 'DELIVERY' && !selectedAddressId) {
+                return false;
+            }
+            if (!selectedPaymentMethod) {
+                return false;
+            }
+            return true;
+        }
+
+        function updatePlaceOrderButton() {
+            const button = document.getElementById('placeOrderButton');
+            if (isOrderValid()) {
                 button.disabled = false;
-            });
-    }
+                button.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                button.disabled = true;
+                button.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
 
-    // ==================== NOTIFICATIONS ====================
-    function showNotification(message, type = 'success') {
-        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
-        const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
-        const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
+        function validateAndPlaceOrder() {
+            console.log('🔍 Validating order...');
 
-        const notification = document.createElement('div');
-        notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor} rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
-        notification.innerHTML = `
+            if (!isOrderValid()) {
+                if (orderType === 'DELIVERY') {
+                    document.getElementById('noAddressWarning').classList.remove('hidden');
+                    showNotification('⚠️ Please select or add a delivery address', 'error');
+                }
+                return;
+            }
+
+            placeOrder();
+        }
+
+        // ==================== CHECKOUT ====================
+        function placeOrder() {
+            console.log('💳 Placing order...');
+
+            const button = document.getElementById('placeOrderButton');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+            button.disabled = true;
+
+            const instructions = document.getElementById('specialInstructions').value;
+            const checkoutData = {
+                deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
+                orderType: orderType,
+                specialInstructions: instructions,
+                paymentMethod: selectedPaymentMethod
+            };
+
+            console.log('📤 Checkout data:', checkoutData);
+
+            makeAuthenticatedRequest('/api/cart/checkout', {
+                method: 'POST',
+                body: JSON.stringify(checkoutData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'HTTP ' + response.status);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ Checkout successful:', data);
+
+                    if (data.orderIds && data.orderIds.length > 0) {
+                        showNotification('✅ ' + data.message);
+
+                        setTimeout(() => {
+                            if (data.orderIds.length === 1) {
+                                window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
+                            } else {
+                                window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
+                            }
+                        }, 1000);
+                    } else {
+                        throw new Error('No order IDs returned');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Checkout failed:', error);
+                    showNotification('❌ Checkout failed: ' + error.message, 'error');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+        }
+
+        // ==================== NOTIFICATIONS ====================
+        function showNotification(message, type = 'success') {
+            const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+            const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
+            const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
+
+            const notification = document.createElement('div');
+            notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor} rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
+            notification.innerHTML = `
             <div class="flex items-center">
                 <i class="fas ${icon} mr-3"></i>
                 <span class="font-medium">${message}</span>
             </div>
         `;
 
-        document.body.appendChild(notification);
-        setTimeout(() => notification.classList.remove('translate-x-full'), 10);
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.remove('translate-x-full'), 10);
 
-        setTimeout(() => {
-            notification.classList.add('translate-x-full');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
 
-    // ==================== INITIALIZATION ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🛒 Checkout page loaded');
-        console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
-  // orderType is injected by Thymeleaf into the JS variable above
-updatePlaceOrderButton();
-    });
-</script>
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🛒 Checkout page loaded');
+            console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
+  const initialPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CASH';
+  setPaymentMethod(initialPayment);
+            updatePlaceOrderButton();
+        });
+    </script>
 </div>
 
 
