@@ -41,6 +41,18 @@ public class CartRestController {
         MenuItemView menuItem = menuItemService.getMenuItem(request.menuItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Menu item not found"));
 
+        if (!cart.isEmpty()) {
+            CartItem existingItem = cart.values().iterator().next();
+            if (!existingItem.getStoreId().equals(menuItem.storeId())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "error", "Cannot mix items from different stores",
+                                "currentStoreId", existingItem.getStoreId(),
+                                "newStoreId", menuItem.storeId()
+                        ));
+            }
+        }
+
         CartItem cartItem = cart.get(request.menuItemId());
         if (cartItem != null) {
             cartItem.setQuantity(cartItem.getQuantity() + request.quantity());
