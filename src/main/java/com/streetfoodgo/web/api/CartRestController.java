@@ -172,47 +172,63 @@ public class CartRestController {
                         .body(Map.of("error", "Cart is empty"));
             }
 
-            // Get storeId from first item
-            Long storeId = cart.values().iterator().next().getStoreId();
+            Map<Long, List<CartItem>> itemsByStore = new HashMap<>();
+            for (CartItem item : cart.values()) {
+                itemsByStore.computeIfAbsent(item.getStoreId(), k -> new ArrayList<>()).add(item);
+            }
 
             // Get current user ID
             Long customerId = getCurrentUserId(userDetails);
-
-            // Build order items
-            List<OrderItemRequest> orderItems = cart.values().stream()
-                    .map(item -> new OrderItemRequest(
-                            item.getId(),
-                            item.getQuantity(),
-                            null // special instructions
-                    ))
-                    .toList();
 
             // Determine order type
             OrderType orderType = request.orderType() != null && request.orderType().equals("PICKUP")
                     ? OrderType.PICKUP
                     : OrderType.DELIVERY;
 
-            // Create order via OrderService
-            CreateOrderRequest createOrderRequest = new CreateOrderRequest(
-                    customerId,
-                    storeId,
-                    request.deliveryAddressId(),
-                    orderType,
-                    orderItems,
-                    request.specialInstructions()
-            );
+            List<Long> orderIds = new ArrayList<>();
+            List<String> storeNames = new ArrayList<>();
 
-            OrderView order = orderService.createOrder(createOrderRequest);
+            for (Map.Entry<Long, List<CartItem>> storeEntry : itemsByStore.entrySet()) {
+                Long storeId = storeEntry.getKey();
+                List<CartItem> storeItems = storeEntry.getValue();
 
-            // Clear cart after successful order
+                // Build order items for this store
+                List<OrderItemRequest> orderItems = storeItems.stream()
+                        .map(item -> new OrderItemRequest(
+                                item.getId(),
+                                item.getQuantity(),
+                                null
+                        ))
+                        .toList();
+
+                CreateOrderRequest createOrderRequest = new CreateOrderRequest(
+                        customerId,
+                        storeId,
+                        request.deliveryAddressId(),
+                        orderType,
+                        orderItems,
+                        request.specialInstructions()
+                );
+
+                OrderView order = orderService.createOrder(createOrderRequest);
+                orderIds.add(order.id());
+
+                storeNames.add("Store " + storeId);
+            }
+
+            // Clear cart after successful orders
             session.removeAttribute("cart");
             session.removeAttribute("selectedAddressId");
             session.removeAttribute("orderType");
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("orderId", order.id());
-            response.put("message", "Order placed successfully");
+            response.put("orderIds", orderIds);
+            response.put("storeCount", itemsByStore.size());
+            response.put("message",
+                    itemsByStore.size() == 1
+                            ? "Order placed successfully"
+                            : itemsByStore.size() + " orders placed successfully");
 
             return ResponseEntity.ok(response);
 
