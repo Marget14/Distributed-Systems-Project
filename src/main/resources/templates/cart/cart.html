@@ -95,14 +95,12 @@
                         <!-- Price -->
                         <div class="text-right">
                             <p class="text-xl font-bold text-cyber-blue">
-                                €<span th:text="${item.totalPrice}">0.00</span>
+                                €<span th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">0.00</span>
                             </p>
                             <p class="text-gray-400 text-sm">
-                                €<span th:text="${item.unitPrice}">0.00</span> each
+                                €<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span> each
                             </p>
                         </div>
-                    </div>
-                </div>
 
                 <!-- Store Minimum Order Warning -->
                 <div th:if="${storeGroup.subtotal < storeGroup.minimumOrder}"
