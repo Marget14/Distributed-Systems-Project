@@ -1,283 +1,412 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="https://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{base}">
 <head>
     <title>Checkout</title>
+    <!-- CSRF Meta Tags -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div layout:fragment="main">
-    <div id="checkoutData"
-         th:data-store-id="${store.id()}"
-         th:data-store-name="${store.name()}"
-         th:data-delivery-fee="${store.deliveryFee()}"
-         th:data-min-order="${store.minimumOrderAmount()}">
+    <!-- Checkout Header -->
+    <div class="glass-panel p-8 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Checkout</h1>
+                <p class="text-gray-400">Confirm your order details</p>
+            </div>
+        </div>
+    </div>
 
-        <h1 class="text-3xl font-bold text-white mb-6">Checkout</h1>
+    <!-- Error Message if any -->
+    <div th:if="${error}" class="glass-panel p-12 text-center bg-red-500/20 border border-red-500/50">
+        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+        <h3 class="text-xl font-bold text-white mb-2">Error</h3>
+        <p class="text-red-300 mb-6" th:text="${error}"></p>
+        <a th:href="@{/cart}" class="cyber-button inline-block">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Cart
+        </a>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left: Checkout Form -->
-            <div class="lg:col-span-2 space-y-6">
+    <!-- Checkout Content -->
+    <div th:if="${cart != null && cart.storeGroups != null && !cart.storeGroups.empty}"
+         class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <!-- Delivery Information -->
-                <div class="glass-panel p-6">
-                    <h2 class="text-xl font-bold text-white mb-4">
-                        <i class="fas fa-map-marker-alt mr-2"></i>Delivery Address
-                    </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Full Name</label>
-                            <input type="text" id="fullName" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="John Doe">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Phone Number</label>
-                            <input type="tel" id="phone" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="+30 123 456 7890">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Street Address</label>
-                            <input type="text" id="address" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="123 Main Street">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">City</label>
-                                <input type="text" id="city" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="Athens">
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Postal Code</label>
-                                <input type="text" id="postal" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="10431">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Delivery Notes (Optional)</label>
-                            <textarea id="notes" rows="3" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="Ring the bell, 2nd floor..."></textarea>
-                        </div>
+        <!-- Left: Order Items -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Store Grouping -->
+            <div th:each="storeGroup : ${cart.storeGroups}"
+                 class="glass-panel p-6 store-group"
+                 th:data-store-id="${storeGroup.storeId}">
+
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-blue/20 to-quantum/20
+                                flex items-center justify-center mr-3">
+                        <i class="fas fa-store text-cyber-blue"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white" th:text="${storeGroup.storeName}">Store</h3>
+                        <p class="text-gray-400 text-sm" th:text="${storeGroup.storeArea}">Area</p>
                     </div>
                 </div>
 
-                <!-- Payment Method -->
-                <div class="glass-panel p-6">
-                    <h2 class="text-xl font-bold text-white mb-4">
-                        <i class="fas fa-credit-card mr-2"></i>Payment Method
-                    </h2>
-                    <div class="space-y-3">
-                        <label class="flex items-center p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:border-cyber-blue transition">
-                            <input type="radio" name="payment" value="CASH" checked class="w-5 h-5 text-cyber-blue">
-                            <div class="ml-3 flex-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-white font-semibold">Cash on Delivery</span>
-                                    <i class="fas fa-money-bill-wave text-green-400"></i>
-                                </div>
-                                <p class="text-sm text-gray-400">Pay with cash when your order arrives</p>
-                            </div>
-                        </label>
+                <!-- Items -->
+                <div th:each="item, iterStat : ${storeGroup.items}"
+                     th:class="${!iterStat.last ? 'border-b border-white/10 pb-6 mb-6' : 'pb-2'}">
 
-                        <label class="flex items-center p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:border-cyber-blue transition">
-                            <input type="radio" name="payment" value="CARD" class="w-5 h-5 text-cyber-blue">
-                            <div class="ml-3 flex-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-white font-semibold">Credit/Debit Card</span>
-                                    <div class="flex gap-2">
-                                        <i class="fab fa-cc-visa text-blue-400"></i>
-                                        <i class="fab fa-cc-mastercard text-red-400"></i>
-                                    </div>
-                                </div>
-                                <p class="text-sm text-gray-400">Pay securely with your card</p>
-                            </div>
-                        </label>
-
-                        <label class="flex items-center p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:border-cyber-blue transition">
-                            <input type="radio" name="payment" value="PAYPAL" class="w-5 h-5 text-cyber-blue">
-                            <div class="ml-3 flex-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-white font-semibold">PayPal</span>
-                                    <i class="fab fa-paypal text-blue-500"></i>
-                                </div>
-                                <p class="text-sm text-gray-400">Fast and secure PayPal checkout</p>
-                            </div>
-                        </label>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-white" th:text="${item.name}">Item</h4>
+                            <p class="text-gray-400 text-sm" th:text="${item.description}">Description</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Order Notes -->
-                <div class="glass-panel p-6">
-                    <h2 class="text-xl font-bold text-white mb-4">
-                        <i class="fas fa-clipboard-list mr-2"></i>Order Preferences
-                    </h2>
-                    <div class="space-y-3">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="cutlery" class="w-5 h-5 rounded text-cyber-blue">
-                            <span class="ml-3 text-white">Include cutlery and napkins</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" id="contactless" class="w-5 h-5 rounded text-cyber-blue">
-                            <span class="ml-3 text-white">Contactless delivery (leave at door)</span>
-                        </label>
+                    <div class="flex items-center justify-between">
+                        <!-- Quantity (Read-only in checkout) -->
+                        <div class="flex items-center gap-3">
+                            <span class="text-white font-bold min-w-[2rem] text-center"
+                                  th:text="${item.quantity}">1</span>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="text-right">
+                            <p class="text-xl font-bold text-cyber-blue">
+                                €<span th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">0.00</span>
+                            </p>
+                            <p class="text-gray-400 text-sm">
+                                €<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span> each
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Order Summary -->
-            <div class="lg:col-span-1">
-                <div class="glass-panel p-6 sticky top-24">
-                    <h2 class="text-xl font-bold text-white mb-4">Order Summary</h2>
+            <!-- Special Instructions -->
+            <div class="glass-panel p-6">
+                <h4 class="text-white mb-3">Special Instructions</h4>
+                <textarea id="specialInstructions"
+                          class="quantum-input w-full h-24"
+                          placeholder="Any special requests for your order?"
+                          th:text="${specialInstructions}"></textarea>
+            </div>
+        </div>
 
-                    <div class="mb-4 pb-4 border-b border-white/10">
-                        <div class="flex items-center gap-3 mb-2">
-                            <i class="fas fa-store text-cyber-blue"></i>
-                            <span class="text-white font-semibold" th:text="${store.name()}">Store</span>
-                        </div>
-                        <p class="text-sm text-gray-400">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span th:text="${store.estimatedDeliveryTimeMinutes()}">30</span> min delivery
-                        </p>
-                    </div>
+        <!-- Right: Order Summary and Address -->
+        <div class="lg:col-span-1">
+            <div class="glass-panel p-6 sticky top-24">
+                <h3 class="text-xl font-bold text-white mb-6">Order Summary</h3>
 
-                    <div id="orderItems" class="space-y-3 mb-4 pb-4 border-b border-white/10">
-                        <!-- Cart items will be loaded here -->
-                    </div>
-
-                    <div class="space-y-2 mb-4 pb-4 border-b border-white/10">
-                        <div class="flex justify-between text-gray-300">
-                            <span>Subtotal</span>
-                            <span id="subtotal">€0.00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-300">
-                            <span>Delivery Fee</span>
-                            <span id="deliveryFee">€0.00</span>
-                        </div>
-                        <div class="flex justify-between text-xl font-bold text-white">
-                            <span>Total</span>
-                            <span id="total">€0.00</span>
-                        </div>
-                    </div>
-
-                    <button id="placeOrderBtn" class="w-full cyber-button py-3 text-lg">
-                        <i class="fas fa-check-circle mr-2"></i>Place Order
-                    </button>
-
-                    <p class="text-xs text-gray-500 text-center mt-4">
-                        By placing your order, you agree to our terms and conditions
-                    </p>
+                <!-- Order Type (Read-only) -->
+                <div class="mb-6">
+                    <h4 class="text-white mb-3">Order Type</h4>
+                    <p class="text-cyber-blue font-semibold" th:text="${orderType}">Delivery</p>
                 </div>
+
+                <!-- Delivery Address Section (Visible only for DELIVERY) -->
+                <div id="deliveryAddressSection" th:if="${orderType == 'DELIVERY'}" class="mb-6">
+                    <h4 class="text-white mb-3">Delivery Address</h4>
+
+                    <!-- No Address Warning -->
+                    <div id="noAddressWarning" class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                        <p class="text-red-300 text-sm">Please select or add a delivery address</p>
+                    </div>
+
+                    <!-- Saved Addresses -->
+                    <div th:if="${userAddresses != null && !userAddresses.empty}" class="mb-4">
+                        <label class="block text-sm text-gray-300 mb-2">Choose a saved address:</label>
+                        <select id="savedAddressSelect"
+                                class="quantum-input w-full"
+                                onchange="onAddressSelect(this.value)">
+                            <option value="">-- Select Address --</option>
+                            <option th:each="addr : ${userAddresses}"
+                                    th:value="${addr.id}"
+                                    th:text="${addr.label + ' - ' + addr.street}">
+                            </option>
+                            <option value="new">+ Add New Address</option>
+                        </select>
+                    </div>
+
+                    <!-- New Address Form -->
+                    <div id="newAddressForm" class="space-y-3 hidden">
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-1">Address Label *</label>
+                            <input type="text" id="addressLabel"
+                                   class="quantum-input w-full"
+                                   placeholder="Home, Work, etc.">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-1">Street Address *</label>
+                            <input type="text" id="streetAddress"
+                                   class="quantum-input w-full"
+                                   placeholder="123 Main Street">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-1">City *</label>
+                            <input type="text" id="city"
+                                   class="quantum-input w-full"
+                                   placeholder="Athens">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-1">Postal Code *</label>
+                            <input type="text" id="postalCode"
+                                   class="quantum-input w-full"
+                                   placeholder="10431">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-1">Phone Number</label>
+                            <input type="text" id="phoneNumber"
+                                   class="quantum-input w-full"
+                                   placeholder="+30 123 456 7890">
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="saveNewAddress()"
+                                    class="flex-1 cyber-button-secondary py-2 text-sm">
+                                <i class="fas fa-save mr-2"></i>Save Address
+                            </button>
+                            <button onclick="cancelNewAddress()"
+                                    class="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 text-sm rounded-lg">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Current Address Display -->
+                    <div id="currentAddressDisplay" class="mt-4 p-3 bg-white/5 rounded-lg hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-white font-medium" id="displayLabel"></p>
+                                <p class="text-gray-400 text-sm" id="displayStreet"></p>
+                                <p class="text-gray-400 text-sm" id="displayCityPostal"></p>
+                                <p class="text-gray-400 text-sm" id="displayPhone"></p>
+                            </div>
+                            <button onclick="changeAddress()" class="text-cyber-blue hover:text-cyber-blue-light text-sm">
+                                Change
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedAddressId">
+                    </div>
+                </div>
+
+                <!-- Summary Details -->
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between text-gray-300">
+                        <span>Subtotal</span>
+                        <span>€<span th:text="${#numbers.formatDecimal(cart.subtotal, 1, 2)}">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between text-gray-300">
+                        <span>Delivery Fee</span>
+                        <span>€<span th:text="${#numbers.formatDecimal(cart.deliveryTotal, 1, 2)}">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between text-white font-bold text-xl border-t border-white/10 pt-3">
+                        <span>Total</span>
+                        <span>€<span th:text="${#numbers.formatDecimal(cart.total, 1, 2)}">0.00</span></span>
+                    </div>
+                </div>
+
+                <!-- Place Order Button -->
+                <button id="placeOrderButton" onclick="validateAndPlaceOrder()" class="cyber-button w-full py-3">
+                    Place Order
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    var cart = [];
-    var config = {};
+<script th:inline="javascript">
+    /*<![CDATA[*/
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var el = document.getElementById('checkoutData');
-        config.storeId = el.dataset.storeId;
-        config.storeName = el.dataset.storeName;
-        config.deliveryFee = parseFloat(el.dataset.deliveryFee);
-        config.minOrder = parseFloat(el.dataset.minOrder);
+    // ... (Include similar JS functions as in cart.html for logging, authenticated requests, notifications)
 
-        loadCart();
-        renderOrderSummary();
+    let selectedAddressId = null;
+    let orderType = /*[[${orderType}]]*/ 'DELIVERY';
 
-        document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
-    });
-
-    function loadCart() {
-        try {
-            var saved = localStorage.getItem('cart_' + config.storeId);
-            if (saved) {
-                cart = JSON.parse(saved);
-            } else {
-                alert('Your cart is empty!');
-                window.location.href = '/stores/' + config.storeId;
-            }
-        } catch (e) {
-            cart = [];
-        }
-    }
-
-    function renderOrderSummary() {
-        var container = document.getElementById('orderItems');
-        container.innerHTML = '';
-        var subtotal = 0;
-
-        cart.forEach(function(item) {
-            subtotal += item.price * item.quantity;
-            var div = document.createElement('div');
-            div.className = 'flex justify-between text-sm';
-            div.innerHTML =
-                '<div>' +
-                '<span class="text-white">' + item.quantity + 'x ' + item.name + '</span>' +
-                '</div>' +
-                '<span class="text-white">€' + (item.price * item.quantity).toFixed(2) + '</span>';
-            container.appendChild(div);
-        });
-
-        var total = subtotal + config.deliveryFee;
-        document.getElementById('subtotal').textContent = '€' + subtotal.toFixed(2);
-        document.getElementById('deliveryFee').textContent = '€' + config.deliveryFee.toFixed(2);
-        document.getElementById('total').textContent = '€' + total.toFixed(2);
-    }
-
-    function placeOrder() {
-        var fullName = document.getElementById('fullName').value.trim();
-        var phone = document.getElementById('phone').value.trim();
-        var address = document.getElementById('address').value.trim();
-        var city = document.getElementById('city').value.trim();
-        var postal = document.getElementById('postal').value.trim();
-
-        if (!fullName || !phone || !address || !city || !postal) {
-            alert('Please fill in all required fields');
+    function onAddressSelect(value) {
+        if (value === 'new') {
+            document.getElementById('newAddressForm').classList.remove('hidden');
+            document.getElementById('savedAddressSelect').classList.add('hidden');
+            return;
+        } else if (value === '') {
+            selectedAddressId = null;
+            document.getElementById('currentAddressDisplay').classList.add('hidden');
+            updatePlaceOrderButton();
             return;
         }
 
-        var paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-        var notes = document.getElementById('notes').value.trim();
-        var cutlery = document.getElementById('cutlery').checked;
-        var contactless = document.getElementById('contactless').checked;
+        // Fetch address details (assume API /api/addresses/{id})
+        makeAuthenticatedRequest('/api/addresses/' + value)
+            .then(response => response.json())
+            .then(data => {
+                selectedAddressId = data.id;
+                document.getElementById('displayLabel').textContent = data.label;
+                document.getElementById('displayStreet').textContent = data.street;
+                document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
+                document.getElementById('displayPhone').textContent = data.phoneNumber || '';
+                document.getElementById('currentAddressDisplay').classList.remove('hidden');
+                document.getElementById('savedAddressSelect').classList.add('hidden');
+                updatePlaceOrderButton();
+            })
+            .catch(error => {
+                showNotification('Failed to load address: ' + error.message, 'error');
+            });
+    }
 
-        var orderData = {
-            storeId: config.storeId,
-            items: cart,
-            deliveryAddress: {
-                fullName: fullName,
-                phone: phone,
-                address: address,
-                city: city,
-                postalCode: postal
-            },
-            paymentMethod: paymentMethod,
-            notes: notes,
-            preferences: {
-                cutlery: cutlery,
-                contactless: contactless
-            },
-            subtotal: calculateSubtotal(),
-            deliveryFee: config.deliveryFee,
-            total: calculateSubtotal() + config.deliveryFee
+    function cancelNewAddress() {
+        document.getElementById('newAddressForm').classList.add('hidden');
+        document.getElementById('savedAddressSelect').classList.remove('hidden');
+        // Clear form fields
+        document.getElementById('addressLabel').value = '';
+        document.getElementById('streetAddress').value = '';
+        document.getElementById('city').value = '';
+        document.getElementById('postalCode').value = '';
+        document.getElementById('phoneNumber').value = '';
+    }
+
+    function saveNewAddress() {
+        const label = document.getElementById('addressLabel').value.trim();
+        const street = document.getElementById('streetAddress').value.trim();
+        const city = document.getElementById('city').value.trim();
+        const postalCode = document.getElementById('postalCode').value.trim();
+        const phone = document.getElementById('phoneNumber').value.trim();
+
+        if (!label || !street || !city || !postalCode) {
+            showNotification('Please fill all required fields', 'error');
+            return;
+        }
+
+        const newAddress = {
+            label: label,
+            street: street,
+            city: city,
+            postalCode: postalCode,
+            phoneNumber: phone
         };
 
-        console.log('Placing order:', orderData);
-
-        // TODO: Send to backend API
-        // For now, show success and clear cart
-        alert('Order placed successfully! Order details:\n\n' +
-            'Store: ' + config.storeName + '\n' +
-            'Items: ' + cart.length + '\n' +
-            'Total: €' + orderData.total.toFixed(2) + '\n' +
-            'Payment: ' + paymentMethod);
-
-        // Clear cart
-        localStorage.removeItem('cart_' + config.storeId);
-
-        // Redirect to orders page
-        window.location.href = '/orders';
+        makeAuthenticatedRequest('/api/addresses', {
+            method: 'POST',
+            body: JSON.stringify(newAddress)
+        })
+            .then(response => response.json())
+            .then(data => {
+                selectedAddressId = data.id;
+                document.getElementById('displayLabel').textContent = data.label;
+                document.getElementById('displayStreet').textContent = data.street;
+                document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
+                document.getElementById('displayPhone').textContent = data.phoneNumber || '';
+                document.getElementById('currentAddressDisplay').classList.remove('hidden');
+                document.getElementById('newAddressForm').classList.add('hidden');
+                document.getElementById('savedAddressSelect').classList.remove('hidden');
+                // Add to select
+                const select = document.getElementById('savedAddressSelect');
+                const option = document.createElement('option');
+                option.value = data.id;
+                option.textContent = data.label + ' - ' + data.street;
+                select.insertBefore(option, select.lastChild);
+                select.value = data.id;
+                showNotification('Address saved successfully');
+                updatePlaceOrderButton();
+            })
+            .catch(error => {
+                showNotification('Failed to save address: ' + error.message, 'error');
+            });
     }
 
-    function calculateSubtotal() {
-        return cart.reduce(function(sum, item) {
-            return sum + (item.price * item.quantity);
-        }, 0);
+    function changeAddress() {
+        document.getElementById('currentAddressDisplay').classList.add('hidden');
+        document.getElementById('savedAddressSelect').classList.remove('hidden');
+        selectedAddressId = null;
+        updatePlaceOrderButton();
     }
+
+    function isOrderValid() {
+        if (orderType === 'DELIVERY' && !selectedAddressId) {
+            return false;
+        }
+        return true;
+    }
+
+    function updatePlaceOrderButton() {
+        const button = document.getElementById('placeOrderButton');
+        if (isOrderValid()) {
+            button.disabled = false;
+            button.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            button.disabled = true;
+            button.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    function validateAndPlaceOrder() {
+        if (!isOrderValid()) {
+            if (orderType === 'DELIVERY') {
+                document.getElementById('noAddressWarning').classList.remove('hidden');
+                showNotification('Please select or add a delivery address', 'error');
+            }
+            return;
+        }
+
+        placeOrder();
+    }
+
+    function placeOrder() {
+        const button = document.getElementById('placeOrderButton');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        button.disabled = true;
+
+        const instructions = document.getElementById('specialInstructions').value;
+        const checkoutData = {
+            deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
+            orderType: orderType,
+            specialInstructions: instructions
+        };
+
+        makeAuthenticatedRequest('/api/cart/checkout', {
+            method: 'POST',
+            body: JSON.stringify(checkoutData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text || 'HTTP ' + response.status); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.orderIds && data.orderIds.length > 0) {
+                    if (data.orderIds.length === 1) {
+                        showNotification('Order placed successfully! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
+                        }, 1000);
+                    } else {
+                        showNotification(data.storeCount + ' orders placed successfully! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
+                        }, 1000);
+                    }
+                } else {
+                    showNotification('No order IDs returned', 'error');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                showNotification('Checkout failed: ' + error.message, 'error');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize
+        updatePlaceOrderButton();
+
+        // If delivery, show section (already conditional in HTML)
+    });
+
+    /*]]>*/
 </script>
 </body>
 </html>
