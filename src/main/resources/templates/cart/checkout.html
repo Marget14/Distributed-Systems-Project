@@ -514,7 +514,8 @@
         const checkoutData = {
             deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
             orderType: orderType,
-            specialInstructions: instructions
+            specialInstructions: instructions,
+            paymentMethod: selectedPaymentMethod
         };
 
         console.log('📤 Checkout data:', checkoutData);
