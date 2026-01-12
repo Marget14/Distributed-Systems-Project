@@ -267,9 +267,8 @@
             </div>
         </div>
     </div>
-</div>
 
-<script th:inline="none">
+<script th:inline="javascript">
     // ==================== CSRF UTILITIES ====================
     function getCsrfToken() {
         const metaTag = document.querySelector('meta[name="_csrf"]');
@@ -313,7 +312,7 @@
 
     // ==================== GLOBAL STATE ====================
     let selectedAddressId = null;
-    let orderType = 'DELIVERY';
+    let orderType = /*[[${orderType}]]*/ 'DELIVERY';
     let selectedPaymentMethod = 'CASH'; // Default
 
     // ==================== PAYMENT METHOD ====================
@@ -329,7 +328,8 @@
             cardSection.classList.add('hidden');
         }
 
-        updatePlaceOrderButton();
+        setPaymentMethod(selectedPaymentMethod);
+  updatePlaceOrderButton();
     }
 
     // ==================== ADDRESS FUNCTIONS ====================
@@ -585,16 +585,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🛒 Checkout page loaded');
         console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
-
-        // Get order type from Thymeleaf
-        const orderTypeElement = document.querySelector('[th\\:text="${orderType}"]');
-        if (orderTypeElement) {
-            orderType = orderTypeElement.textContent.trim();
-            console.log('📦 Order type:', orderType);
-        }
-
-        updatePlaceOrderButton();
+  // orderType is injected by Thymeleaf into the JS variable above
+updatePlaceOrderButton();
     });
 </script>
+</div>
+
+
 </body>
 </html>
