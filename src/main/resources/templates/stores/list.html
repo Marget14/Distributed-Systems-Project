@@ -1,100 +1,101 @@
-package com.streetfoodgo.web.ui;
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head><title>Browse Stores</title></head>
+<body>
+<div layout:fragment="main" class="container mx-auto px-4 py-8">
+    <!-- Search & Filters -->
+    <div class="glass-panel p-6 mb-8">
+        <form th:action="@{/stores}" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="text" name="search" th:value="${searchQuery}" placeholder="Search stores..."
+                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyber-blue"/>
 
-import com.streetfoodgo.core.model.CuisineType;
-import com.streetfoodgo.core.service.MenuItemService;
-import com.streetfoodgo.core.service.StoreService;
-import com.streetfoodgo.core.service.model.MenuItemView;
-import com.streetfoodgo.core.service.model.StoreView;
+            <select name="cuisine" class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyber-blue">
+                <option value="">All Cuisines</option>
+                <option th:each="type : ${cuisineTypes}"
+                        th:value="${type}"
+                        th:text="${type}"
+                        th:selected="${selectedCuisine != null and selectedCuisine == type.toString()}"></option>
+            </select>
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+            <input type="text" name="area" th:value="${selectedArea}" placeholder="Area (e.g., Kolonaki)"
+                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyber-blue"/>
 
-import java.util.List;
-import java.util.stream.Collectors;
+            <button type="submit" class="cyber-button">
+                <i class="fas fa-search mr-2"></i>Search
+            </button>
+        </form>
+    </div>
 
-/**
- * Controller for browsing stores and menus.
- */
-@Controller
-@RequestMapping("/stores")
-public class StoreController {
+    <!-- Results Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-orbitron font-bold text-white">
+            <span th:if="${searchQuery != null and !searchQuery.isEmpty()}" th:text="'Results for: ' + ${searchQuery}">Search Results</span>
+            <span th:if="${selectedCuisine != null}" th:text="${selectedCuisine} + ' Restaurants'">Cuisine Results</span>
+            <span th:if="${selectedArea != null and !selectedArea.isEmpty()}" th:text="'Stores in ' + ${selectedArea}">Area Results</span>
+            <span th:if="${searchQuery == null and selectedCuisine == null and selectedArea == null}">All Open Stores</span>
+        </h2>
+        <p class="text-gray-400">
+            <span th:text="${stores != null ? stores.size() : 0}">0</span> stores found
+        </p>
+    </div>
 
-    private final StoreService storeService;
-    private final MenuItemService menuItemService;
+    <!-- Empty State -->
+    <div th:if="${stores == null or stores.isEmpty()}" class="glass-panel p-12 text-center">
+        <i class="fas fa-search text-6xl text-gray-600 mb-4"></i>
+        <h3 class="text-xl text-gray-400 mb-2">No stores found</h3>
+        <p class="text-gray-500 mb-6">Try adjusting your search filters</p>
+        <a th:href="@{/stores}" class="cyber-button inline-block">View All Stores</a>
+    </div>
 
-    public StoreController(
-            final StoreService storeService,
-            final MenuItemService menuItemService) {
+    <!-- Store Grid -->
+    <div th:if="${stores != null and !stores.isEmpty()}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <a th:each="store : ${stores}"
+           th:href="@{/stores/{id}(id=${store.id})}"
+           class="glass-panel p-6 store-card block">
 
-        if (storeService == null) throw new NullPointerException();
-        if (menuItemService == null) throw new NullPointerException();
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-white mb-1" th:text="${store.name}">Store Name</h3>
+                    <p class="text-sm text-gray-400" th:text="${store.cuisineType}">Cuisine</p>
+                </div>
+                <span th:if="${store.open}"
+                      class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">OPEN</span>
+                <span th:unless="${store.open}"
+                      class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold">CLOSED</span>
+            </div>
 
-        this.storeService = storeService;
-        this.menuItemService = menuItemService;
-    }
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2" th:text="${store.description}">Description</p>
 
-    @GetMapping
-    public String stores(
-            @RequestParam(required = false) String area,
-            @RequestParam(required = false) String cuisine,
-            @RequestParam(required = false) String search,
-            final Model model) {
-        return listStores(area, cuisine, search, model);
-    }
-
-    @GetMapping("/list")
-    public String listStores(
-            @RequestParam(required = false) String area,
-            @RequestParam(required = false) String cuisine,
-            @RequestParam(required = false) String search,
-            final Model model) {
-
-        List<StoreView> stores;
-
-        if (search != null && !search.isBlank()) {
-            stores = this.storeService.searchStores(search);
-            model.addAttribute("searchQuery", search);
-        } else if (cuisine != null && !cuisine.isBlank()) {
-            try {
-                CuisineType cuisineType = CuisineType.valueOf(cuisine);
-                stores = this.storeService.getStoresByCuisine(cuisineType);
-                model.addAttribute("selectedCuisine", cuisine);
-            } catch (IllegalArgumentException e) {
-                stores = this.storeService.getOpenStores();
-            }
-        } else if (area != null && !area.isBlank()) {
-            stores = this.storeService.getStoresByArea(area);
-            model.addAttribute("selectedArea", area);
-        } else {
-            stores = this.storeService.getOpenStores();
-        }
-
-        model.addAttribute("stores", stores);
-        model.addAttribute("cuisineTypes", CuisineType.values());
-
-        return "stores/list";
-    }
-
-    @GetMapping("/{id}")
-    public String viewStore(@PathVariable Long id, final Model model) {
-        final StoreView store = this.storeService.getStore(id)
-                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
-
-        final List<MenuItemView> menuItems = this.menuItemService.getAvailableStoreMenu(id);
-
-        final List<String> categories = menuItems.stream()
-                .map(item -> item.category().name())
-                .distinct()
-                .collect(Collectors.toList());
-
-        model.addAttribute("store", store);
-        model.addAttribute("menuItems", menuItems);
-        model.addAttribute("categories", categories);
-
-        return "stores/detail";
-    }
-}
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center justify-between text-gray-400">
+                    <span>
+                        <i class="fas fa-clock mr-2 text-cyber-blue"></i>
+                        <span th:text="${store.estimatedDeliveryTimeMinutes}">30</span> min
+                    </span>
+                    <span>
+                        <i class="fas fa-euro-sign mr-2 text-neon-pink"></i>
+                        Min €<span th:text="${store.minimumOrderAmount}">10</span>
+                    </span>
+                </div>
+                <div class="flex items-center text-gray-400">
+                    <i class="fas fa-map-marker-alt mr-2 text-ai-orange"></i>
+                    <span th:text="${store.area}">Area</span>
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <span th:if="${store.acceptsDelivery}"
+                          class="px-2 py-1 bg-cyber-blue/20 text-cyber-blue rounded text-xs">
+                        <i class="fas fa-motorcycle mr-1"></i>Delivery
+                    </span>
+                    <span th:if="${store.acceptsPickup}"
+                          class="px-2 py-1 bg-quantum/20 text-quantum rounded text-xs">
+                        <i class="fas fa-shopping-bag mr-1"></i>Pickup
+                    </span>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+</body>
+</html>
