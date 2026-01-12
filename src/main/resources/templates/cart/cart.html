@@ -4,6 +4,9 @@
       layout:decorate="~{base}">
 <head>
     <title>Shopping Cart</title>
+    <!-- CSRF Meta Tags -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 <body>
 <div layout:fragment="main">
@@ -22,7 +25,7 @@
     </div>
 
     <!-- Empty Cart -->
-    <div th:if="${cart == null || cart.items == null || cart.items.empty}" class="glass-panel p-12 text-center">
+    <div th:if="${cart == null || cart.storeGroups == null || cart.storeGroups.empty}" class="glass-panel p-12 text-center">
         <i class="fas fa-shopping-cart text-4xl text-gray-500 mb-4"></i>
         <h3 class="text-xl font-bold text-white mb-2">Your cart is empty</h3>
         <p class="text-gray-400 mb-6">Add delicious items from our stores</p>
@@ -32,13 +35,20 @@
     </div>
 
     <!-- Cart with Items -->
-    <div th:if="${cart != null && cart.items != null && !cart.items.empty}" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div th:if="${cart != null && cart.storeGroups != null && !cart.storeGroups.empty}"
+         class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         <!-- Left: Cart Items -->
         <div class="lg:col-span-2 space-y-6">
+
             <!-- Store Grouping -->
-            <div th:each="storeGroup : ${cart.storeGroups}" class="glass-panel p-6">
+            <div th:each="storeGroup : ${cart.storeGroups}"
+                 class="glass-panel p-6 store-group"
+                 th:data-store-id="${storeGroup.storeId}">
+
                 <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-blue/20 to-quantum/20 flex items-center justify-center mr-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-blue/20 to-quantum/20
+                                flex items-center justify-center mr-3">
                         <i class="fas fa-store text-cyber-blue"></i>
                     </div>
                     <div>
@@ -50,12 +60,13 @@
                 <!-- Items -->
                 <div th:each="item, iterStat : ${storeGroup.items}"
                      th:class="${!iterStat.last ? 'border-b border-white/10 pb-6 mb-6' : 'pb-2'}">
+
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex-grow">
                             <h4 class="font-bold text-white" th:text="${item.name}">Item</h4>
                             <p class="text-gray-400 text-sm" th:text="${item.description}">Description</p>
                         </div>
-                        <button class="text-red-400 hover:text-red-300 transition-colors ml-4"
+                        <button class="text-red-400 hover:text-red-300 transition-colors ml-4 remove-btn"
                                 th:attr="data-item-id=${item.id}"
                                 onclick="removeItem(this.getAttribute('data-item-id'))">
                             <i class="fas fa-trash"></i>
@@ -65,14 +76,17 @@
                     <div class="flex items-center justify-between">
                         <!-- Quantity Controls -->
                         <div class="flex items-center gap-3">
-                            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-                                    th:attr="data-item-id=${item.id}"
+                            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20
+                                         flex items-center justify-center text-white transition-colors quantity-btn"
+                                    th:attr="data-item-id=${item.id}, data-change='-1'"
                                     onclick="updateQuantity(this.getAttribute('data-item-id'), -1)">
                                 <i class="fas fa-minus text-sm"></i>
                             </button>
-                            <span class="text-white font-bold min-w-[2rem] text-center" th:text="${item.quantity}">1</span>
-                            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-                                    th:attr="data-item-id=${item.id}"
+                            <span class="text-white font-bold min-w-[2rem] text-center"
+                                  th:text="${item.quantity}">1</span>
+                            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20
+                                         flex items-center justify-center text-white transition-colors quantity-btn"
+                                    th:attr="data-item-id=${item.id}, data-change='1'"
                                     onclick="updateQuantity(this.getAttribute('data-item-id'), 1)">
                                 <i class="fas fa-plus text-sm"></i>
                             </button>
@@ -97,7 +111,7 @@
                         <i class="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
                         <p class="text-yellow-300 text-sm">
                             Minimum order is €<span th:text="${storeGroup.minimumOrder}">0</span>.
-                            Add €<span th:text="${storeGroup.minimumOrder - storeGroup.subtotal}">0</span> more.
+                            Add €<span th:text="${#numbers.formatDecimal(storeGroup.minimumOrder - storeGroup.subtotal, 1, 2)}">0</span> more.
                         </p>
                     </div>
                 </div>
@@ -113,12 +127,14 @@
                 <div class="mb-6">
                     <h4 class="text-white mb-3">Order Type</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="deliveryBtn" class="py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors"
+                        <button id="deliveryBtn"
+                                class="py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors"
                                 onclick="setOrderType('DELIVERY')">
                             <i class="fas fa-truck mb-1 block"></i>
                             <p class="font-semibold text-sm">Delivery</p>
                         </button>
-                        <button id="pickupBtn" class="py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors"
+                        <button id="pickupBtn"
+                                class="py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors"
                                 onclick="setOrderType('PICKUP')">
                             <i class="fas fa-walking mb-1 block"></i>
                             <p class="font-semibold text-sm">Pickup</p>
@@ -131,29 +147,29 @@
                     <div th:each="storeGroup : ${cart.storeGroups}">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-300" th:text="${storeGroup.storeName}">Store</span>
-                            <span class="text-white">€<span th:text="${storeGroup.subtotal}">0</span></span>
+                            <span class="text-white">€<span th:text="${#numbers.formatDecimal(storeGroup.subtotal, 1, 2)}">0</span></span>
                         </div>
                         <div class="flex justify-between text-xs text-gray-500 ml-4">
                             <span>Delivery fee</span>
-                            <span>€<span th:text="${storeGroup.deliveryFee}">0</span></span>
+                            <span>€<span th:text="${#numbers.formatDecimal(storeGroup.deliveryFee, 1, 2)}">0</span></span>
                         </div>
                     </div>
 
                     <div class="border-t border-white/10 pt-3">
                         <div class="flex justify-between text-gray-300 text-sm">
                             <span>Subtotal</span>
-                            <span>€<span th:text="${cart.subtotal}">0</span></span>
+                            <span>€<span th:text="${#numbers.formatDecimal(cart.subtotal, 1, 2)}">0</span></span>
                         </div>
                         <div class="flex justify-between text-gray-300 text-sm">
                             <span>Delivery Total</span>
-                            <span>€<span th:text="${cart.deliveryTotal}">0</span></span>
+                            <span>€<span th:text="${#numbers.formatDecimal(cart.deliveryTotal, 1, 2)}">0</span></span>
                         </div>
                     </div>
 
                     <div class="border-t border-white/10 pt-3">
                         <div class="flex justify-between text-xl font-bold">
                             <span class="text-white">Total</span>
-                            <span class="text-cyber-blue">€<span th:text="${cart.total}">0</span></span>
+                            <span class="text-cyber-blue">€<span th:text="${#numbers.formatDecimal(cart.total, 1, 2)}">0</span></span>
                         </div>
                     </div>
                 </div>
@@ -168,8 +184,7 @@
                 </div>
 
                 <!-- Checkout Button -->
-                <button class="w-full cyber-button py-3"
-                        onclick="checkout()">
+                <button id="checkoutButton" class="w-full cyber-button py-3" onclick="checkout()">
                     <i class="fas fa-lock mr-2"></i>Proceed to Checkout
                 </button>
             </div>
@@ -177,40 +192,118 @@
     </div>
 </div>
 
-<script>
-    let orderType = 'DELIVERY';
+<script th:inline="none">
+    // ==================== CSRF UTILITIES ====================
+    function getCsrfToken() {
+        const metaTag = document.querySelector('meta[name="_csrf"]');
+        if (metaTag && metaTag.content) {
+            return metaTag.content;
+        }
+        const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        if (cookieMatch && cookieMatch[1]) {
+            return decodeURIComponent(cookieMatch[1]);
+        }
+        return '';
+    }
 
-    function updateQuantity(itemId, change) {
-        fetch('/api/cart/items/' + itemId + '/quantity', {
-            method: 'PUT',
+    function getCsrfHeaderName() {
+        const metaTag = document.querySelector('meta[name="_csrf_header"]');
+        return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
+    }
+
+    function makeAuthenticatedRequest(url, options = {}) {
+        const csrfToken = getCsrfToken();
+        const csrfHeader = getCsrfHeaderName();
+
+        const defaultHeaders = {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            [csrfHeader]: csrfToken
+        };
+
+        const method = (options.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            defaultHeaders['Content-Type'] = 'application/json';
+        }
+
+        return fetch(url, {
+            ...options,
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+                ...defaultHeaders,
+                ...options.headers
             },
-            body: JSON.stringify({ change: change })
-        }).then(function(response) {
-            if (response.ok) location.reload();
+            credentials: 'same-origin'
         });
     }
 
-    function removeItem(itemId) {
-        if (confirm('Remove this item from cart?')) {
-            fetch('/api/cart/items/' + itemId, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+    // ==================== CART FUNCTIONS ====================
+    let orderType = 'DELIVERY';
+
+    function updateQuantity(itemId, change) {
+        console.log('🔄 Updating quantity for item', itemId, 'change:', change);
+
+        makeAuthenticatedRequest('/api/cart/items/' + itemId + '/quantity', {
+            method: 'PUT',
+            body: JSON.stringify({ change: change })
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.text().then(function(text) {
+                        throw new Error(text || 'HTTP ' + response.status);
+                    });
                 }
-            }).then(function(response) {
-                if (response.ok) location.reload();
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('✅ Quantity updated:', data);
+                showNotification('Quantity updated successfully');
+
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(function(error) {
+                console.error('❌ Error updating quantity:', error);
+                showNotification('❌ Failed to update quantity: ' + error.message, 'error');
             });
+    }
+
+    function removeItem(itemId) {
+        if (!confirm('Are you sure you want to remove this item from your cart?')) {
+            return;
         }
+
+        console.log('🗑️ Removing item:', itemId);
+
+        makeAuthenticatedRequest('/api/cart/items/' + itemId, {
+            method: 'DELETE'
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('✅ Item removed:', data);
+                showNotification('Item removed from cart');
+
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(function(error) {
+                console.error('❌ Error removing item:', error);
+                showNotification('❌ Failed to remove item: ' + error.message, 'error');
+            });
     }
 
     function setOrderType(type) {
+        console.log('📦 Setting order type:', type);
         orderType = type;
 
-        var deliveryBtn = document.getElementById('deliveryBtn');
-        var pickupBtn = document.getElementById('pickupBtn');
+        const deliveryBtn = document.getElementById('deliveryBtn');
+        const pickupBtn = document.getElementById('pickupBtn');
 
         if (type === 'DELIVERY') {
             deliveryBtn.className = 'py-3 rounded-lg border text-center border-cyber-blue bg-cyber-blue/10 text-cyber-blue transition-colors';
@@ -220,25 +313,33 @@
             deliveryBtn.className = 'py-3 rounded-lg border text-center border-white/10 text-gray-300 hover:border-white/20 transition-colors';
         }
 
-        fetch('/api/cart/order-type', {
+        makeAuthenticatedRequest('/api/cart/order-type', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
-            },
             body: JSON.stringify({ orderType: type })
-        });
+        })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                console.log('✅ Order type saved to session');
+            })
+            .catch(function(error) {
+                console.error('❌ Error saving order type:', error);
+            });
     }
 
     function checkout() {
-        var instructions = document.getElementById('specialInstructions').value;
+        console.log('💰 Starting checkout process');
 
-        fetch('/api/cart/checkout', {
+        const checkoutBtn = document.getElementById('checkoutButton');
+        const originalText = checkoutBtn.innerHTML;
+        checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        checkoutBtn.disabled = true;
+
+        const instructions = document.getElementById('specialInstructions').value;
+
+        makeAuthenticatedRequest('/api/cart/checkout', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
-            },
             body: JSON.stringify({
                 deliveryAddressId: null,
                 orderType: orderType,
@@ -246,16 +347,72 @@
             })
         })
             .then(function(response) {
-                if (response.ok) return response.json();
-                throw new Error('Checkout failed');
+                if (!response.ok) {
+                    return response.text().then(function(text) {
+                        throw new Error(text || 'HTTP ' + response.status);
+                    });
+                }
+                return response.json();
             })
             .then(function(data) {
-                window.location.href = '/orders/' + data.orderId + '/confirm';
+                console.log('✅ Checkout successful:', data);
+                showNotification('Order placed successfully! Redirecting...');
+
+                // Ανακατεύθυνση στην σελίδα επιβεβαίωσης
+                setTimeout(function() {
+                    window.location.href = '/orders/' + data.orderId + '/confirm';
+                }, 1000);
             })
             .catch(function(error) {
-                alert('Checkout failed: ' + error.message);
+                console.error('❌ Checkout failed:', error);
+                showNotification('❌ Checkout failed: ' + error.message, 'error');
+
+                // Επαναφορά κουμπιού
+                checkoutBtn.innerHTML = originalText;
+                checkoutBtn.disabled = false;
             });
     }
+
+    function showNotification(message, type = 'success') {
+        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+        const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
+        const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
+
+        const notification = document.createElement('div');
+        notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor}
+                                 rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${icon} mr-3"></i>
+                <span class="font-medium">${message}</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => notification.classList.remove('translate-x-full'), 10);
+
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🛒 Cart page loaded');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('orderType')) {
+            setOrderType(urlParams.get('orderType'));
+        }
+
+        console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
+    });
 </script>
 </body>
 </html>
