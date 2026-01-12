@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+<!-- This should be in cart/cart.html - Add this button at the bottom of the cart summary -->
+<script>
+  function checkout() {
+    var storeId = /*[[${storeId}]]*/ '1';
+    var itemsParam = /*[[${itemsParam}]]*/ '';
+    window.location.href = '/cart/checkout?storeId=' + storeId + '&items=' + itemsParam;
+  }
+</script><!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{base}">

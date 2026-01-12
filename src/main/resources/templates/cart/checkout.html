@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Checkout</title>
+</head>
+<body>
+<div layout:fragment="main">
+    <div id="checkoutData"
+         th:data-store-id="${store.id()}"
+         th:data-store-name="${store.name()}"
+         th:data-delivery-fee="${store.deliveryFee()}"
+         th:data-min-order="${store.minimumOrderAmount()}">
+
+        <h1 class="text-3xl font-bold text-white mb-6">Checkout</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Checkout Form -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Delivery Information -->
+                <div class="glass-panel p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Delivery Address
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Full Name</label>
+                            <input type="text" id="fullName" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Phone Number</label>
+                            <input type="tel" id="phone" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="+30 123 456 7890">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Street Address</label>
+                            <input type="text" id="address" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="123 Main Street">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">City</label>
+                                <input type="text" id="city" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="Athens">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Postal Code</label>
+                                <input type="text" id="postal" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="10431">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Delivery Notes (Optional)</label>
+                            <textarea id="notes" rows="3" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white" placeholder="Ring the bell, 2nd floor..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="glass-panel p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">
+                        <i class="fas fa-credit-card mr-2"></i>Payment Method
+                    </h2>
+                    <div class="space-y-3">
+                        <label class="flex items-center p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:border-cyber-blue transition">
+                            <input type="radio" name="payment" value="CASH" checked class="w-5 h-5 text-cyber-blue">
+                            <div class="ml-3 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-white font-semibold">Cash on Delivery</span>
+                                    <i class="fas fa-money-bill-wave text-green-400"></i>
+                                </div>
+                                <p class="text-sm text-gray-400">Pay with cash when your order arrives</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:border-cyber-blue transition">
+                            <input type="radio" name="payment" value="CARD" class="w-5 h-5 text-cyber-blue">
+                            <div class="ml-3 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-white font-semibold">Credit/Debit Card</span>
+                                    <div class="flex gap-2">
+                                        <i class="fab fa-cc-visa text-blue-400"></i>
+                                        <i class="fab fa-cc-mastercard text-red-400"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-400">Pay securely with your card</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:border-cyber-blue transition">
+                            <input type="radio" name="payment" value="PAYPAL" class="w-5 h-5 text-cyber-blue">
+                            <div class="ml-3 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-white font-semibold">PayPal</span>
+                                    <i class="fab fa-paypal text-blue-500"></i>
+                                </div>
+                                <p class="text-sm text-gray-400">Fast and secure PayPal checkout</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Order Notes -->
+                <div class="glass-panel p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">
+                        <i class="fas fa-clipboard-list mr-2"></i>Order Preferences
+                    </h2>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="cutlery" class="w-5 h-5 rounded text-cyber-blue">
+                            <span class="ml-3 text-white">Include cutlery and napkins</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="contactless" class="w-5 h-5 rounded text-cyber-blue">
+                            <span class="ml-3 text-white">Contactless delivery (leave at door)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="glass-panel p-6 sticky top-24">
+                    <h2 class="text-xl font-bold text-white mb-4">Order Summary</h2>
+
+                    <div class="mb-4 pb-4 border-b border-white/10">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i class="fas fa-store text-cyber-blue"></i>
+                            <span class="text-white font-semibold" th:text="${store.name()}">Store</span>
+                        </div>
+                        <p class="text-sm text-gray-400">
+                            <i class="fas fa-clock mr-1"></i>
+                            <span th:text="${store.estimatedDeliveryTimeMinutes()}">30</span> min delivery
+                        </p>
+                    </div>
+
+                    <div id="orderItems" class="space-y-3 mb-4 pb-4 border-b border-white/10">
+                        <!-- Cart items will be loaded here -->
+                    </div>
+
+                    <div class="space-y-2 mb-4 pb-4 border-b border-white/10">
+                        <div class="flex justify-between text-gray-300">
+                            <span>Subtotal</span>
+                            <span id="subtotal">€0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-300">
+                            <span>Delivery Fee</span>
+                            <span id="deliveryFee">€0.00</span>
+                        </div>
+                        <div class="flex justify-between text-xl font-bold text-white">
+                            <span>Total</span>
+                            <span id="total">€0.00</span>
+                        </div>
+                    </div>
+
+                    <button id="placeOrderBtn" class="w-full cyber-button py-3 text-lg">
+                        <i class="fas fa-check-circle mr-2"></i>Place Order
+                    </button>
+
+                    <p class="text-xs text-gray-500 text-center mt-4">
+                        By placing your order, you agree to our terms and conditions
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var cart = [];
+    var config = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('checkoutData');
+        config.storeId = el.dataset.storeId;
+        config.storeName = el.dataset.storeName;
+        config.deliveryFee = parseFloat(el.dataset.deliveryFee);
+        config.minOrder = parseFloat(el.dataset.minOrder);
+
+        loadCart();
+        renderOrderSummary();
+
+        document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+    });
+
+    function loadCart() {
+        try {
+            var saved = localStorage.getItem('cart_' + config.storeId);
+            if (saved) {
+                cart = JSON.parse(saved);
+            } else {
+                alert('Your cart is empty!');
+                window.location.href = '/stores/' + config.storeId;
+            }
+        } catch (e) {
+            cart = [];
+        }
+    }
+
+    function renderOrderSummary() {
+        var container = document.getElementById('orderItems');
+        container.innerHTML = '';
+        var subtotal = 0;
+
+        cart.forEach(function(item) {
+            subtotal += item.price * item.quantity;
+            var div = document.createElement('div');
+            div.className = 'flex justify-between text-sm';
+            div.innerHTML =
+                '<div>' +
+                '<span class="text-white">' + item.quantity + 'x ' + item.name + '</span>' +
+                '</div>' +
+                '<span class="text-white">€' + (item.price * item.quantity).toFixed(2) + '</span>';
+            container.appendChild(div);
+        });
+
+        var total = subtotal + config.deliveryFee;
+        document.getElementById('subtotal').textContent = '€' + subtotal.toFixed(2);
+        document.getElementById('deliveryFee').textContent = '€' + config.deliveryFee.toFixed(2);
+        document.getElementById('total').textContent = '€' + total.toFixed(2);
+    }
+
+    function placeOrder() {
+        var fullName = document.getElementById('fullName').value.trim();
+        var phone = document.getElementById('phone').value.trim();
+        var address = document.getElementById('address').value.trim();
+        var city = document.getElementById('city').value.trim();
+        var postal = document.getElementById('postal').value.trim();
+
+        if (!fullName || !phone || !address || !city || !postal) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        var paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+        var notes = document.getElementById('notes').value.trim();
+        var cutlery = document.getElementById('cutlery').checked;
+        var contactless = document.getElementById('contactless').checked;
+
+        var orderData = {
+            storeId: config.storeId,
+            items: cart,
+            deliveryAddress: {
+                fullName: fullName,
+                phone: phone,
+                address: address,
+                city: city,
+                postalCode: postal
+            },
+            paymentMethod: paymentMethod,
+            notes: notes,
+            preferences: {
+                cutlery: cutlery,
+                contactless: contactless
+            },
+            subtotal: calculateSubtotal(),
+            deliveryFee: config.deliveryFee,
+            total: calculateSubtotal() + config.deliveryFee
+        };
+
+        console.log('Placing order:', orderData);
+
+        // TODO: Send to backend API
+        // For now, show success and clear cart
+        alert('Order placed successfully! Order details:\n\n' +
+            'Store: ' + config.storeName + '\n' +
+            'Items: ' + cart.length + '\n' +
+            'Total: €' + orderData.total.toFixed(2) + '\n' +
+            'Payment: ' + paymentMethod);
+
+        // Clear cart
+        localStorage.removeItem('cart_' + config.storeId);
+
+        // Redirect to orders page
+        window.location.href = '/orders';
+    }
+
+    function calculateSubtotal() {
+        return cart.reduce(function(sum, item) {
+            return sum + (item.price * item.quantity);
+        }, 0);
+    }
+</script>
+</body>
+</html>
