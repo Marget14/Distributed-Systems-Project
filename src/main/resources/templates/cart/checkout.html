@@ -67,8 +67,8 @@
                     <div class="flex items-center justify-between">
                         <!-- Quantity (Read-only in checkout) -->
                         <div class="flex items-center gap-3">
-                            <span class="text-white font-bold min-w-[2rem] text-center"
-                                  th:text="${item.quantity}">1</span>
+                            <span class="text-gray-400 text-sm">Qty:</span>
+                            <span class="text-white font-bold" th:text="${item.quantity}">1</span>
                         </div>
 
                         <!-- Price -->
@@ -96,29 +96,32 @@
 
         <!-- Right: Order Summary and Address -->
         <div class="lg:col-span-1">
-            <div class="glass-panel p-6 sticky top-24">
-                <h3 class="text-xl font-bold text-white mb-6">Order Summary</h3>
+            <div class="glass-panel p-6 sticky top-24 space-y-6">
+                <h3 class="text-xl font-bold text-white mb-4">Order Summary</h3>
 
                 <!-- Order Type (Read-only) -->
-                <div class="mb-6">
-                    <h4 class="text-white mb-3">Order Type</h4>
-                    <p class="text-cyber-blue font-semibold" th:text="${orderType}">Delivery</p>
+                <div>
+                    <h4 class="text-white mb-2 text-sm font-semibold">Order Type</h4>
+                    <div class="flex items-center gap-2">
+                        <i th:if="${orderType == 'DELIVERY'}" class="fas fa-truck text-cyber-blue"></i>
+                        <i th:if="${orderType == 'PICKUP'}" class="fas fa-walking text-cyber-blue"></i>
+                        <span class="text-cyber-blue font-semibold" th:text="${orderType}">Delivery</span>
+                    </div>
                 </div>
 
                 <!-- Delivery Address Section (Visible only for DELIVERY) -->
-                <div id="deliveryAddressSection" th:if="${orderType == 'DELIVERY'}" class="mb-6">
-                    <h4 class="text-white mb-3">Delivery Address</h4>
+                <div id="deliveryAddressSection" th:if="${orderType == 'DELIVERY'}">
+                    <h4 class="text-white mb-3 text-sm font-semibold">Delivery Address</h4>
 
                     <!-- No Address Warning -->
                     <div id="noAddressWarning" class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                        <p class="text-red-300 text-sm">Please select or add a delivery address</p>
+                        <p class="text-red-300 text-sm">⚠️ Please select or add a delivery address</p>
                     </div>
 
                     <!-- Saved Addresses -->
                     <div th:if="${userAddresses != null && !userAddresses.empty}" class="mb-4">
-                        <label class="block text-sm text-gray-300 mb-2">Choose a saved address:</label>
                         <select id="savedAddressSelect"
-                                class="quantum-input w-full"
+                                class="quantum-input w-full text-sm"
                                 onchange="onAddressSelect(this.value)">
                             <option value="">-- Select Address --</option>
                             <option th:each="addr : ${userAddresses}"
@@ -129,44 +132,52 @@
                         </select>
                     </div>
 
+                    <!-- If no addresses, show add new button -->
+                    <div th:if="${userAddresses == null || userAddresses.empty}" class="mb-4">
+                        <button type="button" onclick="showNewAddressForm()"
+                                class="w-full cyber-button-secondary py-2 text-sm">
+                            <i class="fas fa-plus mr-2"></i>Add Delivery Address
+                        </button>
+                    </div>
+
                     <!-- New Address Form -->
                     <div id="newAddressForm" class="space-y-3 hidden">
                         <div>
                             <label class="block text-sm text-gray-300 mb-1">Address Label *</label>
                             <input type="text" id="addressLabel"
-                                   class="quantum-input w-full"
+                                   class="quantum-input w-full text-sm"
                                    placeholder="Home, Work, etc.">
                         </div>
                         <div>
                             <label class="block text-sm text-gray-300 mb-1">Street Address *</label>
                             <input type="text" id="streetAddress"
-                                   class="quantum-input w-full"
+                                   class="quantum-input w-full text-sm"
                                    placeholder="123 Main Street">
                         </div>
                         <div>
                             <label class="block text-sm text-gray-300 mb-1">City *</label>
                             <input type="text" id="city"
-                                   class="quantum-input w-full"
+                                   class="quantum-input w-full text-sm"
                                    placeholder="Athens">
                         </div>
                         <div>
                             <label class="block text-sm text-gray-300 mb-1">Postal Code *</label>
                             <input type="text" id="postalCode"
-                                   class="quantum-input w-full"
+                                   class="quantum-input w-full text-sm"
                                    placeholder="10431">
                         </div>
                         <div>
                             <label class="block text-sm text-gray-300 mb-1">Phone Number</label>
                             <input type="text" id="phoneNumber"
-                                   class="quantum-input w-full"
+                                   class="quantum-input w-full text-sm"
                                    placeholder="+30 123 456 7890">
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="saveNewAddress()"
+                            <button type="button" onclick="saveNewAddress()"
                                     class="flex-1 cyber-button-secondary py-2 text-sm">
-                                <i class="fas fa-save mr-2"></i>Save Address
+                                <i class="fas fa-save mr-1"></i>Save
                             </button>
-                            <button onclick="cancelNewAddress()"
+                            <button type="button" onclick="cancelNewAddress()"
                                     class="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 text-sm rounded-lg">
                                 Cancel
                             </button>
@@ -174,88 +185,149 @@
                     </div>
 
                     <!-- Current Address Display -->
-                    <div id="currentAddressDisplay" class="mt-4 p-3 bg-white/5 rounded-lg hidden">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-white font-medium" id="displayLabel"></p>
-                                <p class="text-gray-400 text-sm" id="displayStreet"></p>
-                                <p class="text-gray-400 text-sm" id="displayCityPostal"></p>
-                                <p class="text-gray-400 text-sm" id="displayPhone"></p>
-                            </div>
-                            <button onclick="changeAddress()" class="text-cyber-blue hover:text-cyber-blue-light text-sm">
+                    <div id="currentAddressDisplay" class="p-3 bg-white/5 rounded-lg hidden">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-white font-medium text-sm" id="displayLabel"></p>
+                            <button type="button" onclick="changeAddress()"
+                                    class="text-cyber-blue hover:text-cyber-blue-light text-xs">
                                 Change
                             </button>
                         </div>
+                        <p class="text-gray-400 text-xs" id="displayStreet"></p>
+                        <p class="text-gray-400 text-xs" id="displayCityPostal"></p>
+                        <p class="text-gray-400 text-xs" id="displayPhone"></p>
                         <input type="hidden" id="selectedAddressId">
                     </div>
                 </div>
 
                 <!-- Summary Details -->
-                <div class="space-y-3 mb-6">
-                    <div class="flex justify-between text-gray-300">
+                <div class="space-y-2 pt-4 border-t border-white/10">
+                    <div class="flex justify-between text-gray-300 text-sm">
                         <span>Subtotal</span>
                         <span>€<span th:text="${#numbers.formatDecimal(cart.subtotal, 1, 2)}">0.00</span></span>
                     </div>
-                    <div class="flex justify-between text-gray-300">
+                    <div class="flex justify-between text-gray-300 text-sm">
                         <span>Delivery Fee</span>
                         <span>€<span th:text="${#numbers.formatDecimal(cart.deliveryTotal, 1, 2)}">0.00</span></span>
                     </div>
-                    <div class="flex justify-between text-white font-bold text-xl border-t border-white/10 pt-3">
+                    <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
                         <span>Total</span>
                         <span>€<span th:text="${#numbers.formatDecimal(cart.total, 1, 2)}">0.00</span></span>
                     </div>
                 </div>
 
                 <!-- Place Order Button -->
-                <button id="placeOrderButton" onclick="validateAndPlaceOrder()" class="cyber-button w-full py-3">
-                    Place Order
+                <button type="button" id="placeOrderButton" onclick="validateAndPlaceOrder()"
+                        class="w-full cyber-button py-3">
+                    <i class="fas fa-check-circle mr-2"></i>Place Order
                 </button>
+
+                <!-- Back to Cart -->
+                <a th:href="@{/cart}" class="block text-center text-gray-400 hover:text-white text-sm">
+                    <i class="fas fa-arrow-left mr-1"></i>Back to Cart
+                </a>
             </div>
         </div>
     </div>
 </div>
 
-<script th:inline="javascript">
-    /*<![CDATA[*/
+<script th:inline="none">
+    // ==================== CSRF UTILITIES ====================
+    function getCsrfToken() {
+        const metaTag = document.querySelector('meta[name="_csrf"]');
+        if (metaTag && metaTag.content) return metaTag.content;
 
-    // ... (Include similar JS functions as in cart.html for logging, authenticated requests, notifications)
+        const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        if (cookieMatch && cookieMatch[1]) return decodeURIComponent(cookieMatch[1]);
 
+        return '';
+    }
+
+    function getCsrfHeaderName() {
+        const metaTag = document.querySelector('meta[name="_csrf_header"]');
+        return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
+    }
+
+    function makeAuthenticatedRequest(url, options = {}) {
+        const csrfToken = getCsrfToken();
+        const csrfHeader = getCsrfHeaderName();
+
+        const defaultHeaders = {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            [csrfHeader]: csrfToken
+        };
+
+        const method = (options.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            defaultHeaders['Content-Type'] = 'application/json';
+        }
+
+        return fetch(url, {
+            ...options,
+            headers: {
+                ...defaultHeaders,
+                ...options.headers
+            },
+            credentials: 'same-origin'
+        });
+    }
+
+    // ==================== GLOBAL STATE ====================
     let selectedAddressId = null;
-    let orderType = /*[[${orderType}]]*/ 'DELIVERY';
+    let orderType = 'DELIVERY'; // Will be set from server
+
+    // ==================== ADDRESS FUNCTIONS ====================
+    function showNewAddressForm() {
+        document.getElementById('newAddressForm').classList.remove('hidden');
+        const select = document.getElementById('savedAddressSelect');
+        if (select) select.classList.add('hidden');
+    }
 
     function onAddressSelect(value) {
+        console.log('📍 Address selected:', value);
+
         if (value === 'new') {
-            document.getElementById('newAddressForm').classList.remove('hidden');
-            document.getElementById('savedAddressSelect').classList.add('hidden');
+            showNewAddressForm();
             return;
         } else if (value === '') {
             selectedAddressId = null;
             document.getElementById('currentAddressDisplay').classList.add('hidden');
+            document.getElementById('noAddressWarning').classList.remove('hidden');
             updatePlaceOrderButton();
             return;
         }
 
-        // Fetch address details (assume API /api/addresses/{id})
-        makeAuthenticatedRequest('/api/addresses/' + value)
-            .then(response => response.json())
-            .then(data => {
-                selectedAddressId = data.id;
-                document.getElementById('displayLabel').textContent = data.label;
-                document.getElementById('displayStreet').textContent = data.street;
-                document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
-                document.getElementById('displayPhone').textContent = data.phoneNumber || '';
-                document.getElementById('currentAddressDisplay').classList.remove('hidden');
-                document.getElementById('savedAddressSelect').classList.add('hidden');
-                updatePlaceOrderButton();
-            })
-            .catch(error => {
-                showNotification('Failed to load address: ' + error.message, 'error');
-            });
+        // For now, just set the ID (assuming addresses are already loaded)
+        // In a real app, you'd fetch from /api/addresses/{id}
+        selectedAddressId = value;
+
+        // Show selected address display
+        document.getElementById('savedAddressSelect').classList.add('hidden');
+        document.getElementById('currentAddressDisplay').classList.remove('hidden');
+        document.getElementById('noAddressWarning').classList.add('hidden');
+
+        // Get the selected option text
+        const select = document.getElementById('savedAddressSelect');
+        const selectedOption = select.options[select.selectedIndex];
+        const addressText = selectedOption.text;
+
+        document.getElementById('displayLabel').textContent = addressText.split(' - ')[0];
+        document.getElementById('displayStreet').textContent = addressText.split(' - ')[1] || '';
+        document.getElementById('displayCityPostal').textContent = '';
+        document.getElementById('displayPhone').textContent = '';
+
+        updatePlaceOrderButton();
     }
 
     function cancelNewAddress() {
+        console.log('❌ Cancelled new address');
         document.getElementById('newAddressForm').classList.add('hidden');
-        document.getElementById('savedAddressSelect').classList.remove('hidden');
+        const select = document.getElementById('savedAddressSelect');
+        if (select) {
+            select.classList.remove('hidden');
+        }
+
         // Clear form fields
         document.getElementById('addressLabel').value = '';
         document.getElementById('streetAddress').value = '';
@@ -265,6 +337,8 @@
     }
 
     function saveNewAddress() {
+        console.log('💾 Saving new address');
+
         const label = document.getElementById('addressLabel').value.trim();
         const street = document.getElementById('streetAddress').value.trim();
         const city = document.getElementById('city').value.trim();
@@ -288,38 +362,55 @@
             method: 'POST',
             body: JSON.stringify(newAddress)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to save address');
+                return response.json();
+            })
             .then(data => {
+                console.log('✅ Address saved:', data);
                 selectedAddressId = data.id;
+
                 document.getElementById('displayLabel').textContent = data.label;
                 document.getElementById('displayStreet').textContent = data.street;
                 document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
                 document.getElementById('displayPhone').textContent = data.phoneNumber || '';
+
                 document.getElementById('currentAddressDisplay').classList.remove('hidden');
                 document.getElementById('newAddressForm').classList.add('hidden');
-                document.getElementById('savedAddressSelect').classList.remove('hidden');
-                // Add to select
+                document.getElementById('noAddressWarning').classList.add('hidden');
+
                 const select = document.getElementById('savedAddressSelect');
-                const option = document.createElement('option');
-                option.value = data.id;
-                option.textContent = data.label + ' - ' + data.street;
-                select.insertBefore(option, select.lastChild);
-                select.value = data.id;
-                showNotification('Address saved successfully');
+                if (select) {
+                    select.classList.remove('hidden');
+                    const option = document.createElement('option');
+                    option.value = data.id;
+                    option.textContent = data.label + ' - ' + data.street;
+                    select.insertBefore(option, select.lastElementChild);
+                    select.value = data.id;
+                }
+
+                showNotification('✅ Address saved successfully');
                 updatePlaceOrderButton();
             })
             .catch(error => {
-                showNotification('Failed to save address: ' + error.message, 'error');
+                console.error('❌ Failed to save address:', error);
+                showNotification('❌ Failed to save address: ' + error.message, 'error');
             });
     }
 
     function changeAddress() {
+        console.log('🔄 Change address clicked');
         document.getElementById('currentAddressDisplay').classList.add('hidden');
-        document.getElementById('savedAddressSelect').classList.remove('hidden');
+        const select = document.getElementById('savedAddressSelect');
+        if (select) {
+            select.classList.remove('hidden');
+            select.value = '';
+        }
         selectedAddressId = null;
         updatePlaceOrderButton();
     }
 
+    // ==================== VALIDATION ====================
     function isOrderValid() {
         if (orderType === 'DELIVERY' && !selectedAddressId) {
             return false;
@@ -339,10 +430,12 @@
     }
 
     function validateAndPlaceOrder() {
+        console.log('🔍 Validating order...');
+
         if (!isOrderValid()) {
             if (orderType === 'DELIVERY') {
                 document.getElementById('noAddressWarning').classList.remove('hidden');
-                showNotification('Please select or add a delivery address', 'error');
+                showNotification('⚠️ Please select or add a delivery address', 'error');
             }
             return;
         }
@@ -350,7 +443,10 @@
         placeOrder();
     }
 
+    // ==================== CHECKOUT ====================
     function placeOrder() {
+        console.log('💳 Placing order...');
+
         const button = document.getElementById('placeOrderButton');
         const originalText = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
@@ -363,50 +459,83 @@
             specialInstructions: instructions
         };
 
+        console.log('📤 Checkout data:', checkoutData);
+
         makeAuthenticatedRequest('/api/cart/checkout', {
             method: 'POST',
             body: JSON.stringify(checkoutData)
         })
             .then(response => {
                 if (!response.ok) {
-                    return response.text().then(text => { throw new Error(text || 'HTTP ' + response.status); });
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'HTTP ' + response.status);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
+                console.log('✅ Checkout successful:', data);
+
                 if (data.orderIds && data.orderIds.length > 0) {
-                    if (data.orderIds.length === 1) {
-                        showNotification('Order placed successfully! Redirecting...');
-                        setTimeout(() => {
+                    showNotification('✅ ' + data.message);
+
+                    setTimeout(() => {
+                        if (data.orderIds.length === 1) {
                             window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
-                        }, 1000);
-                    } else {
-                        showNotification(data.storeCount + ' orders placed successfully! Redirecting...');
-                        setTimeout(() => {
+                        } else {
                             window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
-                        }, 1000);
-                    }
+                        }
+                    }, 1000);
                 } else {
-                    showNotification('No order IDs returned', 'error');
-                    button.innerHTML = originalText;
-                    button.disabled = false;
+                    throw new Error('No order IDs returned');
                 }
             })
             .catch(error => {
-                showNotification('Checkout failed: ' + error.message, 'error');
+                console.error('❌ Checkout failed:', error);
+                showNotification('❌ Checkout failed: ' + error.message, 'error');
                 button.innerHTML = originalText;
                 button.disabled = false;
             });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize
+    // ==================== NOTIFICATIONS ====================
+    function showNotification(message, type = 'success') {
+        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+        const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
+        const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
+
+        const notification = document.createElement('div');
+        notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor} rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${icon} mr-3"></i>
+                <span class="font-medium">${message}</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.remove('translate-x-full'), 10);
+
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🛒 Checkout page loaded');
+        console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
+
+        // Get order type from Thymeleaf
+        const orderTypeElement = document.querySelector('[th\\:text="${orderType}"]');
+        if (orderTypeElement) {
+            orderType = orderTypeElement.textContent.trim();
+            console.log('📦 Order type:', orderType);
+        }
+
         updatePlaceOrderButton();
-
-        // If delivery, show section (already conditional in HTML)
     });
-
-    /*]]>*/
 </script>
 </body>
 </html>
