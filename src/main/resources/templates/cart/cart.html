@@ -356,18 +356,28 @@
             })
             .then(function(data) {
                 console.log('✅ Checkout successful:', data);
-                showNotification('Order placed successfully! Redirecting...');
 
-                // Ανακατεύθυνση στην σελίδα επιβεβαίωσης
-                setTimeout(function() {
-                    window.location.href = '/orders/' + data.orderId + '/confirm';
-                }, 1000);
+                if (data.orderIds && data.orderIds.length > 0) {
+                    if (data.orderIds.length === 1) {
+                        showNotification('Order placed successfully! Redirecting...');
+                        setTimeout(function() {
+                            window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
+                        }, 1000);
+                    } else {
+                        showNotification(data.storeCount + ' orders placed successfully! Redirecting...');
+                        setTimeout(function() {
+                            window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
+                        }, 1000);
+                    }
+                } else {
+                    showNotification('❌ No order IDs returned', 'error');
+                    checkoutBtn.innerHTML = originalText;
+                    checkoutBtn.disabled = false;
+                }
             })
             .catch(function(error) {
                 console.error('❌ Checkout failed:', error);
                 showNotification('❌ Checkout failed: ' + error.message, 'error');
-
-                // Επαναφορά κουμπιού
                 checkoutBtn.innerHTML = originalText;
                 checkoutBtn.disabled = false;
             });
