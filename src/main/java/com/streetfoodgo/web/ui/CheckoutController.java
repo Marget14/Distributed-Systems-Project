@@ -58,12 +58,14 @@ public class CheckoutController {
                 return "redirect:/cart";
             }
 
+            // Get order type from session, default to DELIVERY if not set
             String orderTypeStr = (String) session.getAttribute("orderType");
             if (orderTypeStr == null) {
-                redirectAttributes.addFlashAttribute("error", "Please select an order type");
-                return "redirect:/cart";
+                orderTypeStr = "DELIVERY"; // Default value instead of redirect
+                session.setAttribute("orderType", orderTypeStr); // Save it to session
             }
             OrderType orderType = orderTypeStr.equals("PICKUP") ? OrderType.PICKUP : OrderType.DELIVERY;
+
 
             Map<Long, List<CartItem>> itemsByStore = new HashMap<>();
             for (CartItem item : cartItems.values()) {
