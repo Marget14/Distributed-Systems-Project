@@ -120,18 +120,7 @@ public class CartController {
 
             model.addAttribute("cart", cart);
 
-            if (userDetails != null) {
-                Long customerId = getCustomerIdFromUserDetails(userDetails);
-                if (customerId != null) {
-                    List<com.streetfoodgo.core.service.model.DeliveryAddressView> userAddresses =
-                            deliveryAddressService.getCustomerAddresses(customerId);
-                    model.addAttribute("userAddresses", userAddresses);
-                } else {
-                    model.addAttribute("userAddresses", Collections.emptyList());
-                }
-            } else {
-                model.addAttribute("userAddresses", Collections.emptyList());
-            }
+            // Removed userAddresses from this controller as it's moved to checkout
 
             return "cart/cart";
 
