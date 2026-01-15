@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   db:
     image: postgres:15-alpine
@@ -37,41 +36,20 @@ services:
       retries: 30
       start_period: 60s
 
-  # Self-hosted OSRM backend (no API key)
-  osrm:
-    image: ghcr.io/project-osrm/osrm-backend:latest
-    container_name: streetfoodgo-osrm
+  redis:
+    image: redis:7-alpine
+    container_name: streetfoodgo-redis
     ports:
-      - "5000:5000"
-    volumes:
-      - osrm-data:/data
-    command: >
-      bash -c "        if [ ! -f /data/greece-latest.osrm ]; then           wget -O /data/greece-latest.osm.pbf https://download.geofabrik.de/europe/greece-latest.osm.pbf &&           osrm-extract -p /opt/car.lua /data/greece-latest.osm.pbf &&           osrm-partition /data/greece-latest.osrm &&           osrm-customize /data/greece-latest.osrm;         fi &&         osrm-routed --algorithm mld /data/greece-latest.osrm"
+      - "6379:6379"
     networks:
       - app-network
-
-  # Self-hosted Photon geocoder (OpenSearch backend)
-  photon:
-    image: eclipse-temurin:21-jre
-    container_name: streetfoodgo-photon
-    environment:
-      PHOTON_JAR_URL: https://github.com/komoot/photon/releases/download/0.7.0/photon-opensearch-0.7.0.jar
-      # Greece extract dump (update URL if GraphHopper changes paths)
-      PHOTON_DUMP_URL: https://download1.graphhopper.com/public/experimental/extracts/europe/greece-latest.tar.bz2
-    ports:
-      - "2322:2322"
-    volumes:
-      - photon-data:/photon/photon_data
-    command: >
-      bash -lc "        mkdir -p /photon && cd /photon &&         if [ ! -f /photon/photon.jar ]; then           wget -qO photon.jar ${PHOTON_JAR_URL};         fi;         if [ ! -f /photon/photon_data/READY ]; then           mkdir -p /photon/photon_data &&           wget -qO - ${PHOTON_DUMP_URL} | bzip2 -cd | tar x -C /photon &&           touch /photon/photon_data/READY;         fi;         java -Xms2G -Xmx4G -jar /photon/photon.jar -listen-port 2322 -data-dir /photon/photon_data"
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:2322/status || exit 1"]
-      interval: 15s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
       timeout: 5s
-      retries: 20
-      start_period: 60s
-    networks:
-      - app-network
+      retries: 5
+    volumes:
+      - redis-data:/data
 
   app:
     build:
@@ -83,9 +61,7 @@ services:
         condition: service_healthy
       hua-noc:
         condition: service_started
-      osrm:
-        condition: service_started
-      photon:
+      redis:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/streetfoodgo
@@ -94,10 +70,8 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
       JWT_SECRET: Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=
       HUA_NOC_BASE_URL: http://hua-noc:8080
-      # Geolocation (self-hosted OSRM + Photon)
-      APP_GEO_ROUTING_BASE_URL: http://osrm:5000
-      APP_GEO_GEOCODER: photon
-      APP_GEO_GEOCODER_BASE_URL: http://photon:2322
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
     ports:
       - "8080:8080"
     networks:
@@ -120,8 +94,7 @@ services:
 
 volumes:
   db-data:
-  osrm-data:
-  photon-data:
+  redis-data:
 
 networks:
   app-network:
