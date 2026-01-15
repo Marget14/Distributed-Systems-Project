@@ -19,6 +19,22 @@ spring:
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  mail:
+    host: "${MAIL_HOST:smtp.gmail.com}"
+    port: "${MAIL_PORT:587}"
+    username: "${MAIL_USERNAME:}"
+    password: "${MAIL_PASSWORD:}"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 
 server:
   port: 8080
@@ -30,6 +46,8 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  osrm:
+    base-url: "${APP_OSRM_BASE_URL:http://localhost:5000}"
   jwt:
     issuer: "streetfoodgo-api"
     audience: "external-systems"
@@ -37,5 +55,10 @@ app:
     ttl-minutes: 60
   hua-noc:
     base-url: "${HUA_NOC_BASE_URL:http://localhost:8080/swagger-ui.html}"
+  base-url: "${APP_BASE_URL:http://localhost:8080}"
+  email:
+    from: "${EMAIL_FROM:noreply@streetfoodgo.com}"
+    verification:
+      expiry-hours: 24
 
 
