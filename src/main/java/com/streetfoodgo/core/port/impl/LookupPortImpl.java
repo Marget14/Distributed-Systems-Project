@@ -14,34 +14,30 @@ import com.streetfoodgo.core.port.impl.dto.LookupResult;
 /**
  * Default implementation of {@link LookupPort}. It uses the NOC external service.
  */
+
 @Service
 public class LookupPortImpl implements LookupPort {
-
     private final RestTemplate restTemplate;
+    private final String huaNocBaseUrl;
 
-    public LookupPortImpl(final RestTemplate restTemplate) {
+    public LookupPortImpl(RestTemplate restTemplate, String huaNocBaseUrl) {
         if (restTemplate == null) throw new NullPointerException();
+        if (huaNocBaseUrl == null) throw new NullPointerException();
         this.restTemplate = restTemplate;
+        this.huaNocBaseUrl = huaNocBaseUrl;
     }
 
     @Override
     public Optional<PersonType> lookup(final String huaId) {
-        if (huaId == null) throw new NullPointerException();
-        if (huaId.isBlank()) throw new IllegalArgumentException();
-
-        // HTTP Request
-        // --------------------------------------------------
-
-        final String baseUrl = RestApiClientConfig.BASE_URL;
-        final String url = baseUrl + "/api/v1/lookups/" + huaId;
-        final ResponseEntity<LookupResult> response = this.restTemplate.getForEntity(url, LookupResult.class);
-
+        if (huaId == null || huaId.isBlank()) throw new IllegalArgumentException();
+        final String url = huaNocBaseUrl + "/api/v1/lookups/" + huaId;
+        ResponseEntity<LookupResult> response = restTemplate.getForEntity(url, LookupResult.class);
         if (response.getStatusCode().is2xxSuccessful()) {
-            final LookupResult lookupResult = response.getBody();
+            LookupResult lookupResult = response.getBody();
             if (lookupResult == null) throw new NullPointerException();
             return Optional.ofNullable(lookupResult.type());
         }
-
         throw new RuntimeException("External service responded with " + response.getStatusCode());
     }
 }
+
