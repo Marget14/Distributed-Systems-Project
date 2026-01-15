@@ -36,6 +36,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
     private final PersonMapper personMapper;
     private final PhoneNumberPort phoneNumberPort;
     private final SmsNotificationPort smsNotificationPort;
+    private final com.streetfoodgo.core.service.EmailVerificationService emailVerificationService;
 
     public PersonBusinessLogicServiceImpl(
             final Validator validator,
@@ -43,7 +44,8 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
             final PersonRepository personRepository,
             final PersonMapper personMapper,
             final PhoneNumberPort phoneNumberPort,
-            final SmsNotificationPort smsNotificationPort) {
+            final SmsNotificationPort smsNotificationPort,
+            final com.streetfoodgo.core.service.EmailVerificationService emailVerificationService) {
 
         if (validator == null) throw new NullPointerException();
         if (passwordEncoder == null) throw new NullPointerException();
@@ -51,6 +53,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         if (personMapper == null) throw new NullPointerException();
         if (phoneNumberPort == null) throw new NullPointerException();
         if (smsNotificationPort == null) throw new NullPointerException();
+        if (emailVerificationService == null) throw new NullPointerException();
 
         this.validator = validator;
         this.passwordEncoder = passwordEncoder;
@@ -58,6 +61,7 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         this.personMapper = personMapper;
         this.phoneNumberPort = phoneNumberPort;
         this.smsNotificationPort = smsNotificationPort;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Transactional
@@ -121,14 +125,20 @@ public class PersonBusinessLogicServiceImpl implements PersonBusinessLogicServic
         // Save to database
         person = this.personRepository.save(person);
 
-        // Send SMS notification
+        // Send email verification
         if (notify) {
+            final boolean emailSent = this.emailVerificationService.sendVerificationEmail(person);
+            if (!emailSent) {
+                LOGGER.warn("Email verification failed for {}", emailAddress);
+            }
+
+            // Also send SMS notification
             final String content = String.format(
-                    "Welcome to StreetFoodGo! Your account has been created. Use %s to login.",
+                    "Welcome to StreetFoodGo! Please verify your email address to complete registration.",
                     emailAddress
             );
-            final boolean sent = this.smsNotificationPort.sendSms(mobilePhoneNumber, content);
-            if (!sent) {
+            final boolean smsSent = this.smsNotificationPort.sendSms(mobilePhoneNumber, content);
+            if (!smsSent) {
                 LOGGER.warn("SMS notification failed for {}", mobilePhoneNumber);
             }
         }

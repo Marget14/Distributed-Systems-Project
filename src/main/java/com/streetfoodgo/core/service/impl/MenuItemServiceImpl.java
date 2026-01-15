@@ -81,7 +81,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     public Optional<MenuItemView> getMenuItem(final Long id) {
         if (id == null || id <= 0) throw new IllegalArgumentException();
 
-        return this.menuItemRepository.findById(id)
+        return this.menuItemRepository.findWithDetailsById(id)
                 .map(this.menuItemMapper::toView);
     }
 

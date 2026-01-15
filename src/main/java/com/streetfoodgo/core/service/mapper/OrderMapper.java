@@ -56,7 +56,9 @@ public class OrderMapper {
                 order.getDeliveringAt(),
                 order.getCompletedAt(),
                 order.getRejectedAt(),
-                order.getCancelledAt()
+                order.getCancelledAt(),
+                order.getEstimatedDeliveryMinutes(),
+                order.getEstimatedDeliveryDistanceKm()
         );
     }
 }

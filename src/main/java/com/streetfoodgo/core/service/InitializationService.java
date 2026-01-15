@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Initializes StreetFoodGo application with sample data.
  */
 @Service
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app.init", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class InitializationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InitializationService.class);
@@ -84,8 +85,13 @@ public class InitializationService {
                 new Client(null, "mobile_app", "app_secret", "INTEGRATION_READ")
         );
 
-        this.clientRepository.saveAll(clientList);
-        LOGGER.info("Created {} API clients", clientList.size());
+        // Idempotent seed: only create missing clients
+        for (final Client c : clientList) {
+            if (this.clientRepository.findByName(c.getName()).isEmpty()) {
+                this.clientRepository.save(c);
+            }
+        }
+        LOGGER.info("Ensured {} API clients", clientList.size());
     }
 
     private void createUsers() {

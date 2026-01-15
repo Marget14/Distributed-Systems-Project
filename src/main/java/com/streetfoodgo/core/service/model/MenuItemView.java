@@ -4,6 +4,7 @@ import com.streetfoodgo.core.model.MenuCategory;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * View/DTO for MenuItem entity.
@@ -18,5 +19,7 @@ public record MenuItemView(
         MenuCategory category,
         Boolean available,
         String imageUrl,
-        Instant createdAt
+        Instant createdAt,
+        List<MenuItemOptionView> options,
+        List<MenuItemIngredientView> ingredients
 ) {}

@@ -9,20 +9,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Service for geolocation and delivery time estimation using OpenRouteService API.
+ * Service for geolocation and delivery time estimation.
  *
- * Get free API key from: https://openrouteservice.org/dev/#/signup
+ * Current implementation:
+ * - OSRM (self-hosted, via docker-compose) for route distance/duration
+ * - Nominatim (OpenStreetMap) for geocoding fallback
+ * - Haversine distance fallback if OSRM is unavailable
+
  */
 @Service
 public class GeolocationService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${app.openrouteservice.api-key:}")
-    private String apiKey;
+    @Value("${app.osrm.base-url:http://localhost:5000}")
+    private String osrmBaseUrl;
 
-    private static final String ORS_BASE_URL = "https://api.openrouteservice.org";
-    private static final double AVG_SPEED_KMH = 30.0; // Average delivery speed
     private static final int PREPARATION_TIME = 15; // Base preparation time in minutes
 
     public GeolocationService(RestTemplate restTemplate) {
@@ -45,10 +47,8 @@ public class GeolocationService {
             // Calculate real driving distance
             double distanceKm = calculateDrivingDistance(storeCoords, deliveryCoords);
 
-            // Calculate travel time
-            int travelTime = (int) Math.ceil((distanceKm / AVG_SPEED_KMH) * 60);
-
-            return PREPARATION_TIME + travelTime;
+            final int travelTimeMinutes = calculateDrivingDurationMinutes(storeCoords, deliveryCoords);
+            return PREPARATION_TIME + travelTimeMinutes;
 
         } catch (Exception e) {
             System.err.println("Geolocation error: " + e.getMessage());
@@ -57,50 +57,48 @@ public class GeolocationService {
     }
 
     /**
-     * Calculate driving distance between two coordinates.
+     * Calculate driving distance in KM using OSRM.
      */
     public double calculateDrivingDistance(Coordinates start, Coordinates end) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            // Fallback to straight-line distance
-            return calculateHaversineDistance(start, end);
-        }
-
         try {
-            String url = ORS_BASE_URL + "/v2/directions/driving-car"
-                    + "?start=" + start.lng + "," + start.lat
-                    + "&end=" + end.lng + "," + end.lat;
+            final String url = osrmBaseUrl + "/route/v1/driving/"
+                    + start.lng + "," + start.lat + ";" + end.lng + "," + end.lat
+                    + "?overview=false";
 
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.set("Authorization", apiKey);
-
-            org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
-
-            org.springframework.http.ResponseEntity<Map> response = restTemplate.exchange(
-                    url,
-                    org.springframework.http.HttpMethod.GET,
-                    entity,
-                    Map.class
-            );
-
-            Map<String, Object> body = response.getBody();
-            if (body != null && body.containsKey("features")) {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> features = (List<Map<String, Object>>) body.get("features");
-                if (!features.isEmpty()) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> properties = (Map<String, Object>) features.get(0).get("properties");
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> summary = (Map<String, Object>) properties.get("summary");
-                    Number distanceMeters = (Number) summary.get("distance");
-                    return distanceMeters.doubleValue() / 1000.0; // Convert to km
-                }
+            final var response = restTemplate.getForObject(url, com.streetfoodgo.core.service.osrm.OsrmRouteResponse.class);
+            if (response != null && response.routes() != null && !response.routes().isEmpty()) {
+                final double meters = response.routes().get(0).distance();
+                return meters / 1000.0;
             }
         } catch (Exception e) {
-            System.err.println("Driving distance API error: " + e.getMessage());
+            System.err.println("OSRM driving distance error: " + e.getMessage());
         }
 
         // Fallback to straight-line distance
         return calculateHaversineDistance(start, end);
+    }
+
+    /**
+     * Calculate driving duration in minutes using OSRM.
+     */
+    public int calculateDrivingDurationMinutes(Coordinates start, Coordinates end) {
+        try {
+            final String url = osrmBaseUrl + "/route/v1/driving/"
+                    + start.lng + "," + start.lat + ";" + end.lng + "," + end.lat
+                    + "?overview=false";
+
+            final var response = restTemplate.getForObject(url, com.streetfoodgo.core.service.osrm.OsrmRouteResponse.class);
+            if (response != null && response.routes() != null && !response.routes().isEmpty()) {
+                final double seconds = response.routes().get(0).duration();
+                return (int) Math.ceil(seconds / 60.0);
+            }
+        } catch (Exception e) {
+            System.err.println("OSRM driving duration error: " + e.getMessage());
+        }
+        // fallback: estimate based on haversine distance and average speed
+        final double km = calculateHaversineDistance(start, end);
+        final double avgSpeedKmh = 30.0;
+        return (int) Math.ceil((km / avgSpeedKmh) * 60.0);
     }
 
     /**
@@ -150,7 +148,7 @@ public class GeolocationService {
     /**
      * Calculate straight-line distance using Haversine formula.
      */
-    private double calculateHaversineDistance(Coordinates start, Coordinates end) {
+    public double calculateHaversineDistance(Coordinates start, Coordinates end) {
         final int R = 6371; // Earth's radius in km
 
         double latDistance = Math.toRadians(end.lat - start.lat);

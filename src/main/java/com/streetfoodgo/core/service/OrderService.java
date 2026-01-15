@@ -16,12 +16,20 @@ public interface OrderService {
 
     List<OrderView> getCustomerOrders(Long customerId);
 
+    List<OrderView> searchCustomerOrders(Long customerId, OrderSearchCriteria criteria);
+
+    OrderStatistics getCustomerOrderStatistics(Long customerId);
+
     void cancelOrder(Long orderId);
 
     // Store owner operations
     List<OrderView> getStoreOrders(Long storeId);
 
     List<OrderView> getStoreOrdersByStatus(Long storeId, OrderStatus status);
+
+    List<OrderView> searchStoreOrders(Long storeId, OrderSearchCriteria criteria);
+
+    OrderStatistics getStoreOrderStatistics(Long storeId);
 
     OrderView acceptOrder(AcceptOrderRequest request);
 

@@ -29,6 +29,7 @@ public record OrderView(
         Instant deliveringAt,
         Instant completedAt,
         Instant rejectedAt,
-        Instant cancelledAt
-) {
-}
+        Instant cancelledAt,
+        Integer estimatedDeliveryMinutes,
+        BigDecimal estimatedDeliveryDistanceKm
+) { }

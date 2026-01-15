@@ -1,10 +1,13 @@
 package com.streetfoodgo.core.service.impl;
 
 import com.streetfoodgo.core.model.*;
+import com.streetfoodgo.core.port.EmailPort;
 import com.streetfoodgo.core.port.SmsNotificationPort;
 import com.streetfoodgo.core.repository.*;
 import com.streetfoodgo.core.security.CurrentUserProvider;
+import com.streetfoodgo.core.service.GeolocationService;
 import com.streetfoodgo.core.service.OrderService;
+import com.streetfoodgo.core.service.StoreScheduleService;
 import com.streetfoodgo.core.service.mapper.OrderMapper;
 import com.streetfoodgo.core.service.model.*;
 
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -33,9 +37,14 @@ public class OrderServiceImpl implements OrderService {
     private final PersonRepository personRepository;
     private final DeliveryAddressRepository deliveryAddressRepository;
     private final MenuItemRepository menuItemRepository;
+    private final com.streetfoodgo.core.repository.MenuItemChoiceRepository menuItemChoiceRepository;
+    private final com.streetfoodgo.core.repository.MenuItemIngredientRepository menuItemIngredientRepository;
     private final OrderMapper orderMapper;
     private final CurrentUserProvider currentUserProvider;
     private final SmsNotificationPort smsNotificationPort;
+    private final EmailPort emailPort;
+    private final GeolocationService geolocationService;
+    private final StoreScheduleService storeScheduleService;
 
     public OrderServiceImpl(
             final OrderRepository orderRepository,
@@ -43,27 +52,42 @@ public class OrderServiceImpl implements OrderService {
             final PersonRepository personRepository,
             final DeliveryAddressRepository deliveryAddressRepository,
             final MenuItemRepository menuItemRepository,
+            final com.streetfoodgo.core.repository.MenuItemChoiceRepository menuItemChoiceRepository,
+            final com.streetfoodgo.core.repository.MenuItemIngredientRepository menuItemIngredientRepository,
             final OrderMapper orderMapper,
             final CurrentUserProvider currentUserProvider,
-            final SmsNotificationPort smsNotificationPort) {
+            final SmsNotificationPort smsNotificationPort,
+            final EmailPort emailPort,
+            final GeolocationService geolocationService,
+            final StoreScheduleService storeScheduleService) {
 
         if (orderRepository == null) throw new NullPointerException();
         if (storeRepository == null) throw new NullPointerException();
         if (personRepository == null) throw new NullPointerException();
         if (deliveryAddressRepository == null) throw new NullPointerException();
         if (menuItemRepository == null) throw new NullPointerException();
+        if (menuItemChoiceRepository == null) throw new NullPointerException();
+        if (menuItemIngredientRepository == null) throw new NullPointerException();
         if (orderMapper == null) throw new NullPointerException();
         if (currentUserProvider == null) throw new NullPointerException();
         if (smsNotificationPort == null) throw new NullPointerException();
+        if (emailPort == null) throw new NullPointerException();
+        if (geolocationService == null) throw new NullPointerException();
+        if (storeScheduleService == null) throw new NullPointerException();
 
         this.orderRepository = orderRepository;
         this.storeRepository = storeRepository;
         this.personRepository = personRepository;
         this.deliveryAddressRepository = deliveryAddressRepository;
         this.menuItemRepository = menuItemRepository;
+        this.menuItemChoiceRepository = menuItemChoiceRepository;
+        this.menuItemIngredientRepository = menuItemIngredientRepository;
         this.orderMapper = orderMapper;
         this.currentUserProvider = currentUserProvider;
         this.smsNotificationPort = smsNotificationPort;
+        this.emailPort = emailPort;
+        this.geolocationService = geolocationService;
+        this.storeScheduleService = storeScheduleService;
     }
 
     @Transactional
@@ -84,9 +108,22 @@ public class OrderServiceImpl implements OrderService {
         final Store store = this.storeRepository.findById(request.storeId())
                 .orElseThrow(() -> new IllegalArgumentException("Store not found"));
 
-        // Validate store is open
+        // Validate store is open (manual flag)
         if (!store.getIsOpen()) {
             throw new IllegalArgumentException("Store is currently closed");
+        }
+
+        // Validate store is open based on schedule
+        if (!storeScheduleService.isStoreOpen(store)) {
+            LocalTime closingTime = storeScheduleService.getTodayClosingTime(store);
+            java.time.LocalDateTime nextOpen = storeScheduleService.getNextOpeningTime(store);
+            
+            String message = "Store is currently outside operating hours.";
+            if (nextOpen != null) {
+                message += " Next opening: " + nextOpen.format(java.time.format.DateTimeFormatter.ofPattern("EEEE HH:mm"));
+            }
+            
+            throw new IllegalArgumentException(message);
         }
 
         // Validate order type
@@ -109,6 +146,29 @@ public class OrderServiceImpl implements OrderService {
             // Verify address belongs to customer
             if (!deliveryAddress.getCustomer().getId().equals(customer.getId())) {
                 throw new SecurityException("Cannot use another customer's address");
+            }
+
+            // Validate delivery distance if both store and address have coordinates
+            if (store.getLatitude() != null && store.getLongitude() != null &&
+                deliveryAddress.getLatitude() != null && deliveryAddress.getLongitude() != null) {
+                
+                double distance = geolocationService.calculateHaversineDistance(
+                        new GeolocationService.Coordinates(store.getLatitude(), store.getLongitude()),
+                        new GeolocationService.Coordinates(deliveryAddress.getLatitude(), deliveryAddress.getLongitude())
+                );
+                
+                double maxDistance = store.getMaxDeliveryDistanceKm() != null 
+                        ? store.getMaxDeliveryDistanceKm().doubleValue() 
+                        : 5.0;
+                
+                if (distance > maxDistance) {
+                    throw new IllegalArgumentException(
+                            String.format("Delivery address is too far (%.1f km). Maximum delivery distance: %.1f km", 
+                                    distance, maxDistance)
+                    );
+                }
+                
+                LOGGER.info("Delivery distance validated: {} km (max: {} km)", distance, maxDistance);
             }
         }
 
@@ -145,6 +205,46 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setPriceAtOrder(menuItem.getPrice());
             orderItem.setSpecialInstructions(itemRequest.specialInstructions());
 
+            // Process customizations
+            if (itemRequest.customizations() != null && !itemRequest.customizations().isEmpty()) {
+                for (OrderItemCustomizationRequest custReq : itemRequest.customizations()) {
+                    final MenuItemChoice choice = menuItemChoiceRepository.findById(custReq.menuItemChoiceId())
+                            .orElseThrow(() -> new IllegalArgumentException("Menu item choice not found: " + custReq.menuItemChoiceId()));
+                    
+                    // Verify choice belongs to this menu item
+                    if (!choice.getOption().getMenuItem().getId().equals(menuItem.getId())) {
+                        throw new IllegalArgumentException("Choice does not belong to this menu item");
+                    }
+                    
+                    if (!choice.getIsAvailable()) {
+                        throw new IllegalArgumentException("Choice not available: " + choice.getName());
+                    }
+                    
+                    OrderItemCustomization customization = new OrderItemCustomization(orderItem, choice);
+                    orderItem.addCustomization(customization);
+                }
+            }
+
+            // Process removed ingredients
+            if (itemRequest.removedIngredientIds() != null && !itemRequest.removedIngredientIds().isEmpty()) {
+                for (Long ingredientId : itemRequest.removedIngredientIds()) {
+                    final MenuItemIngredient ingredient = menuItemIngredientRepository.findById(ingredientId)
+                            .orElseThrow(() -> new IllegalArgumentException("Ingredient not found: " + ingredientId));
+                    
+                    // Verify ingredient belongs to this menu item
+                    if (!ingredient.getMenuItem().getId().equals(menuItem.getId())) {
+                        throw new IllegalArgumentException("Ingredient does not belong to this menu item");
+                    }
+                    
+                    if (!ingredient.getIsRemovable()) {
+                        throw new IllegalArgumentException("Ingredient cannot be removed: " + ingredient.getName());
+                    }
+                    
+                    OrderItemRemovedIngredient removed = new OrderItemRemovedIngredient(orderItem, ingredient.getName());
+                    orderItem.addRemovedIngredient(removed);
+                }
+            }
+
             orderItems.add(orderItem);
             subtotal = subtotal.add(orderItem.getSubtotal());
         }
@@ -159,10 +259,25 @@ public class OrderServiceImpl implements OrderService {
         order.setItems(orderItems);
         order.setSubtotal(subtotal);
 
-        // Calculate delivery fee
+        // Calculate delivery fee + delivery ETA
         BigDecimal deliveryFee = BigDecimal.ZERO;
         if (request.orderType() == OrderType.DELIVERY) {
             deliveryFee = store.getDeliveryFee();
+
+            // ETA estimation (OSRM) if we have coordinates
+            if (deliveryAddress != null
+                    && store.getLatitude() != null && store.getLongitude() != null
+                    && deliveryAddress.getLatitude() != null && deliveryAddress.getLongitude() != null) {
+
+                final var start = new GeolocationService.Coordinates(store.getLatitude(), store.getLongitude());
+                final var end = new GeolocationService.Coordinates(deliveryAddress.getLatitude(), deliveryAddress.getLongitude());
+
+                final double distanceKm = geolocationService.calculateDrivingDistance(start, end);
+                final int durationMin = geolocationService.calculateDrivingDurationMinutes(start, end);
+
+                order.setEstimatedDeliveryDistanceKm(java.math.BigDecimal.valueOf(distanceKm));
+                order.setEstimatedDeliveryMinutes(durationMin);
+            }
         }
         order.setDeliveryFee(deliveryFee);
 
@@ -173,20 +288,31 @@ public class OrderServiceImpl implements OrderService {
         // Save order
         order = this.orderRepository.save(order);
 
-        // Send notification to store owner
+        // Send notification to store owner (SMS + Email)
         try {
             final String ownerPhone = store.getOwner().getMobilePhoneNumber();
+            final String ownerEmail = store.getOwner().getEmailAddress();
+
+            final String etaPart = (order.getEstimatedDeliveryMinutes() != null && order.getEstimatedDeliveryDistanceKm() != null)
+                    ? String.format(" ETA: %d min (%.2f km).", order.getEstimatedDeliveryMinutes(), order.getEstimatedDeliveryDistanceKm())
+                    : "";
+
             final String content = String.format(
-                    "New order #%d received! Total: €%.2f. %d items for %s.",
+                    "New order #%d received! Total: €%.2f. %d items for %s.%s",
                     order.getId(),
                     order.getTotal(),
                     orderItems.size(),
-                    request.orderType() == OrderType.DELIVERY ? "delivery" : "pickup"
+                    request.orderType() == OrderType.DELIVERY ? "delivery" : "pickup",
+                    etaPart
             );
+
             boolean sent = this.smsNotificationPort.sendSms(ownerPhone, content);
             if (!sent) {
                 LOGGER.warn("Failed to send SMS notification to store owner for order {}", order.getId());
             }
+
+            this.emailPort.sendEmail(ownerEmail, "New Order #" + order.getId() + " - " + store.getName(), content);
+
         } catch (Exception e) {
             LOGGER.error("Error sending notification to store owner", e);
         }
@@ -232,11 +358,13 @@ public class OrderServiceImpl implements OrderService {
         order.setCancelledAt(Instant.now());
         this.orderRepository.save(order);
 
-        // Notify store owner
+        // Notify store owner (SMS + Email)
         try {
             final String ownerPhone = order.getStore().getOwner().getMobilePhoneNumber();
+            final String ownerEmail = order.getStore().getOwner().getEmailAddress();
             final String content = String.format("Order #%d has been cancelled by customer.", order.getId());
             this.smsNotificationPort.sendSms(ownerPhone, content);
+            this.emailPort.sendEmail(ownerEmail, "Order #" + order.getId() + " cancelled", content);
         } catch (Exception e) {
             LOGGER.error("Error notifying store owner of cancellation", e);
         }
@@ -307,16 +435,23 @@ public class OrderServiceImpl implements OrderService {
         order.setAcceptedAt(Instant.now());
         order = this.orderRepository.save(order);
 
-        // Notify customer
+        // Notify customer (SMS + Email)
         try {
             final String customerPhone = order.getCustomer().getMobilePhoneNumber();
+            final String customerEmail = order.getCustomer().getEmailAddress();
+
+            final int etaMinutes = order.getEstimatedDeliveryMinutes() != null
+                    ? order.getEstimatedDeliveryMinutes()
+                    : (order.getStore().getEstimatedDeliveryTimeMinutes() != null ? order.getStore().getEstimatedDeliveryTimeMinutes() : 30);
+
             final String content = String.format(
                     "Great news! Your order #%d at %s has been accepted and is being prepared. Estimated time: %d minutes.",
                     order.getId(),
                     order.getStore().getName(),
-                    order.getStore().getEstimatedDeliveryTimeMinutes()
+                    etaMinutes
             );
             this.smsNotificationPort.sendSms(customerPhone, content);
+            this.emailPort.sendEmail(customerEmail, "Order #" + order.getId() + " accepted", content);
         } catch (Exception e) {
             LOGGER.error("Error notifying customer of order acceptance", e);
         }
@@ -347,9 +482,10 @@ public class OrderServiceImpl implements OrderService {
         order.setRejectedAt(Instant.now());
         order = this.orderRepository.save(order);
 
-        // Notify customer
+        // Notify customer (SMS + Email)
         try {
             final String customerPhone = order.getCustomer().getMobilePhoneNumber();
+            final String customerEmail = order.getCustomer().getEmailAddress();
             final String content = String.format(
                     "Sorry! Your order #%d at %s was rejected. Reason: %s",
                     order.getId(),
@@ -357,6 +493,7 @@ public class OrderServiceImpl implements OrderService {
                     request.reason()
             );
             this.smsNotificationPort.sendSms(customerPhone, content);
+            this.emailPort.sendEmail(customerEmail, "Order #" + order.getId() + " rejected", content);
         } catch (Exception e) {
             LOGGER.error("Error notifying customer of order rejection", e);
         }
@@ -391,9 +528,10 @@ public class OrderServiceImpl implements OrderService {
 
         order = this.orderRepository.save(order);
 
-        // Notify customer
+        // Notify customer (SMS + Email)
         try {
             final String customerPhone = order.getCustomer().getMobilePhoneNumber();
+            final String customerEmail = order.getCustomer().getEmailAddress();
             String content = switch (request.newStatus()) {
                 case READY -> order.getOrderType() == OrderType.PICKUP
                         ? String.format("Your order #%d is ready for pickup at %s!", order.getId(), order.getStore().getName())
@@ -403,6 +541,7 @@ public class OrderServiceImpl implements OrderService {
                 default -> String.format("Order #%d status updated: %s", order.getId(), request.newStatus());
             };
             this.smsNotificationPort.sendSms(customerPhone, content);
+            this.emailPort.sendEmail(customerEmail, "Order #" + order.getId() + " status: " + request.newStatus(), content);
         } catch (Exception e) {
             LOGGER.error("Error notifying customer of status update", e);
         }
@@ -447,6 +586,92 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(this.orderMapper::toView)
                 .toList();
+    }
+
+    @Override
+    public List<OrderView> searchCustomerOrders(final Long customerId, final OrderSearchCriteria criteria) {
+        if (customerId == null) throw new IllegalArgumentException();
+        if (criteria == null) throw new NullPointerException();
+
+        final var currentUser = this.currentUserProvider.requireCurrentUser();
+        if (!Objects.equals(customerId, currentUser.id())) {
+            throw new SecurityException("Cannot search other customer's orders");
+        }
+
+        return this.orderRepository.findCustomerOrdersWithFilters(
+                customerId,
+                criteria.status(),
+                criteria.orderType(),
+                criteria.startDate(),
+                criteria.endDate()
+        ).stream()
+                .map(this.orderMapper::toView)
+                .toList();
+    }
+
+    @Override
+    public OrderStatistics getCustomerOrderStatistics(final Long customerId) {
+        if (customerId == null) throw new IllegalArgumentException();
+
+        final var currentUser = this.currentUserProvider.requireCurrentUser();
+        if (!Objects.equals(customerId, currentUser.id())) {
+            throw new SecurityException("Cannot view other customer's statistics");
+        }
+
+        Long total = (long) this.orderRepository.findAllByCustomerIdOrderByCreatedAtDesc(customerId).size();
+        Long completed = this.orderRepository.countByCustomerIdAndStatus(customerId, OrderStatus.COMPLETED);
+        Long cancelled = this.orderRepository.countByCustomerIdAndStatus(customerId, OrderStatus.CANCELLED);
+        Long pending = this.orderRepository.countByCustomerIdAndStatus(customerId, OrderStatus.PENDING);
+
+        return new OrderStatistics(total, completed, cancelled, pending);
+    }
+
+    @Override
+    public List<OrderView> searchStoreOrders(final Long storeId, final OrderSearchCriteria criteria) {
+        if (storeId == null) throw new IllegalArgumentException();
+        if (criteria == null) throw new NullPointerException();
+
+        final var currentUser = this.currentUserProvider.requireCurrentUser();
+        final Store store = this.storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+
+        if (currentUser.type() == PersonType.OWNER) {
+            if (!store.getOwner().getId().equals(currentUser.id())) {
+                throw new SecurityException("Cannot search other store's orders");
+            }
+        }
+
+        return this.orderRepository.findStoreOrdersWithFilters(
+                storeId,
+                criteria.status(),
+                criteria.orderType(),
+                criteria.startDate(),
+                criteria.endDate()
+        ).stream()
+                .map(this.orderMapper::toView)
+                .toList();
+    }
+
+    @Override
+    public OrderStatistics getStoreOrderStatistics(final Long storeId) {
+        if (storeId == null) throw new IllegalArgumentException();
+
+        final var currentUser = this.currentUserProvider.requireCurrentUser();
+        final Store store = this.storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+
+        if (currentUser.type() == PersonType.OWNER) {
+            if (!store.getOwner().getId().equals(currentUser.id())) {
+                throw new SecurityException("Cannot view other store's statistics");
+            }
+        }
+
+        Long total = (long) this.orderRepository.findAllByStoreIdOrderByCreatedAtDesc(storeId).size();
+        Long completed = this.orderRepository.countByStoreIdAndStatus(storeId, OrderStatus.COMPLETED);
+        Long cancelled = this.orderRepository.countByStoreIdAndStatus(storeId, OrderStatus.CANCELLED);
+        Long pending = this.orderRepository.countByStoreIdAndStatus(storeId, OrderStatus.PENDING);
+
+        return new OrderStatistics(total, completed, cancelled, pending);
     }
 
     /**
