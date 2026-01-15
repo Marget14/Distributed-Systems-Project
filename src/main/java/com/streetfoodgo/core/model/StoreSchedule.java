@@ -86,4 +86,12 @@ public class StoreSchedule {
     public void setClosed(Boolean closed) {
         isClosed = closed;
     }
+
+    public Boolean getIsOpen() {
+        return !isClosed;
+    }
+
+    public void setIsOpen(Boolean isOpen) {
+        this.isClosed = !isOpen;
+    }
 }

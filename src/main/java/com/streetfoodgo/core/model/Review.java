@@ -9,7 +9,18 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "review")
+@Table(
+        name = "review",
+        indexes = {
+                @Index(name = "idx_review_store", columnList = "store_id"),
+                @Index(name = "idx_review_customer", columnList = "customer_id"),
+                @Index(name = "idx_review_order", columnList = "order_id"),
+                @Index(name = "idx_review_rating", columnList = "rating")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_review_order", columnNames = "order_id")
+        }
+)
 public class Review {
 
     @Id
@@ -33,6 +44,16 @@ public class Review {
     @Column(name = "rating", nullable = false)
     private Integer rating;
 
+    @Min(1)
+    @Max(5)
+    @Column(name = "food_rating")
+    private Integer foodRating;
+
+    @Min(1)
+    @Max(5)
+    @Column(name = "delivery_rating")
+    private Integer deliveryRating;
+
     @Size(max = 2000)
     @Column(name = "comment", length = 2000)
     private String comment;
@@ -40,6 +61,9 @@ public class Review {
     @Size(max = 2000)
     @Column(name = "store_reply", length = 2000)
     private String storeReply;
+
+    @Column(name = "is_verified", nullable = false)
+    private Boolean isVerified = false;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -134,4 +158,13 @@ public class Review {
     public void setStoreRepliedAt(Instant storeRepliedAt) {
         this.storeRepliedAt = storeRepliedAt;
     }
+
+    public Integer getFoodRating() { return foodRating; }
+    public void setFoodRating(Integer foodRating) { this.foodRating = foodRating; }
+
+    public Integer getDeliveryRating() { return deliveryRating; }
+    public void setDeliveryRating(Integer deliveryRating) { this.deliveryRating = deliveryRating; }
+
+    public Boolean getIsVerified() { return isVerified; }
+    public void setIsVerified(Boolean verified) { isVerified = verified; }
 }

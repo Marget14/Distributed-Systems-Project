@@ -96,6 +96,9 @@ public final class Store {
     @Column(name = "estimated_delivery_time_minutes")
     private Integer estimatedDeliveryTimeMinutes = 30;
 
+    @Column(name = "max_delivery_distance_km", precision = 5, scale = 2)
+    private java.math.BigDecimal maxDeliveryDistanceKm = java.math.BigDecimal.valueOf(5.0);
+
     @Size(max = 500)
     @Column(name = "image_url", length = 500)
     private String imageUrl;
@@ -185,6 +188,11 @@ public final class Store {
     public Integer getEstimatedDeliveryTimeMinutes() { return estimatedDeliveryTimeMinutes; }
     public void setEstimatedDeliveryTimeMinutes(Integer estimatedDeliveryTimeMinutes) {
         this.estimatedDeliveryTimeMinutes = estimatedDeliveryTimeMinutes;
+    }
+
+    public java.math.BigDecimal getMaxDeliveryDistanceKm() { return maxDeliveryDistanceKm; }
+    public void setMaxDeliveryDistanceKm(java.math.BigDecimal maxDeliveryDistanceKm) {
+        this.maxDeliveryDistanceKm = maxDeliveryDistanceKm;
     }
 
     public String getImageUrl() { return imageUrl; }

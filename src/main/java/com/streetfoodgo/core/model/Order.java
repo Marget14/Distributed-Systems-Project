@@ -65,6 +65,13 @@ public final class Order {
     @Column(name = "delivery_fee", precision = 10, scale = 2)
     private BigDecimal deliveryFee = BigDecimal.ZERO;
 
+    // Delivery estimation
+    @Column(name = "estimated_delivery_minutes")
+    private Integer estimatedDeliveryMinutes;
+
+    @Column(name = "estimated_delivery_distance_km", precision = 6, scale = 2)
+    private BigDecimal estimatedDeliveryDistanceKm;
+
     @NotNull
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
@@ -158,6 +165,12 @@ public final class Order {
 
     public BigDecimal getDeliveryFee() { return deliveryFee; }
     public void setDeliveryFee(BigDecimal deliveryFee) { this.deliveryFee = deliveryFee; }
+
+    public Integer getEstimatedDeliveryMinutes() { return estimatedDeliveryMinutes; }
+    public void setEstimatedDeliveryMinutes(Integer estimatedDeliveryMinutes) { this.estimatedDeliveryMinutes = estimatedDeliveryMinutes; }
+
+    public BigDecimal getEstimatedDeliveryDistanceKm() { return estimatedDeliveryDistanceKm; }
+    public void setEstimatedDeliveryDistanceKm(BigDecimal estimatedDeliveryDistanceKm) { this.estimatedDeliveryDistanceKm = estimatedDeliveryDistanceKm; }
 
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }

@@ -32,7 +32,7 @@ public class PhoneNumberPortImpl implements PhoneNumberPort {
 
         final String url = baseUrl + "/api/v1/phone-numbers/" + rawPhoneNumber + "/validations";
         final ResponseEntity<PhoneNumberValidationResult> response
-            = this.restTemplate.getForEntity(url, PhoneNumberValidationResult.class);
+                = this.restTemplate.getForEntity(url, PhoneNumberValidationResult.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             final PhoneNumberValidationResult phoneNumberValidationResult = response.getBody();

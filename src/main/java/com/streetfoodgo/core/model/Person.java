@@ -71,6 +71,9 @@ public final class Person {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
     // ✅ NEW FIELDS FOR PROFILE
     @Column(name = "birth_day")
     private Integer birthDay;
@@ -155,6 +158,9 @@ public final class Person {
 
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
+
+    public Boolean getEmailVerified() { return emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
 
     public String getFullName() {
         return firstName + " " + lastName;

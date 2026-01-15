@@ -48,6 +48,12 @@ public final class OrderItem {
     @Column(name = "special_instructions", length = 500)
     private String specialInstructions; // e.g., "No onions", "Extra cheese"
 
+    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<OrderItemCustomization> customizations = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<OrderItemRemovedIngredient> removedIngredients = new java.util.ArrayList<>();
+
     // Constructors
     public OrderItem() {}
 
@@ -80,9 +86,32 @@ public final class OrderItem {
     public String getSpecialInstructions() { return specialInstructions; }
     public void setSpecialInstructions(String specialInstructions) { this.specialInstructions = specialInstructions; }
 
+    public java.util.List<OrderItemCustomization> getCustomizations() { return customizations; }
+    public void setCustomizations(java.util.List<OrderItemCustomization> customizations) { this.customizations = customizations; }
+
+    public java.util.List<OrderItemRemovedIngredient> getRemovedIngredients() { return removedIngredients; }
+    public void setRemovedIngredients(java.util.List<OrderItemRemovedIngredient> removedIngredients) { 
+        this.removedIngredients = removedIngredients; 
+    }
+
+    public void addCustomization(OrderItemCustomization customization) {
+        customizations.add(customization);
+        customization.setOrderItem(this);
+    }
+
+    public void addRemovedIngredient(OrderItemRemovedIngredient removedIngredient) {
+        removedIngredients.add(removedIngredient);
+        removedIngredient.setOrderItem(this);
+    }
+
     // Utility methods
     public BigDecimal getSubtotal() {
-        return priceAtOrder.multiply(BigDecimal.valueOf(quantity));
+        BigDecimal basePrice = priceAtOrder.multiply(BigDecimal.valueOf(quantity));
+        BigDecimal customizationPrice = customizations.stream()
+                .map(OrderItemCustomization::getAdditionalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .multiply(BigDecimal.valueOf(quantity));
+        return basePrice.add(customizationPrice);
     }
 
     @Override

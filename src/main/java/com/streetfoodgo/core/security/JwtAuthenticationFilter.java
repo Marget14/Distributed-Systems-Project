@@ -45,6 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         final String path = request.getServletPath();
         if (path.equals("/api/v1/auth/client-tokens")) return true;
+        if (path.equals("/api/v1/auth/login")) return true;
         return !path.startsWith("/api/v1");
     }
 
@@ -65,6 +66,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             final Claims claims = this.jwtService.parse(token);
             final String subject = claims.getSubject();
+            // Supported subjects:
+            // - client:{id} (integration clients)
+            // - user:{personId} (real users)
+
             final Collection<String> roles = (Collection<String>) claims.get("roles");
 
             // Convert String to GrantedAuthority
