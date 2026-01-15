@@ -35,7 +35,7 @@ A distributed street food marketplace built with Spring Boot.
 
 3. **Start all services:**
    ```bash
-   docker-compose up --build
+   docker-compose up -d
    ```
    Wait ~1–2 minutes for full startup.
 
