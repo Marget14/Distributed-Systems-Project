@@ -37,12 +37,5 @@ app:
     ttl-minutes: 60
   hua-noc:
     base-url: "${HUA_NOC_BASE_URL:http://localhost:8080/swagger-ui.html}"
-  geo:
-    # Choose geocoder: 'nominatim' or 'photon'
-    geocoder: ${APP_GEO_GEOCODER:nominatim}
-    geocoder-base-url: ${APP_GEO_GEOCODER_BASE_URL:https://nominatim.openstreetmap.org}
-    # OSRM routing base URL (self-hosted via docker-compose)
-    routing-base-url: ${APP_GEO_ROUTING_BASE_URL:http://localhost:5000}
-    bias-city: "Athens, Greece"
 
 
