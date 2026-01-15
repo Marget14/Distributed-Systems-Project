@@ -109,40 +109,50 @@
                     </div>
                 </div>
 
-                <!-- Payment Method Section (ADD THIS) -->
-                <div class="mb-4">
-                    <h4 class="text-white mb-3 text-sm font-semibold">Payment Method *</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center p-3 border border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer">
-                            <input type="radio" name="paymentMethod" value="CASH" class="mr-3" checked
+                <!-- Payment Method Section -->
+                <div class="mb-6 pb-6 border-b border-white/10">
+                    <h4 class="text-white mb-3 font-semibold flex items-center">
+                        <i class="fas fa-credit-card mr-2 text-cyber-blue"></i>
+                        Payment Method *
+                    </h4>
+                    <div class="space-y-3">
+                        <label class="flex items-start p-4 border-2 border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer transition-all payment-method-option">
+                            <input type="radio" name="paymentMethod" value="CASH" class="mt-1 mr-3" checked
                                    onchange="setPaymentMethod('CASH')">
-                            <div>
-                                <p class="text-white font-medium">Cash on Delivery</p>
-                                <p class="text-gray-400 text-xs">Pay with cash when you receive your order</p>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="text-white font-semibold">Cash on Delivery</p>
+                                    <i class="fas fa-money-bill-wave text-green-400 text-xl"></i>
+                                </div>
+                                <p class="text-gray-400 text-sm">Pay with cash when you receive your order</p>
                             </div>
-                            <i class="fas fa-money-bill-wave ml-auto text-green-400"></i>
                         </label>
 
-                        <label class="flex items-center p-3 border border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer">
-                            <input type="radio" name="paymentMethod" value="CARD" class="mr-3"
+                        <label class="flex items-start p-4 border-2 border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer transition-all payment-method-option">
+                            <input type="radio" name="paymentMethod" value="CARD" class="mt-1 mr-3"
                                    onchange="setPaymentMethod('CARD')">
-                            <div>
-                                <p class="text-white font-medium">Credit/Debit Card</p>
-                                <p class="text-gray-400 text-xs">Pay securely with your card</p>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="text-white font-semibold">Credit/Debit Card</p>
+                                    <i class="fas fa-credit-card text-blue-400 text-xl"></i>
+                                </div>
+                                <p class="text-gray-400 text-sm">Pay securely with your card</p>
                             </div>
-                            <i class="fas fa-credit-card ml-auto text-blue-400"></i>
                         </label>
                     </div>
-                    <div id="cardDetailsSection" class="mt-3 hidden">
+                    <div id="cardDetailsSection" class="mt-4 p-4 bg-white/5 rounded-lg hidden">
+                        <p class="text-white text-sm font-semibold mb-3">Enter Card Details</p>
                         <div class="space-y-3">
-                            <input type="text" placeholder="Card Number"
+                            <input type="text" placeholder="Card Number (1234 5678 9012 3456)"
                                    class="quantum-input w-full text-sm" maxlength="19">
                             <div class="grid grid-cols-2 gap-3">
                                 <input type="text" placeholder="MM/YY"
-                                       class="quantum-input text-sm">
+                                       class="quantum-input text-sm" maxlength="5">
                                 <input type="text" placeholder="CVV"
                                        class="quantum-input text-sm" maxlength="3">
                             </div>
+                            <input type="text" placeholder="Cardholder Name"
+                                   class="quantum-input w-full text-sm">
                         </div>
                     </div>
                 </div>
@@ -317,27 +327,44 @@
 
         // ==================== PAYMENT METHOD ====================
         function setPaymentMethod(method) {
-  // Avoid infinite loops and unnecessary DOM work
-  if (!method) return;
-  if (selectedPaymentMethod === method) {
-    // Ensure UI is consistent anyway
-  } else {
-    selectedPaymentMethod = method;
-  }
+            // Avoid infinite loops and unnecessary DOM work
+            if (!method) return;
+            if (selectedPaymentMethod === method) {
+                // Ensure UI is consistent anyway
+            } else {
+                selectedPaymentMethod = method;
+            }
 
-  // Keep radio UI in sync WITHOUT triggering recursion
-  const radios = document.querySelectorAll('input[name="paymentMethod"]');
-  radios.forEach(r => { r.checked = (r.value === selectedPaymentMethod); });
+            console.log('💳 Payment method set to:', selectedPaymentMethod);
 
-  // Show/hide card details
-  const cardSection = document.getElementById('cardDetailsSection');
-  if (cardSection) {
-    if (selectedPaymentMethod === 'CARD') cardSection.classList.remove('hidden');
-    else cardSection.classList.add('hidden');
-  }
+            // Keep radio UI in sync WITHOUT triggering recursion
+            const radios = document.querySelectorAll('input[name="paymentMethod"]');
+            radios.forEach(r => { r.checked = (r.value === selectedPaymentMethod); });
 
-  updatePlaceOrderButton();
-}
+            // Update visual selection on parent labels
+            document.querySelectorAll('.payment-method-option').forEach(label => {
+                const radio = label.querySelector('input[type="radio"]');
+                if (radio && radio.checked) {
+                    label.classList.add('border-cyber-blue', 'bg-cyber-blue/10');
+                    label.classList.remove('border-white/10');
+                } else {
+                    label.classList.remove('border-cyber-blue', 'bg-cyber-blue/10');
+                    label.classList.add('border-white/10');
+                }
+            });
+
+            // Show/hide card details
+            const cardSection = document.getElementById('cardDetailsSection');
+            if (cardSection) {
+                if (selectedPaymentMethod === 'CARD') {
+                    cardSection.classList.remove('hidden');
+                } else {
+                    cardSection.classList.add('hidden');
+                }
+            }
+
+            updatePlaceOrderButton();
+        }
 
         // ==================== ADDRESS FUNCTIONS ====================
         function showNewAddressForm() {
@@ -592,9 +619,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🛒 Checkout page loaded');
             console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
-  const initialPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CASH';
-  setPaymentMethod(initialPayment);
+            console.log('📦 Order Type:', orderType);
+            
+            const initialPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CASH';
+            setPaymentMethod(initialPayment);
             updatePlaceOrderButton();
+            
+            // Add visual feedback on payment method selection
+            document.querySelectorAll('.payment-method-option').forEach(label => {
+                label.addEventListener('click', function() {
+                    console.log('💳 Payment option clicked');
+                });
+            });
         });
     </script>
 </div>

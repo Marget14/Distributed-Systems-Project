@@ -31,18 +31,39 @@
                 <!-- Menu Items -->
                 <div class="space-y-4">
                     <div th:each="item : ${menuItems}"
-                         class="glass-panel p-4 menu-item">
+                         class="glass-panel p-4 menu-item"
+                         th:data-menu-item-id="${item.id()}"
+                         th:data-has-options="${item.options() != null && !item.options().isEmpty()}"
+                         th:data-has-ingredients="${item.ingredients() != null && !item.ingredients().isEmpty()}">
                         <div class="flex justify-between">
-                            <div>
+                            <div class="flex-1">
                                 <h3 class="text-lg font-bold text-white" th:text="${item.name()}">Item</h3>
                                 <p class="text-sm text-gray-400" th:text="${item.description()}">Desc</p>
-                                <span class="text-xl text-cyber-blue font-bold">€<span th:text="${item.price()}">0</span></span>
+                                
+                                <!-- Options Preview -->
+                                <div th:if="${item.options() != null && !item.options().isEmpty()}" class="mt-2">
+                                    <p class="text-xs text-cyber-blue">
+                                        <i class="fas fa-cog mr-1"></i>Customizable options available
+                                    </p>
+                                </div>
+                                
+                                <!-- Ingredients Preview -->
+                                <div th:if="${item.ingredients() != null && !item.ingredients().isEmpty()}" class="mt-1">
+                                    <p class="text-xs text-gray-500">
+                                        <i class="fas fa-leaf mr-1"></i>
+                                        <span th:text="${#strings.listJoin(item.ingredients().![name], ', ')}">Ingredients</span>
+                                    </p>
+                                </div>
+                                
+                                <span class="text-xl text-cyber-blue font-bold mt-2 inline-block">€<span th:text="${item.price()}">0</span></span>
                             </div>
                             <div th:if="${item.available()}">
                                 <input type="hidden" class="item-id" th:value="${item.id()}"/>
                                 <input type="hidden" class="item-name" th:value="${item.name()}"/>
                                 <input type="hidden" class="item-price" th:value="${item.price()}"/>
-                                <button class="add-btn cyber-button h-fit">Add</button>
+                                <button class="add-btn cyber-button h-fit">
+                                    <i class="fas fa-plus mr-1"></i>Add
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -85,6 +106,98 @@
             </div>
         </div>
     </div>
+
+    <!-- Customization Modal -->
+    <div id="customizationModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="glass-panel p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalItemName" class="text-2xl font-bold text-white">Customize Item</h2>
+                <button onclick="closeCustomizationModal()" class="text-gray-400 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="modalContent" class="space-y-6">
+                <!-- Options will be dynamically inserted here -->
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-white/10">
+                <label class="block text-white mb-2 text-sm">Special Instructions</label>
+                <textarea id="modalSpecialInstructions" 
+                          class="quantum-input w-full h-20 text-sm" 
+                          placeholder="Any special requests? (e.g., extra sauce, no onions)"></textarea>
+            </div>
+            
+            <div class="mt-6 flex gap-3">
+                <button onclick="closeCustomizationModal()" 
+                        class="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg">
+                    Cancel
+                </button>
+                <button onclick="addCustomizedItemToCart()" 
+                        class="flex-1 cyber-button py-3">
+                    <i class="fas fa-cart-plus mr-2"></i>Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Serialize menu items with full data for JavaScript
+        const menuItemsData = [
+            /*[# th:each="item : ${menuItems}"]*/
+            {
+                id: /*[[${item.id()}]]*/ 0,
+                name: /*[[${item.name()}]]*/ '',
+                price: /*[[${item.price()}]]*/ 0,
+                description: /*[[${item.description()}]]*/ '',
+                available: /*[[${item.available()}]]*/ true,
+                options: [
+                    /*[# th:each="opt : ${item.options()}"]*/
+                    {
+                        id: /*[[${opt.id()}]]*/ 0,
+                        name: /*[[${opt.name()}]]*/ '',
+                        description: /*[[${opt.description()}]]*/ '',
+                        isRequired: /*[[${opt.isRequired()}]]*/ false,
+                        allowMultiple: /*[[${opt.allowMultiple()}]]*/ false,
+                        minSelections: /*[[${opt.minSelections()}]]*/ 0,
+                        maxSelections: /*[[${opt.maxSelections()}]]*/ 1,
+                        displayOrder: /*[[${opt.displayOrder()}]]*/ 0,
+                        choices: [
+                            /*[# th:each="choice : ${opt.choices()}"]*/
+                            {
+                                id: /*[[${choice.id()}]]*/ 0,
+                                name: /*[[${choice.name()}]]*/ '',
+                                description: /*[[${choice.description()}]]*/ '',
+                                additionalPrice: /*[[${choice.additionalPrice()}]]*/ 0,
+                                isAvailable: /*[[${choice.isAvailable()}]]*/ true,
+                                isDefault: /*[[${choice.isDefault()}]]*/ false,
+                                displayOrder: /*[[${choice.displayOrder()}]]*/ 0
+                            }/*[# th:if="${!choiceStat.last}"]*/,/*[/]*/
+                            /*[/]*/
+                        ]
+                    }/*[# th:if="${!optStat.last}"]*/,/*[/]*/
+                    /*[/]*/
+                ],
+                ingredients: [
+                    /*[# th:each="ing : ${item.ingredients()}"]*/
+                    {
+                        id: /*[[${ing.id()}]]*/ 0,
+                        name: /*[[${ing.name()}]]*/ '',
+                        description: /*[[${ing.description()}]]*/ '',
+                        isRemovable: /*[[${ing.isRemovable()}]]*/ true,
+                        isAllergen: /*[[${ing.isAllergen()}]]*/ false,
+                        allergenInfo: /*[[${ing.allergenInfo()}]]*/ '',
+                        displayOrder: /*[[${ing.displayOrder()}]]*/ 0
+                    }/*[# th:if="${!ingStat.last}"]*/,/*[/]*/
+                    /*[/]*/
+                ]
+            }/*[# th:if="${!itemStat.last}"]*/,/*[/]*/
+            /*[/]*/
+        ];
+        console.log('📦 Menu items loaded:', menuItemsData.length);
+        /*]]*/
+    </script>
 
     <script th:inline="none">
         (function() {
@@ -195,15 +308,24 @@
                         var container = this.closest('.menu-item');
                         if (!container) return;
 
-                        var itemData = {
-                            id: container.querySelector('.item-id').value,
-                            name: container.querySelector('.item-name').value,
-                            price: parseFloat(container.querySelector('.item-price').value),
-                            quantity: 1
-                        };
+                        var itemId = container.querySelector('.item-id').value;
+                        var hasOptions = container.dataset.hasOptions === 'true';
+                        var hasIngredients = container.dataset.hasIngredients === 'true';
 
-                        console.log('📦 Adding item:', itemData);
-                        addItemToServerCart(itemData);
+                        // If item has options or removable ingredients, show modal
+                        if (hasOptions || hasIngredients) {
+                            showCustomizationModal(itemId);
+                        } else {
+                            // Add directly without customization
+                            var itemData = {
+                                id: container.querySelector('.item-id').value,
+                                name: container.querySelector('.item-name').value,
+                                price: parseFloat(container.querySelector('.item-price').value),
+                                quantity: 1
+                            };
+                            console.log('📦 Adding item without customization:', itemData);
+                            addItemToServerCart(itemData, null, null, null);
+                        }
                     });
                 });
 
@@ -248,9 +370,10 @@
 
                         serverItems.forEach(function(item) {
                             cart.push({
-                                id: item.id || item.menuItemId,
+                                lineId: item.lineId,
+                                menuItemId: item.menuItemId,
                                 name: item.name,
-                                price: item.price || item.priceAtTime,
+                                price: item.price,
                                 quantity: item.quantity || 1,
                                 storeId: item.storeId
                             });
@@ -266,7 +389,7 @@
                     });
             }
 
-            function addItemToServerCart(item) {
+            function addItemToServerCart(item, selectedChoiceIds, removedIngredientIds, specialInstructions) {
                 if (config.isUpdating) {
                     console.log('⏳ Already updating, skipping');
                     return;
@@ -280,12 +403,19 @@
 
                 console.log('📤 Sending to server with CSRF protection:', item);
 
+                var requestBody = {
+                    menuItemId: parseInt(item.id),
+                    quantity: item.quantity,
+                    selectedChoiceIds: selectedChoiceIds || [],
+                    removedIngredientIds: removedIngredientIds || [],
+                    specialInstructions: specialInstructions || null
+                };
+
+                console.log('📦 Request body:', requestBody);
+
                 makeAuthenticatedRequest('/api/cart/items', {
                     method: 'POST',
-                    body: JSON.stringify({
-                        menuItemId: parseInt(item.id),
-                        quantity: item.quantity
-                    })
+                    body: JSON.stringify(requestBody)
                 })
                     .then(function(response) {
                         if (!response.ok) {
@@ -376,19 +506,19 @@
                             <h4 class="font-semibold text-white">${item.name}</h4>
                             <p class="text-sm text-gray-400">€${item.price.toFixed(2)} each</p>
                         </div>
-                        <button onclick="removeItemFromServer('${item.id}')"
+                        <button onclick="removeItemFromServer('${item.lineId}')"
                                 class="text-red-400 hover:text-red-300 ml-2">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                     <div class="flex justify-between items-center">
                         <div class="flex items-center space-x-2">
-                            <button onclick="updateQuantityOnServer('${item.id}', -1)"
+                            <button onclick="updateQuantityOnServer('${item.lineId}', -1)"
                                     class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
                                 <i class="fas fa-minus text-xs"></i>
                             </button>
                             <span class="w-8 text-center font-bold">${item.quantity}</span>
-                            <button onclick="updateQuantityOnServer('${item.id}', 1)"
+                            <button onclick="updateQuantityOnServer('${item.lineId}', 1)"
                                     class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
                                 <i class="fas fa-plus text-xs"></i>
                             </button>
@@ -413,10 +543,10 @@
             }
 
             // ==================== GLOBAL FUNCTIONS ====================
-            window.removeItemFromServer = function(itemId) {
-                console.log('🗑️ Removing item:', itemId);
+            window.removeItemFromServer = function(lineId) {
+                console.log('🗑️ Removing line:', lineId);
 
-                makeAuthenticatedRequest('/api/cart/items/' + itemId, {
+                makeAuthenticatedRequest('/api/cart/items/' + lineId, {
                     method: 'DELETE'
                 })
                     .then(function(response) {
@@ -430,10 +560,10 @@
                     });
             };
 
-            window.updateQuantityOnServer = function(itemId, change) {
-                console.log('🔄 Updating quantity for', itemId, 'change:', change);
+            window.updateQuantityOnServer = function(lineId, change) {
+                console.log('🔄 Updating quantity for', lineId, 'change:', change);
 
-                makeAuthenticatedRequest('/api/cart/items/' + itemId + '/quantity', {
+                makeAuthenticatedRequest('/api/cart/items/' + lineId + '/quantity', {
                     method: 'PUT',
                     body: JSON.stringify({ change: change })
                 })
@@ -481,6 +611,169 @@
                     }, 300);
                 }, 3000);
             }
+
+            // ==================== CUSTOMIZATION MODAL ====================
+            var currentCustomizingItem = null;
+
+            window.showCustomizationModal = function(itemId) {
+                console.log('🎨 Opening customization modal for item:', itemId);
+                console.log('📦 Available menu items:', menuItemsData);
+                
+                // Find the menu item data
+                var menuItem = menuItemsData.find(function(item) { return item.id == itemId; });
+                if (!menuItem) {
+                    console.error('❌ Menu item not found:', itemId);
+                    console.error('Available IDs:', menuItemsData.map(function(i) { return i.id; }));
+                    return;
+                }
+                
+                currentCustomizingItem = menuItem;
+                
+                // Set modal title
+                document.getElementById('modalItemName').textContent = 'Customize ' + menuItem.name;
+                
+                // Build modal content
+                var modalContent = document.getElementById('modalContent');
+                modalContent.innerHTML = '';
+                
+                // Add price display
+                var priceDiv = document.createElement('div');
+                priceDiv.className = 'text-cyber-blue text-xl font-bold mb-4';
+                priceDiv.innerHTML = 'Base Price: €' + menuItem.price.toFixed(2);
+                modalContent.appendChild(priceDiv);
+                
+                // Add options
+                if (menuItem.options && menuItem.options.length > 0) {
+                    menuItem.options.forEach(function(option) {
+                        var optionDiv = document.createElement('div');
+                        optionDiv.className = 'bg-white/5 p-4 rounded-lg';
+                        
+                        var headerHtml = '<h4 class="text-white font-semibold mb-2">' + option.name;
+                        if (option.isRequired) {
+                            headerHtml += ' <span class="text-red-400 text-sm">*Required</span>';
+                        }
+                        headerHtml += '</h4>';
+                        if (option.description) {
+                            headerHtml += '<p class="text-gray-400 text-sm mb-3">' + option.description + '</p>';
+                        }
+                        optionDiv.innerHTML = headerHtml;
+                        
+                        var choicesContainer = document.createElement('div');
+                        choicesContainer.className = 'space-y-2';
+                        
+                        option.choices.forEach(function(choice) {
+                            if (choice.isAvailable) {
+                                var choiceLabel = document.createElement('label');
+                                choiceLabel.className = 'flex items-center p-2 hover:bg-white/5 rounded cursor-pointer';
+                                
+                                var inputType = option.allowMultiple ? 'checkbox' : 'radio';
+                                var inputName = 'option_' + option.id;
+                                
+                                var priceText = choice.additionalPrice > 0 ? ' (+€' + choice.additionalPrice.toFixed(2) + ')' : '';
+                                
+                                choiceLabel.innerHTML = `
+                                    <input type="${inputType}" 
+                                           name="${inputName}" 
+                                           value="${choice.id}"
+                                           class="mr-3 choice-input"
+                                           data-option-id="${option.id}"
+                                           ${choice.isDefault ? 'checked' : ''}>
+                                    <div class="flex-1">
+                                        <span class="text-white">${choice.name}${priceText}</span>
+                                        ${choice.description ? '<p class="text-gray-400 text-xs mt-1">' + choice.description + '</p>' : ''}
+                                    </div>
+                                `;
+                                
+                                choicesContainer.appendChild(choiceLabel);
+                            }
+                        });
+                        
+                        optionDiv.appendChild(choicesContainer);
+                        modalContent.appendChild(optionDiv);
+                    });
+                }
+                
+                // Add ingredients (removable)
+                if (menuItem.ingredients && menuItem.ingredients.length > 0) {
+                    var hasRemovable = menuItem.ingredients.some(function(ing) { return ing.isRemovable; });
+                    
+                    if (hasRemovable) {
+                        var ingredientsDiv = document.createElement('div');
+                        ingredientsDiv.className = 'bg-white/5 p-4 rounded-lg';
+                        ingredientsDiv.innerHTML = '<h4 class="text-white font-semibold mb-2">Remove Ingredients</h4>';
+                        
+                        var ingredientsContainer = document.createElement('div');
+                        ingredientsContainer.className = 'space-y-2';
+                        
+                        menuItem.ingredients.forEach(function(ingredient) {
+                            if (ingredient.isRemovable) {
+                                var ingredientLabel = document.createElement('label');
+                                ingredientLabel.className = 'flex items-center p-2 hover:bg-white/5 rounded cursor-pointer';
+                                
+                                var allergenBadge = ingredient.isAllergen ? 
+                                    '<span class="text-red-400 text-xs ml-2"><i class="fas fa-exclamation-triangle"></i> Allergen</span>' : '';
+                                
+                                ingredientLabel.innerHTML = `
+                                    <input type="checkbox" 
+                                           class="mr-3 remove-ingredient" 
+                                           value="${ingredient.id}">
+                                    <span class="text-white">Remove ${ingredient.name}${allergenBadge}</span>
+                                `;
+                                
+                                ingredientsContainer.appendChild(ingredientLabel);
+                            }
+                        });
+                        
+                        ingredientsDiv.appendChild(ingredientsContainer);
+                        modalContent.appendChild(ingredientsDiv);
+                    }
+                }
+                
+                // Show modal
+                document.getElementById('customizationModal').classList.remove('hidden');
+            };
+
+            window.closeCustomizationModal = function() {
+                document.getElementById('customizationModal').classList.add('hidden');
+                document.getElementById('modalSpecialInstructions').value = '';
+                currentCustomizingItem = null;
+            };
+
+            window.addCustomizedItemToCart = function() {
+                if (!currentCustomizingItem) return;
+                
+                // Collect selected choices
+                var selectedChoiceIds = [];
+                document.querySelectorAll('.choice-input:checked').forEach(function(input) {
+                    selectedChoiceIds.push(parseInt(input.value));
+                });
+                
+                // Collect removed ingredients
+                var removedIngredientIds = [];
+                document.querySelectorAll('.remove-ingredient:checked').forEach(function(input) {
+                    removedIngredientIds.push(parseInt(input.value));
+                });
+                
+                // Get special instructions
+                var specialInstructions = document.getElementById('modalSpecialInstructions').value.trim();
+                
+                console.log('📋 Customization:', {
+                    choices: selectedChoiceIds,
+                    removedIngredients: removedIngredientIds,
+                    instructions: specialInstructions
+                });
+                
+                // Add to cart
+                var itemData = {
+                    id: currentCustomizingItem.id,
+                    name: currentCustomizingItem.name,
+                    price: currentCustomizingItem.price,
+                    quantity: 1
+                };
+                
+                closeCustomizationModal();
+                addItemToServerCart(itemData, selectedChoiceIds, removedIngredientIds, specialInstructions);
+            };
 
             // ==================== STARTUP ====================
             if (document.readyState === 'loading') {

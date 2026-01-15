@@ -14,8 +14,12 @@
             <span class="px-3 py-1 bg-cyber-blue/20 text-cyber-blue rounded-full text-sm font-semibold" th:text="${user.type}"></span>
             <span class="text-gray-400">Member since <span th:text="${memberSince}"></span></span>
         </div>
+        <div class="flex flex-wrap gap-3">
         <a th:href="@{/profile/edit}" class="cyber-button">
             <i class="fas fa-edit mr-2"></i>Edit Profile
+        </a>
+        <a th:href="@{/profile/addresses}" class="cyber-button-secondary">
+            <i class="fas fa-map-marker-alt mr-2"></i>My Addresses
         </a>
     </div>
 
@@ -61,28 +65,5 @@
     </div>
 </div>
 
-<script>
-    // Toggle switch functionality
-    document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const setting = this.name;
-            const enabled = this.checked;
-
-            fetch('/api/profile/settings', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
-                },
-                body: JSON.stringify({ [setting]: enabled })
-            }).then(response => {
-                if (response.ok) {
-                    const label = this.closest('.flex').querySelector('label');
-                    label.textContent = enabled ? 'Enabled' : 'Disabled';
-                }
-            });
-        });
-    });
-</script>
 </body>
 </html>

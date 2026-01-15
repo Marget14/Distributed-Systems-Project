@@ -1,65 +1,209 @@
 <!DOCTYPE html>
-<html
-        xmlns:th="https://www.thymeleaf.org"
-        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-        layout:decorate="~{base}">
-
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
 <head>
-    <title>Orders</title>
+    <title>Store Orders</title>
 </head>
-
 <body>
-
-<header layout:fragment="header">
-    <h1>Orders</h1>
-</header>
-
-<section layout:fragment="main">
-
-    <div class="mb-4">
-        <a th:href="@{/templates/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+<div layout:fragment="main">
+    <!-- Store Orders Header -->
+    <div class="glass-panel p-8 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">
+                    Orders - <span th:text="${store.name()}">Store</span>
+                </h1>
+                <p class="text-gray-400">Manage your store orders</p>
+            </div>
+            <a th:href="@{/owner/dashboard}" class="cyber-button-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
     </div>
 
-    <table class="table mb-4">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Status</th>
-            <th>Customer</th>
-            <th>Waiter</th>
-            <th>Queued</th>
-            <th>Started</th>
-            <th>Completed</th>
-            <!--
-            <th>Actions</th>
-            -->
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="t : ${orders}">
-            <td>
-                <a th:href="@{|/templates/owner/orders/${t.id()}|}" th:text="${t.id()}"></a>
-            </td>
-            <td th:text="${t.status()}"></td>
-            <td th:text="${t.customer().fullName()}"></td>
-            <td th:text="${t.waiter().fullName()}"></td>
-            <td th:text="${t.queuedAt()}"></td>
-            <td th:text="${t.inProgressAt()}"></td>
-            <td th:text="${t.completedAt()}"></td>
-            <!--
-            <td>
-                <a th:href="@{|/orders/${t.id()}|}">View</a>
-            </td>
-            -->
-        </tr>
-        </tbody>
-    </table>
-
-    <div th:if="${me.type().name() == 'CUSTOMER'}">
-        <a th:href="@{/templates/owner/orders/new}">Open new order</a>
+    <!-- Filter Section -->
+    <div class="glass-panel p-6 mb-6">
+        <div class="flex gap-3 flex-wrap">
+            <a th:href="@{/owner/stores/{id}/orders(id=${store.id()})}" 
+               th:classappend="${selectedStatus == null ? 'cyber-button' : 'cyber-button-secondary'}"
+               class="px-4 py-2">
+                All Orders
+            </a>
+            <a th:each="status : ${orderStatuses}"
+               th:href="@{/owner/stores/{id}/orders(id=${store.id()}, status=${status})}"
+               th:classappend="${selectedStatus == status ? 'cyber-button' : 'cyber-button-secondary'}"
+               class="px-4 py-2"
+               th:text="${status}">
+                Status
+            </a>
+        </div>
     </div>
 
-</section>
+    <!-- Orders List -->
+    <div th:if="${orders.empty}" class="glass-panel p-12 text-center">
+        <i class="fas fa-receipt text-4xl text-gray-500 mb-4"></i>
+        <h3 class="text-xl font-bold text-white mb-2">No orders found</h3>
+        <p class="text-gray-400">Orders will appear here when customers place them</p>
+    </div>
 
+    <div th:if="${!orders.empty}" class="space-y-4">
+        <div th:each="order : ${orders}" class="glass-panel p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1">
+                        Order #<span th:text="${order.id()}">1</span>
+                    </h3>
+                    <p class="text-gray-400 text-sm">
+                        <i class="fas fa-user mr-1"></i>
+                        Customer ID: <span th:text="${order.customer().id()}">1</span>
+                    </p>
+                    <p class="text-gray-400 text-sm">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span th:text="${#temporals.format(order.createdAt(), 'dd/MM/yyyy HH:mm')}">Date</span>
+                    </p>
+                </div>
+                <div class="text-right">
+                    <span th:class="${'px-3 py-1 rounded-full text-sm font-semibold ' + 
+                        (order.status().name() == 'PENDING' ? 'bg-yellow-500/20 text-yellow-300' :
+                         order.status().name() == 'PREPARING' ? 'bg-purple-500/20 text-purple-300' :
+                         order.status().name() == 'READY' ? 'bg-green-500/20 text-green-300' :
+                         order.status().name() == 'DELIVERING' ? 'bg-cyan-500/20 text-cyan-300' :
+                         order.status().name() == 'COMPLETED' ? 'bg-green-500/20 text-green-300' :
+                         'bg-red-500/20 text-red-300')}"
+                          th:text="${order.status()}">
+                        Status
+                    </span>
+                    <p class="text-2xl font-bold text-cyber-blue mt-2">
+                        €<span th:text="${#numbers.formatDecimal(order.total(), 1, 2)}">0.00</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="border-t border-white/10 pt-4 mb-4">
+                <h4 class="text-white font-semibold mb-2">Items:</h4>
+                <div class="space-y-2">
+                    <div th:each="item : ${order.items()}" class="flex justify-between text-sm">
+                        <span class="text-gray-300">
+                            <span th:text="${item.quantity()}">1</span>x 
+                            <span th:text="${item.menuItem().name()}">Item</span>
+                        </span>
+                        <span class="text-gray-400">
+                            €<span th:text="${#numbers.formatDecimal(item.priceAtOrder(), 1, 2)}">0.00</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Type & Address -->
+            <div class="border-t border-white/10 pt-4 mb-4">
+                <p class="text-gray-300 text-sm">
+                    <i th:class="${order.orderType().name() == 'DELIVERY' ? 'fas fa-truck' : 'fas fa-walking'} 
+                                 text-cyber-blue mr-2"></i>
+                    <span th:text="${order.orderType()}">Type</span>
+                </p>
+                <p th:if="${order.deliveryAddress() != null}" class="text-gray-400 text-sm mt-1">
+                    <i class="fas fa-map-marker-alt mr-2"></i>
+                    <span th:text="${order.deliveryAddress().street() + ', ' + order.deliveryAddress().city()}">Address</span>
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-2 mt-4">
+                <!-- Accept button moved above (kept single accept action) -->
+                
+                <button th:if="${order.status().name() == 'PENDING'}" 
+                        onclick="showRejectModal([[${order.id()}]])"
+                        class="bg-red-500/20 hover:bg-red-500/30 text-red-300 py-2 px-4 rounded-lg transition-colors">
+                    <i class="fas fa-times mr-1"></i>Reject
+                </button>
+
+                <!-- When accepted, service transitions PENDING -> PREPARING -->
+               <form th:if="${order.status().name() == 'PENDING'}" 
+                     th:action="@{/owner/orders/{id}/accept(id=${order.id()})}" 
+                     method="post" class="inline">
+                   <button type="submit" class="cyber-button py-2 px-4">
+                       <i class="fas fa-check mr-1"></i>Accept
+                   </button>
+               </form>
+
+                <form th:if="${order.status().name() == 'PREPARING'}" 
+                      th:action="@{/owner/orders/{id}/update-status(id=${order.id()})}" 
+                      method="post" class="inline">
+                    <input type="hidden" name="newStatus" value="READY" />
+                    <button type="submit" class="cyber-button py-2 px-4">
+                        <i class="fas fa-check-circle mr-1"></i>Mark Ready
+                    </button>
+                </form>
+
+                <form th:if="${order.status().name() == 'READY' && order.orderType().name() == 'PICKUP'}" 
+                     th:action="@{/owner/orders/{id}/update-status(id=${order.id()})}" 
+                     method="post" class="inline">
+                   <input type="hidden" name="newStatus" value="COMPLETED" />
+                   <button type="submit" class="cyber-button py-2 px-4">
+                       <i class="fas fa-handshake mr-1"></i>Picked Up
+                   </button>
+               </form>
+
+               <form th:if="${order.status().name() == 'READY' && order.orderType().name() == 'DELIVERY'}" 
+                     th:action="@{/owner/orders/{id}/update-status(id=${order.id()})}" 
+                     method="post" class="inline">
+                   <input type="hidden" name="newStatus" value="DELIVERING" />
+                   <button type="submit" class="cyber-button py-2 px-4">
+                       <i class="fas fa-truck mr-1"></i>Start Delivery
+                   </button>
+               </form>
+
+               <form th:if="${order.status().name() == 'DELIVERING'}" 
+                     th:action="@{/owner/orders/{id}/update-status(id=${order.id()})}" 
+                     method="post" class="inline">
+                   <input type="hidden" name="newStatus" value="COMPLETED" />
+                   <button type="submit" class="cyber-button py-2 px-4">
+                       <i class="fas fa-flag-checkered mr-1"></i>Delivered
+                   </button>
+               </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="glass-panel p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold text-white mb-4">Reject Order</h3>
+            <form id="rejectForm" method="post">
+                <input type="hidden" name="orderId" id="rejectOrderId" />
+                <div class="mb-4">
+                    <label class="block text-white mb-2">Reason for rejection *</label>
+                    <textarea name="reason" required
+                              class="quantum-input w-full h-24"
+                              placeholder="e.g., Out of ingredients, Store closing early..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRejectModal()"
+                            class="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 py-2 rounded-lg">
+                        Reject Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showRejectModal(orderId) {
+            document.getElementById('rejectOrderId').value = orderId;
+            document.getElementById('rejectForm').action = '/owner/orders/' + orderId + '/reject';
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+    </script>
+</div>
 </body>
 </html>

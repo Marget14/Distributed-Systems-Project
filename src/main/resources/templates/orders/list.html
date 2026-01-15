@@ -1,157 +1,98 @@
-<!-- This should be in cart/cart.html - Add this button at the bottom of the cart summary -->
-<script>
-  function checkout() {
-    var storeId = /*[[${storeId}]]*/ '1';
-    var itemsParam = /*[[${itemsParam}]]*/ '';
-    window.location.href = '/cart/checkout?storeId=' + storeId + '&items=' + itemsParam;
-  }
-</script><!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{base}">
 <head><title>My Orders</title></head>
 <body>
 <div layout:fragment="main" class="container mx-auto px-4 py-8">
-  <div class="mb-6">
-    <h1 class="text-3xl font-orbitron font-bold text-white mb-2">My Orders</h1>
-    <p class="text-gray-400">Track your food deliveries</p>
-  </div>
 
-  <!-- Filter Tabs -->
-  <div class="mb-6 glass-panel p-2">
-    <div class="flex gap-2">
-      <button class="tab-btn px-6 py-3 rounded-lg bg-cyber-blue text-white" data-status="all">All</button>
-      <button class="tab-btn px-6 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white" data-status="QUEUED">Pending</button>
-      <button class="tab-btn px-6 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white" data-status="IN_PROGRESS">In Progress</button>
-      <button class="tab-btn px-6 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white" data-status="COMPLETED">Completed</button>
+    <div class="mb-6">
+        <h1 class="text-3xl font-orbitron font-bold text-white mb-2">My Orders</h1>
+        <p class="text-gray-400">Track your orders</p>
     </div>
-  </div>
 
-  <!-- Empty State -->
-  <div th:if="${orders == null or orders.isEmpty()}" class="glass-panel p-12 text-center">
-    <i class="fas fa-receipt text-6xl text-gray-600 mb-4"></i>
-    <h3 class="text-xl text-gray-400 mb-2">No orders yet</h3>
-    <p class="text-gray-500 mb-6">Start ordering from your favorite stores</p>
-    <a th:href="@{/stores}" class="cyber-button inline-block">Browse Stores</a>
-  </div>
-
-  <!-- Orders Grid -->
-  <div th:if="${orders != null and !orders.isEmpty()}" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div th:each="order : ${orders}"
-         class="glass-panel p-6 order-card"
-         th:data-status="${order.status()}">
-
-      <!-- Order Header -->
-      <div class="flex justify-between items-start mb-4">
-        <div>
-          <h3 class="text-lg font-bold text-white mb-1">
-            Order #<span th:text="${order.id()}">123</span>
-          </h3>
-          <p class="text-sm text-gray-400">
-            <i class="fas fa-store mr-1"></i>
-            <span th:text="${order.store().name()}">Store Name</span>
-          </p>
-        </div>
-
-        <!-- Status Badge -->
-        <span th:if="${order.status().name() == 'QUEUED'}"
-              class="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-semibold">
-                    <i class="fas fa-clock mr-1"></i>Pending
-                </span>
-        <span th:if="${order.status().name() == 'IN_PROGRESS'}"
-              class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
-                    <i class="fas fa-sync fa-spin mr-1"></i>In Progress
-                </span>
-        <span th:if="${order.status().name() == 'COMPLETED'}"
-              class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
-                    <i class="fas fa-check-circle mr-1"></i>Completed
-                </span>
-      </div>
-
-      <!-- Order Details -->
-      <div class="space-y-3 mb-4 pb-4 border-b border-white/10">
-        <div class="flex items-center text-sm text-gray-300">
-          <i class="fas fa-calendar mr-2 text-cyber-blue"></i>
-          <span th:text="${#temporals.format(order.queuedAt(), 'dd/MM/yyyy HH:mm')}">01/01/2025 12:00</span>
-        </div>
-
-        <div th:if="${order.inProgressAt() != null}" class="flex items-center text-sm text-gray-300">
-          <i class="fas fa-hourglass-half mr-2 text-blue-400"></i>
-          Started: <span th:text="${#temporals.format(order.inProgressAt(), 'HH:mm')}">12:30</span>
-        </div>
-
-        <div th:if="${order.completedAt() != null}" class="flex items-center text-sm text-gray-300">
-          <i class="fas fa-check mr-2 text-green-400"></i>
-          Completed: <span th:text="${#temporals.format(order.completedAt(), 'HH:mm')}">13:00</span>
-        </div>
-
-        <div class="flex items-center text-sm text-gray-300">
-          <i class="fas fa-map-marker-alt mr-2 text-ai-orange"></i>
-          <span th:text="${order.deliveryAddress()}">Delivery Address</span>
-        </div>
-      </div>
-
-      <!-- Order Items -->
-      <div class="mb-4">
-        <h4 class="text-sm font-semibold text-gray-400 mb-2">Order Items</h4>
-        <div class="space-y-2">
-          <!-- This would need to be populated from order items -->
-          <div class="text-sm text-white">
-            <span th:text="${order.subject()}">Order items summary</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Order Total -->
-      <div class="flex justify-between items-center mb-4 pb-4 border-b border-white/10">
-        <span class="text-gray-400">Total</span>
-        <span class="text-xl font-bold text-cyber-blue">
-                    €<span th:text="${order.totalAmount()}">25.50</span>
-                </span>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex gap-3">
-        <a th:href="@{/orders/{id}(id=${order.id()})}" class="flex-1 text-center py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition">
-          <i class="fas fa-eye mr-2"></i>View Details
-        </a>
-        <button th:if="${order.status().name() == 'COMPLETED'}"
-                class="flex-1 py-2 bg-cyber-blue/20 hover:bg-cyber-blue/30 text-cyber-blue rounded-lg transition">
-          <i class="fas fa-redo mr-2"></i>Reorder
-        </button>
-      </div>
+    <div th:if="${orders == null || orders.isEmpty()}" class="glass-panel p-12 text-center">
+        <i class="fas fa-receipt text-6xl text-gray-600 mb-4"></i>
+        <h3 class="text-xl text-gray-400 mb-2">No orders yet</h3>
+        <p class="text-gray-500 mb-6">Browse stores and place your first order</p>
+        <a th:href="@{/stores}" class="cyber-button inline-block">Browse Stores</a>
     </div>
-  </div>
+
+    <div th:if="${orders != null && !orders.isEmpty()}" class="space-y-4">
+        <div th:each="order : ${orders}" class="glass-panel p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1">
+                        Order #<span th:text="${order.id()}">1</span>
+                    </h3>
+                    <p class="text-gray-400 text-sm">
+                        <i class="fas fa-store mr-1"></i>
+                        <span th:text="${order.store().name()}">Store</span>
+                    </p>
+                    <p class="text-gray-400 text-sm">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span th:text="${#temporals.format(order.createdAt(), 'dd/MM/yyyy HH:mm')}">Date</span>
+                    </p>
+                </div>
+
+                <div class="text-right">
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold"
+                          th:classappend="${order.status().name() == 'PENDING' ? 'bg-yellow-500/20 text-yellow-300' :
+                                           order.status().name() == 'PREPARING' ? 'bg-blue-500/20 text-blue-300' :
+                                           order.status().name() == 'READY' ? 'bg-purple-500/20 text-purple-300' :
+                                           order.status().name() == 'DELIVERING' ? 'bg-cyan-500/20 text-cyan-300' :
+                                           order.status().name() == 'COMPLETED' ? 'bg-green-500/20 text-green-300' :
+                                           'bg-red-500/20 text-red-300'}"
+                          th:text="${order.status()}">Status</span>
+
+                    <p class="text-2xl font-bold text-cyber-blue mt-2">
+                        €<span th:text="${#numbers.formatDecimal(order.total(), 1, 2)}">0.00</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-4 mb-4">
+                <h4 class="text-white font-semibold mb-2">Items:</h4>
+                <div th:if="${order.items() == null || order.items().isEmpty()}" class="text-gray-400 text-sm">
+                    (No items data)
+                </div>
+                <div th:if="${order.items() != null && !order.items().isEmpty()}" class="space-y-2">
+                    <div th:each="it : ${order.items()}" class="flex justify-between text-sm">
+                        <span class="text-gray-300">
+                            <span th:text="${it.quantity()}">1</span>x
+                            <span th:text="${it.menuItem().name()}">Item</span>
+                        </span>
+                        <span class="text-gray-400">
+                            €<span th:text="${#numbers.formatDecimal(it.subtotal(), 1, 2)}">0.00</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-4 mb-4">
+                <p class="text-gray-300 text-sm">
+                    <i th:class="${order.orderType().name() == 'DELIVERY' ? 'fas fa-truck' : 'fas fa-walking'} + ' text-cyber-blue mr-2'"></i>
+                    <span th:text="${order.orderType()}">Type</span>
+                </p>
+                <p th:if="${order.deliveryAddress() != null}" class="text-gray-400 text-sm mt-1">
+                    <i class="fas fa-map-marker-alt mr-2"></i>
+                    <span th:text="${order.deliveryAddress().street() + ', ' + order.deliveryAddress().city()}">Address</span>
+                </p>
+            </div>
+
+            <div class="flex gap-3">
+                <a th:href="@{/orders/{id}(id=${order.id()})}"
+                   class="flex-1 text-center py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition">
+                    <i class="fas fa-eye mr-2"></i>View Details
+                </a>
+                <a th:href="@{/orders/{id}/tracking(id=${order.id()})}"
+                   class="flex-1 text-center py-2 bg-cyber-blue/20 hover:bg-cyber-blue/30 text-cyber-blue rounded-lg transition">
+                    <i class="fas fa-route mr-2"></i>Track
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var tabs = document.querySelectorAll('.tab-btn');
-    var orders = document.querySelectorAll('.order-card');
-
-    tabs.forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        var status = this.dataset.status;
-
-        // Update active tab
-        tabs.forEach(function(t) {
-          t.classList.remove('bg-cyber-blue', 'text-white');
-          t.classList.add('bg-white/5', 'text-gray-400');
-        });
-        this.classList.remove('bg-white/5', 'text-gray-400');
-        this.classList.add('bg-cyber-blue', 'text-white');
-
-        // Filter orders
-        orders.forEach(function(order) {
-          if (status === 'all' || order.dataset.status === status) {
-            order.style.display = 'block';
-          } else {
-            order.style.display = 'none';
-          }
-        });
-      });
-    });
-  });
-</script>
 </body>
 </html>
