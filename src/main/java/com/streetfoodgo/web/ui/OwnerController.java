@@ -1,5 +1,6 @@
 package com.streetfoodgo.web.ui;
 
+import com.streetfoodgo.core.model.MenuCategory;
 import com.streetfoodgo.core.model.OrderStatus;
 import com.streetfoodgo.core.security.CurrentUserProvider;
 import com.streetfoodgo.core.service.MenuItemService;
@@ -73,7 +74,7 @@ public class OwnerController {
         model.addAttribute("selectedStatus", status);
         model.addAttribute("orderStatuses", OrderStatus.values());
 
-        return "owner/orders";
+        return "owner/orders/orders";
     }
 
     @PostMapping("/orders/{orderId}/accept")
@@ -120,7 +121,7 @@ public class OwnerController {
         model.addAttribute("store", store);
         model.addAttribute("menuItems", menuItems);
 
-        return "owner/menu";
+        return "owner/menu/menu";
     }
 
     @GetMapping("/stores/{storeId}/menu/new")
@@ -130,8 +131,56 @@ public class OwnerController {
 
         model.addAttribute("store", store);
         model.addAttribute("menuItemForm", new CreateMenuItemRequest(storeId, "", "", null, null, ""));
+        model.addAttribute("categories", MenuCategory.values());
+        model.addAttribute("isEdit", false);
+        model.addAttribute("formAction", "/owner/stores/" + storeId + "/menu");
 
         return "owner/menu-item-form";
+    }
+
+    @GetMapping("/menu-items/{itemId}/edit")
+    public String showEditMenuItemForm(@PathVariable Long itemId, final Model model) {
+        final MenuItemView item = this.menuItemService.getMenuItem(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Menu item not found"));
+
+        final StoreView store = this.storeService.getStore(item.storeId())
+                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+
+        model.addAttribute("store", store);
+        model.addAttribute("menuItemForm", new UpdateMenuItemRequest(
+                item.name(),
+                item.description(),
+                item.price(),
+                item.available(),
+                item.imageUrl()
+        ));
+        model.addAttribute("isEdit", true);
+        model.addAttribute("formAction", "/owner/menu-items/" + itemId + "/edit");
+
+        return "owner/menu-item-form";
+    }
+
+    @PostMapping("/menu-items/{itemId}/edit")
+    public String updateMenuItem(
+            @PathVariable Long itemId,
+            @Valid @ModelAttribute("menuItemForm") UpdateMenuItemRequest request,
+            BindingResult bindingResult,
+            final Model model) {
+
+        final MenuItemView item = this.menuItemService.getMenuItem(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Menu item not found"));
+        final Long storeId = item.storeId();
+
+        if (bindingResult.hasErrors()) {
+            final StoreView store = this.storeService.getStore(storeId).orElseThrow();
+            model.addAttribute("store", store);
+            model.addAttribute("isEdit", true);
+            model.addAttribute("formAction", "/owner/menu-items/" + itemId + "/edit");
+            return "owner/menu-item-form";
+        }
+
+        this.menuItemService.updateMenuItem(itemId, request);
+        return "redirect:/owner/stores/" + storeId + "/menu";
     }
 
     @PostMapping("/stores/{storeId}/menu")
@@ -160,5 +209,52 @@ public class OwnerController {
 
         final MenuItemView item = this.menuItemService.getMenuItem(itemId).orElseThrow();
         return "redirect:/owner/stores/" + item.storeId() + "/menu";
+    }
+
+    @PostMapping("/menu-items/{itemId}/delete")
+    public String deleteMenuItem(@PathVariable Long itemId) {
+        final MenuItemView item = this.menuItemService.getMenuItem(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Menu item not found"));
+        this.menuItemService.deleteMenuItem(itemId);
+        return "redirect:/owner/stores/" + item.storeId() + "/menu";
+    }
+
+    @GetMapping("/stores/{storeId}/edit")
+    public String showEditStoreForm(@PathVariable Long storeId, final Model model) {
+        final StoreView store = this.storeService.getStore(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+
+        model.addAttribute("store", store);
+        model.addAttribute("storeForm", new UpdateStoreRequest(
+                store.name(),
+                store.description(),
+                store.openingHours(),
+                store.isOpen(),
+                store.minimumOrderAmount(),
+                store.acceptsDelivery(),
+                store.acceptsPickup(),
+                store.deliveryFee(),
+                store.estimatedDeliveryTimeMinutes(),
+                store.imageUrl()
+        ));
+
+        return "owner/store/edit";
+    }
+
+    @PostMapping("/stores/{storeId}/edit")
+    public String updateStore(
+            @PathVariable Long storeId,
+            @Valid @ModelAttribute("storeForm") UpdateStoreRequest request,
+            BindingResult bindingResult,
+            final Model model) {
+
+        if (bindingResult.hasErrors()) {
+            final StoreView store = this.storeService.getStore(storeId).orElseThrow();
+            model.addAttribute("store", store);
+            return "owner/store/edit";
+        }
+
+        this.storeService.updateStore(storeId, request);
+        return "redirect:/owner/dashboard";
     }
 }

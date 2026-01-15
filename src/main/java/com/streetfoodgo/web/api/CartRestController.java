@@ -3,14 +3,23 @@ package com.streetfoodgo.web.api;
 import com.streetfoodgo.core.model.OrderType;
 import com.streetfoodgo.core.service.MenuItemService;
 import com.streetfoodgo.core.service.OrderService;
-import com.streetfoodgo.core.service.model.*;
+import com.streetfoodgo.core.service.model.CreateOrderRequest;
+import com.streetfoodgo.core.service.model.MenuItemView;
+import com.streetfoodgo.core.service.model.OrderItemCustomizationRequest;
+import com.streetfoodgo.core.service.model.OrderItemRequest;
+import com.streetfoodgo.core.service.model.OrderView;
+import com.streetfoodgo.web.api.cart.AddToCartRequest;
+import com.streetfoodgo.web.api.cart.CartLine;
+import com.streetfoodgo.web.api.cart.CartLineView;
+import com.streetfoodgo.web.api.cart.CartSessionUtils;
+import com.streetfoodgo.web.api.cart.CheckoutRequest;
+import com.streetfoodgo.web.api.cart.UpdateCustomizationRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
-import java.math.BigDecimal;
 import java.util.*;
 
 @RestController
@@ -20,128 +29,126 @@ public class CartRestController {
     private final MenuItemService menuItemService;
     private final OrderService orderService;
 
-    public CartRestController(
-            MenuItemService menuItemService,
-            OrderService orderService) {
-        this.menuItemService = menuItemService;
-        this.orderService = orderService;
+    public CartRestController(final MenuItemService menuItemService, final OrderService orderService) {
+        this.menuItemService = Objects.requireNonNull(menuItemService);
+        this.orderService = Objects.requireNonNull(orderService);
     }
 
     @PostMapping("/items")
     public ResponseEntity<Map<String, Object>> addToCart(
-            @RequestBody AddToCartRequest request,
+            @RequestBody @jakarta.validation.Valid AddToCartRequest request,
             HttpSession session) {
 
-        @SuppressWarnings("unchecked")
-        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
-        if (cart == null) {
-            cart = new HashMap<>();
+        final List<CartLine> cart = CartSessionUtils.getOrCreateCart(session);
+
+        final MenuItemView menuItem;
+        try {
+            menuItem = menuItemService.getMenuItem(request.menuItemId())
+                    .orElseThrow(() -> new IllegalArgumentException("Menu item not found"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
 
-        MenuItemView menuItem = menuItemService.getMenuItem(request.menuItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Menu item not found"));
-
+        // Enforce single-store cart
         if (!cart.isEmpty()) {
-            CartItem existingItem = cart.values().iterator().next();
-            if (!existingItem.getStoreId().equals(menuItem.storeId())) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of(
-                                "error", "Cannot mix items from different stores",
-                                "currentStoreId", existingItem.getStoreId(),
-                                "newStoreId", menuItem.storeId()
-                        ));
+            final CartLine existing = cart.get(0);
+            if (!Objects.equals(existing.getStoreId(), menuItem.storeId())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Cannot mix items from different stores",
+                        "currentStoreId", existing.getStoreId(),
+                        "newStoreId", menuItem.storeId()
+                ));
             }
         }
 
-        CartItem cartItem = cart.get(request.menuItemId());
-        if (cartItem != null) {
-            cartItem.setQuantity(cartItem.getQuantity() + request.quantity());
-        } else {
-            cartItem = new CartItem(
-                    menuItem.id(),
-                    menuItem.storeId(),
-                    menuItem.name(),
-                    menuItem.price(),
-                    request.quantity()
-            );
+        final CartLine incoming = new CartLine(
+                UUID.randomUUID().toString(),
+                menuItem.id(),
+                menuItem.storeId(),
+                menuItem.name(),
+                menuItem.price(),
+                request.quantity()
+        );
+        incoming.setSelectedChoiceIds(request.selectedChoiceIds() != null ? new ArrayList<>(request.selectedChoiceIds()) : new ArrayList<>());
+        incoming.setRemovedIngredientIds(request.removedIngredientIds() != null ? new ArrayList<>(request.removedIngredientIds()) : new ArrayList<>());
+        incoming.setSpecialInstructions(request.specialInstructions());
+
+        // Merge with an existing line if same customization
+        for (final CartLine line : cart) {
+            if (line.hasSameCustomizationAs(incoming)) {
+                line.setQuantity(line.getQuantity() + incoming.getQuantity());
+                return ResponseEntity.ok(cartResponse(cart));
+            }
         }
-        cart.put(request.menuItemId(), cartItem);
-        session.setAttribute("cart", cart);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("item", cartItem);
-        response.put("cartSize", cart.values().stream()
-                .mapToInt(CartItem::getQuantity)
-                .sum());
+        cart.add(incoming);
+        session.setAttribute(CartSessionUtils.CART_SESSION_KEY, cart);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(cartResponse(cart));
     }
 
     @GetMapping("/items")
     public ResponseEntity<Map<String, Object>> getCart(HttpSession session) {
-        @SuppressWarnings("unchecked")
-        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("items", cart != null ? cart.values() : Collections.emptyList());
-        response.put("cartSize", cart != null ?
-                cart.values().stream().mapToInt(CartItem::getQuantity).sum() : 0);
-
-        return ResponseEntity.ok(response);
+        final List<CartLine> cart = CartSessionUtils.getOrCreateCart(session);
+        return ResponseEntity.ok(cartResponse(cart));
     }
 
-    @PutMapping("/items/{itemId}/quantity")
+    @PutMapping("/items/{lineId}/quantity")
     public ResponseEntity<Map<String, Object>> updateQuantity(
-            @PathVariable Long itemId,
+            @PathVariable String lineId,
             @RequestBody Map<String, Integer> body,
             HttpSession session) {
 
-        @SuppressWarnings("unchecked")
-        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
+        final List<CartLine> cart = CartSessionUtils.getOrCreateCart(session);
+        final int change = body.getOrDefault("change", 0);
 
-        if (cart == null || !cart.containsKey(itemId)) {
-            return ResponseEntity.notFound().build();
+        final Iterator<CartLine> it = cart.iterator();
+        while (it.hasNext()) {
+            final CartLine line = it.next();
+            if (Objects.equals(line.getLineId(), lineId)) {
+                final int newQuantity = line.getQuantity() + change;
+                if (newQuantity <= 0) {
+                    it.remove();
+                } else {
+                    line.setQuantity(newQuantity);
+                }
+                return ResponseEntity.ok(cartResponse(cart));
+            }
         }
-
-        CartItem item = cart.get(itemId);
-        int change = body.get("change");
-        int newQuantity = item.getQuantity() + change;
-
-        if (newQuantity <= 0) {
-            cart.remove(itemId);
-        } else {
-            item.setQuantity(newQuantity);
-        }
-
-        session.setAttribute("cart", cart);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("newQuantity", newQuantity);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/items/{itemId}")
+    @DeleteMapping("/items/{lineId}")
     public ResponseEntity<Map<String, Object>> removeFromCart(
-            @PathVariable Long itemId,
+            @PathVariable String lineId,
             HttpSession session) {
 
-        @SuppressWarnings("unchecked")
-        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
+        final List<CartLine> cart = CartSessionUtils.getOrCreateCart(session);
+        cart.removeIf(l -> Objects.equals(l.getLineId(), lineId));
+        return ResponseEntity.ok(cartResponse(cart));
+    }
 
-        if (cart != null) {
-            cart.remove(itemId);
-            session.setAttribute("cart", cart);
+    @PutMapping("/items/{lineId}/customization")
+    public ResponseEntity<Map<String, Object>> updateCustomization(
+            @PathVariable String lineId,
+            @RequestBody UpdateCustomizationRequest request,
+            HttpSession session) {
+
+        final List<CartLine> cart = CartSessionUtils.getOrCreateCart(session);
+        for (final CartLine line : cart) {
+            if (Objects.equals(line.getLineId(), lineId)) {
+                line.setSelectedChoiceIds(request.selectedChoiceIds() != null ? new ArrayList<>(request.selectedChoiceIds()) : new ArrayList<>());
+                line.setRemovedIngredientIds(request.removedIngredientIds() != null ? new ArrayList<>(request.removedIngredientIds()) : new ArrayList<>());
+                line.setSpecialInstructions(request.specialInstructions());
+                return ResponseEntity.ok(cartResponse(cart));
+            }
         }
-
-        return ResponseEntity.ok(Map.of("success", true));
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/items")
     public ResponseEntity<Map<String, Object>> clearCart(HttpSession session) {
-        session.removeAttribute("cart");
+        session.removeAttribute(CartSessionUtils.CART_SESSION_KEY);
         return ResponseEntity.ok(Map.of("success", true));
     }
 
@@ -165,6 +172,16 @@ public class CartRestController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @PutMapping("/special-instructions")
+    public ResponseEntity<Map<String, Object>> setSpecialInstructions(
+            @RequestBody Map<String, String> body,
+            HttpSession session) {
+
+        String instructions = body.get("instructions");
+        session.setAttribute("specialInstructions", instructions);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
     /**
      * CHECKOUT - Creates actual order via OrderService
      */
@@ -175,45 +192,46 @@ public class CartRestController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         try {
-            // Get cart from session
-            @SuppressWarnings("unchecked")
-            Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
-
-            if (cart == null || cart.isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Cart is empty"));
+            final List<CartLine> cart = CartSessionUtils.getOrCreateCart(session);
+            if (cart.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Cart is empty"));
             }
 
-            Map<Long, List<CartItem>> itemsByStore = new HashMap<>();
-            for (CartItem item : cart.values()) {
-                itemsByStore.computeIfAbsent(item.getStoreId(), k -> new ArrayList<>()).add(item);
+            // group by store
+            final Map<Long, List<CartLine>> itemsByStore = new HashMap<>();
+            for (final CartLine line : cart) {
+                itemsByStore.computeIfAbsent(line.getStoreId(), k -> new ArrayList<>()).add(line);
             }
 
-            // Get current user ID
-            Long customerId = getCurrentUserId(userDetails);
+            final Long customerId = getCurrentUserId(userDetails);
 
-            // Determine order type
-            OrderType orderType = request.orderType() != null && request.orderType().equals("PICKUP")
+            final OrderType orderType = request.orderType() != null && request.orderType().equals("PICKUP")
                     ? OrderType.PICKUP
                     : OrderType.DELIVERY;
 
-            List<Long> orderIds = new ArrayList<>();
-            List<String> storeNames = new ArrayList<>();
+            final List<Long> orderIds = new ArrayList<>();
 
-            for (Map.Entry<Long, List<CartItem>> storeEntry : itemsByStore.entrySet()) {
-                Long storeId = storeEntry.getKey();
-                List<CartItem> storeItems = storeEntry.getValue();
+            for (final Map.Entry<Long, List<CartLine>> storeEntry : itemsByStore.entrySet()) {
+                final Long storeId = storeEntry.getKey();
+                final List<CartLine> storeItems = storeEntry.getValue();
 
-                // Build order items for this store
-                List<OrderItemRequest> orderItems = storeItems.stream()
-                        .map(item -> new OrderItemRequest(
-                                item.getId(),
-                                item.getQuantity(),
-                                null
-                        ))
+                final List<OrderItemRequest> orderItems = storeItems.stream()
+                        .map(line -> {
+                            List<OrderItemCustomizationRequest> customizations = null;
+                            if (line.getSelectedChoiceIds() != null && !line.getSelectedChoiceIds().isEmpty()) {
+                                customizations = line.getSelectedChoiceIds().stream().map(OrderItemCustomizationRequest::new).toList();
+                            }
+                            return new OrderItemRequest(
+                                    line.getMenuItemId(),
+                                    line.getQuantity(),
+                                    line.getSpecialInstructions(),
+                                    customizations,
+                                    line.getRemovedIngredientIds()
+                            );
+                        })
                         .toList();
 
-                CreateOrderRequest createOrderRequest = new CreateOrderRequest(
+                final CreateOrderRequest createOrderRequest = new CreateOrderRequest(
                         customerId,
                         storeId,
                         request.deliveryAddressId(),
@@ -222,43 +240,31 @@ public class CartRestController {
                         request.specialInstructions()
                 );
 
-                OrderView order = orderService.createOrder(createOrderRequest);
+                final OrderView order = orderService.createOrder(createOrderRequest);
                 orderIds.add(order.id());
-
-                storeNames.add("Store " + storeId);
             }
 
             // Clear cart after successful orders
-            session.removeAttribute("cart");
+            session.removeAttribute(CartSessionUtils.CART_SESSION_KEY);
             session.removeAttribute("selectedAddressId");
             session.removeAttribute("orderType");
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("orderIds", orderIds);
-            response.put("storeCount", itemsByStore.size());
-            response.put("message",
-                    itemsByStore.size() == 1
-                            ? "Order placed successfully"
-                            : itemsByStore.size() + " orders placed successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "orderIds", orderIds,
+                    "storeCount", itemsByStore.size(),
+                    "message", itemsByStore.size() == 1 ? "Order placed successfully" : itemsByStore.size() + " orders placed successfully"
+            ));
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (SecurityException e) {
-            return ResponseEntity.status(403)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500)
-                    .body(Map.of("error", "Failed to create order: " + e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to create order: " + e.getMessage()));
         }
     }
 
-    /**
-     * Helper to get current user ID from UserDetails
-     */
     private Long getCurrentUserId(UserDetails userDetails) {
         if (userDetails instanceof com.streetfoodgo.core.security.ApplicationUserDetails appUserDetails) {
             return appUserDetails.personId();
@@ -266,44 +272,12 @@ public class CartRestController {
         throw new SecurityException("User not authenticated");
     }
 
-    // ===== DTOs =====
-
-    public record AddToCartRequest(Long menuItemId, int quantity) {}
-
-    public record CheckoutRequest(
-            Long deliveryAddressId,
-            String orderType,
-            String specialInstructions
-    ) {}
-
-    public static class CartItem {
-        private Long id;
-        private Long storeId;
-        private String name;
-        private BigDecimal price;
-        private int quantity;
-
-        public CartItem(Long id, Long storeId, String name, BigDecimal price, int quantity) {
-            this.id = id;
-            this.storeId = storeId;
-            this.name = name;
-            this.price = price;
-            this.quantity = quantity;
-        }
-
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-
-        public Long getStoreId() { return storeId; }
-        public void setStoreId(Long storeId) { this.storeId = storeId; }
-
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-
-        public BigDecimal getPrice() { return price; }
-        public void setPrice(BigDecimal price) { this.price = price; }
-
-        public int getQuantity() { return quantity; }
-        public void setQuantity(int quantity) { this.quantity = quantity; }
+    private Map<String, Object> cartResponse(final List<CartLine> cart) {
+        final List<CartLineView> views = cart.stream().map(CartLineView::from).toList();
+        return Map.of(
+                "success", true,
+                "items", views,
+                "cartSize", views.stream().mapToInt(CartLineView::quantity).sum()
+        );
     }
 }

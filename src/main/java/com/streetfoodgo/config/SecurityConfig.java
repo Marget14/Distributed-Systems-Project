@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/client-tokens").permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/stores/**").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                 )
@@ -72,6 +73,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers("/", "/stores", "/stores/**", "/login", "/register").permitAll()
+                        .requestMatchers("/auth/verify-email", "/auth/resend-verification").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/cart/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/cart/**").permitAll()
@@ -80,7 +82,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/cart/checkout").authenticated()
 
-                        .requestMatchers("/profile", "/logout", "/cart", "/orders").authenticated()
+                        .requestMatchers("/profile", "/profile/**", "/logout").authenticated()
+                        .requestMatchers("/cart", "/checkout").hasRole("CUSTOMER")
+                        .requestMatchers("/orders", "/orders/**").hasRole("CUSTOMER")
                         .requestMatchers("/owner/**").hasRole("OWNER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
@@ -91,6 +95,12 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/profile", true)
                         .failureUrl("/login?error")
                         .permitAll()
+                )
+                // Remember-me cookie for every successful login
+                .rememberMe(rm -> rm
+                        .alwaysRemember(true)
+                        .key("streetfoodgo-remember-me")
+                        .tokenValiditySeconds(60 * 60 * 24 * 14)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")

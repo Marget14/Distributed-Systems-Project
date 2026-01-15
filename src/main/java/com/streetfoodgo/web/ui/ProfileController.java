@@ -60,6 +60,11 @@ public class ProfileController {
             memberSince = formatter.format(user.getCreatedAt());
         }
 
+        // Owners should land on the owner dashboard (owners must not order like customers)
+        if (user.getType() != null && user.getType().name().equals("OWNER")) {
+            return "redirect:/owner/dashboard";
+        }
+
         model.addAttribute("user", user);
         model.addAttribute("stats", stats);
         model.addAttribute("memberSince", memberSince);

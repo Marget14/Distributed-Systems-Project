@@ -43,13 +43,13 @@ public class AddressController {
                 this.deliveryAddressService.getCustomerAddresses(currentUser.id());
 
         model.addAttribute("addresses", addresses);
-        return "addresses/list";
+        return "profile/addresses";
     }
 
     @GetMapping("/new")
     public String showCreateForm(final Model model) {
         model.addAttribute("addressForm", new CreateDeliveryAddressRequest("", "", "", "", "", null, null));
-        return "addresses/form";
+        return "profile/address-form";
     }
 
     @PostMapping
@@ -58,7 +58,7 @@ public class AddressController {
             BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            return "addresses/form";
+            return "profile/address-form";
         }
 
         this.deliveryAddressService.createAddress(request);
@@ -82,7 +82,7 @@ public class AddressController {
 
         model.addAttribute("addressForm", form);
         model.addAttribute("addressId", id);
-        return "addresses/form";
+        return "profile/address-form";
     }
 
     @PostMapping("/{id}")
@@ -92,7 +92,7 @@ public class AddressController {
             BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            return "addresses/form";
+            return "profile/address-form";
         }
 
         this.deliveryAddressService.updateAddress(id, request);

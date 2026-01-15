@@ -9,7 +9,8 @@ import com.streetfoodgo.core.service.StoreService;
 import com.streetfoodgo.core.service.model.DeliveryAddressView;
 import com.streetfoodgo.core.service.model.MenuItemView;
 import com.streetfoodgo.core.service.model.StoreView;
-import com.streetfoodgo.web.api.CartRestController.CartItem;
+import com.streetfoodgo.web.api.cart.CartLine;
+import com.streetfoodgo.web.api.cart.CartSessionUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,6 +25,7 @@ import java.util.*;
 
 @Controller
 @RequestMapping("/checkout")
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('CUSTOMER')")
 public class CheckoutController {
 
     private final StoreService storeService;
@@ -50,10 +52,9 @@ public class CheckoutController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            @SuppressWarnings("unchecked")
-            Map<Long, CartItem> cartItems = (Map<Long, CartItem>) session.getAttribute("cart");
+            final List<CartLine> cartItems = CartSessionUtils.getOrCreateCart(session);
 
-            if (cartItems == null || cartItems.isEmpty()) {
+            if (cartItems.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "Your cart is empty");
                 return "redirect:/cart";
             }
@@ -67,8 +68,8 @@ public class CheckoutController {
             OrderType orderType = orderTypeStr.equals("PICKUP") ? OrderType.PICKUP : OrderType.DELIVERY;
 
 
-            Map<Long, List<CartItem>> itemsByStore = new HashMap<>();
-            for (CartItem item : cartItems.values()) {
+            Map<Long, List<CartLine>> itemsByStore = new HashMap<>();
+            for (CartLine item : cartItems) {
                 itemsByStore.computeIfAbsent(item.getStoreId(), k -> new ArrayList<>()).add(item);
             }
 
@@ -78,9 +79,9 @@ public class CheckoutController {
             boolean minimumMet = true;
             String minimumError = null;
 
-            for (Map.Entry<Long, List<CartItem>> entry : itemsByStore.entrySet()) {
+            for (Map.Entry<Long, List<CartLine>> entry : itemsByStore.entrySet()) {
                 Long storeId = entry.getKey();
-                List<CartItem> storeItems = entry.getValue();
+                List<CartLine> storeItems = entry.getValue();
 
                 StoreView store = storeService.getStore(storeId)
                         .orElseThrow(() -> new IllegalArgumentException("Store not found: " + storeId));
@@ -88,8 +89,8 @@ public class CheckoutController {
                 BigDecimal storeSubtotal = BigDecimal.ZERO;
                 List<Map<String, Object>> storeItemsList = new ArrayList<>();
 
-                for (CartItem cartItem : storeItems) {
-                    MenuItemView menuItem = menuItemService.getMenuItem(cartItem.getId())
+                for (CartLine cartItem : storeItems) {
+                    MenuItemView menuItem = menuItemService.getMenuItem(cartItem.getMenuItemId())
                             .orElse(null);
 
                     if (menuItem != null) {
@@ -98,11 +99,15 @@ public class CheckoutController {
                         storeSubtotal = storeSubtotal.add(itemTotal);
 
                         Map<String, Object> itemMap = new HashMap<>();
-                        itemMap.put("id", menuItem.id());
+                        itemMap.put("lineId", cartItem.getLineId());
+                        itemMap.put("menuItemId", menuItem.id());
                         itemMap.put("name", menuItem.name());
                         itemMap.put("description", menuItem.description());
                         itemMap.put("unitPrice", menuItem.price());
                         itemMap.put("quantity", cartItem.getQuantity());
+                        itemMap.put("selectedChoiceIds", cartItem.getSelectedChoiceIds());
+                        itemMap.put("removedIngredientIds", cartItem.getRemovedIngredientIds());
+                        itemMap.put("specialInstructions", cartItem.getSpecialInstructions());
                         itemMap.put("totalPrice", itemTotal);
                         itemMap.put("imageUrl", menuItem.imageUrl());
 
@@ -138,7 +143,7 @@ public class CheckoutController {
 
             Map<String, Object> cart = new HashMap<>();
             cart.put("storeGroups", storeGroups);
-            cart.put("items", cartItems.values());
+            cart.put("items", cartItems);
             cart.put("subtotal", totalSubtotal);
             cart.put("deliveryTotal", totalDelivery);
             cart.put("serviceFee", BigDecimal.ZERO);

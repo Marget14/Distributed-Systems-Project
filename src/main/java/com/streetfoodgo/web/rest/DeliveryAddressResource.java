@@ -29,12 +29,18 @@ public class DeliveryAddressResource {
     }
 
     @GetMapping
-    public List<DeliveryAddressView> getMyAddresses(@RequestParam Long customerId) {
+    public List<DeliveryAddressView> getMyAddresses(
+            final org.springframework.security.core.Authentication authentication) {
+
+        final long customerId = RestSecurityUtils.requireUserId(authentication);
         return this.deliveryAddressService.getCustomerAddresses(customerId);
     }
 
     @GetMapping("/default")
-    public ResponseEntity<DeliveryAddressView> getDefaultAddress(@RequestParam Long customerId) {
+    public ResponseEntity<DeliveryAddressView> getDefaultAddress(
+            final org.springframework.security.core.Authentication authentication) {
+
+        final long customerId = RestSecurityUtils.requireUserId(authentication);
         return this.deliveryAddressService.getDefaultAddress(customerId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

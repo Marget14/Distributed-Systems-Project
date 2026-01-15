@@ -36,8 +36,42 @@ public class OrderResource {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/my-orders")
-    public List<OrderView> getMyOrders(@RequestParam Long customerId) {
+    public List<OrderView> getMyOrders(final org.springframework.security.core.Authentication authentication) {
+        final long customerId = RestSecurityUtils.requireUserId(authentication);
         return this.orderService.getCustomerOrders(customerId);
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/my-orders/search")
+    public List<OrderView> searchCustomerOrders(
+            final org.springframework.security.core.Authentication authentication,
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) com.streetfoodgo.core.model.OrderType orderType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+
+        final long customerId = RestSecurityUtils.requireUserId(authentication);
+
+        OrderSearchCriteria.Builder builder = OrderSearchCriteria.builder()
+                .customerId(customerId)
+                .status(status)
+                .orderType(orderType);
+
+        if (startDate != null) {
+            builder.startDate(java.time.Instant.parse(startDate));
+        }
+        if (endDate != null) {
+            builder.endDate(java.time.Instant.parse(endDate));
+        }
+
+        return this.orderService.searchCustomerOrders(customerId, builder.build());
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/my-orders/statistics")
+    public OrderStatistics getCustomerOrderStatistics(final org.springframework.security.core.Authentication authentication) {
+        final long customerId = RestSecurityUtils.requireUserId(authentication);
+        return this.orderService.getCustomerOrderStatistics(customerId);
     }
 
     @PreAuthorize("hasRole('OWNER')")
@@ -52,9 +86,53 @@ public class OrderResource {
         return this.orderService.getStoreOrders(storeId);
     }
 
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/store/{storeId}/search")
+    public List<OrderView> searchStoreOrders(
+            @PathVariable Long storeId,
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) com.streetfoodgo.core.model.OrderType orderType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+
+        OrderSearchCriteria.Builder builder = OrderSearchCriteria.builder()
+                .storeId(storeId)
+                .status(status)
+                .orderType(orderType);
+
+        if (startDate != null) {
+            builder.startDate(java.time.Instant.parse(startDate));
+        }
+        if (endDate != null) {
+            builder.endDate(java.time.Instant.parse(endDate));
+        }
+
+        return this.orderService.searchStoreOrders(storeId, builder.build());
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/store/{storeId}/statistics")
+    public OrderStatistics getStoreOrderStatistics(@PathVariable Long storeId) {
+        return this.orderService.getStoreOrderStatistics(storeId);
+    }
+
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping
-    public ResponseEntity<OrderView> createOrder(@RequestBody @Valid CreateOrderRequest request) {
+    public ResponseEntity<OrderView> createOrder(
+            final org.springframework.security.core.Authentication authentication,
+            @RequestBody @Valid CreateOrderRequest request) {
+
+        final long customerId = RestSecurityUtils.requireUserId(authentication);
+        // Force customerId from token (ignore any client-provided value)
+        request = new CreateOrderRequest(
+                customerId,
+                request.storeId(),
+                request.deliveryAddressId(),
+                request.orderType(),
+                request.items(),
+                request.customerNotes()
+        );
+
         final OrderView created = this.orderService.createOrder(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
