@@ -324,7 +324,7 @@
                                 quantity: 1
                             };
                             console.log('📦 Adding item without customization:', itemData);
-                            addItemToServerCart(itemData, null, null, null);
+                            addItemToServerCart(itemData, null, null, null, event.target);
                         }
                     });
                 });
@@ -389,22 +389,24 @@
                     });
             }
 
-            function addItemToServerCart(item, selectedChoiceIds, removedIngredientIds, specialInstructions) {
+            function addItemToServerCart(item, selectedChoiceIds, removedIngredientIds, specialInstructions, buttonEl) {
                 if (config.isUpdating) {
                     console.log('⏳ Already updating, skipping');
                     return;
                 }
 
                 config.isUpdating = true;
-                var originalButton = event.target;
-                var originalText = originalButton.innerHTML;
-                originalButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                originalButton.disabled = true;
+                var originalButton = buttonEl;
+                var originalText = originalButton ? originalButton.innerHTML : null;
+                if (originalButton) {
+                    originalButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    originalButton.disabled = true;
+                }
 
                 console.log('📤 Sending to server with CSRF protection:', item);
 
                 var requestBody = {
-                    menuItemId: parseInt(item.id),
+                    menuItemId: Number.parseInt(item.id, 10),
                     quantity: item.quantity,
                     selectedChoiceIds: selectedChoiceIds || [],
                     removedIngredientIds: removedIngredientIds || [],
@@ -448,8 +450,10 @@
                         }
                     })
                     .finally(function() {
-                        originalButton.innerHTML = originalText;
-                        originalButton.disabled = false;
+                        if (originalButton) {
+                            originalButton.innerHTML = originalText;
+                            originalButton.disabled = false;
+                        }
                         config.isUpdating = false;
                     });
             }
@@ -772,7 +776,7 @@
                 };
                 
                 closeCustomizationModal();
-                addItemToServerCart(itemData, selectedChoiceIds, removedIngredientIds, specialInstructions);
+                addItemToServerCart(itemData, selectedChoiceIds, removedIngredientIds, specialInstructions, null);
             };
 
             // ==================== STARTUP ====================

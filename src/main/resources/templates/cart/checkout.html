@@ -1,640 +1,315 @@
 <!DOCTYPE html>
-<html xmlns:th="https://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{base}">
 <head>
-    <title>Checkout</title>
-    <!-- CSRF Meta Tags -->
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Ολοκλήρωση Παραγγελίας - StreetFoodGo</title>
 </head>
 <body>
-<div layout:fragment="main">
-    <!-- Checkout Header -->
-    <div class="glass-panel p-8 mb-8">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Checkout</h1>
-                <p class="text-gray-400">Confirm your order details</p>
-            </div>
-        </div>
-    </div>
+<main layout:fragment="main">
+    <style>
+        .payment-card {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .payment-card:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        .payment-card.selected {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+        .card-form {
+            display: none;
+            margin-top: 20px;
+        }
+        .card-form.active {
+            display: block;
+        }
+        .address-card {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .address-card:hover {
+            border-color: #0d6efd;
+        }
+        .address-card.selected {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+    </style>
+    <div class="container mt-4">
+        <h2>Ολοκλήρωση Παραγγελίας</h2>
 
-    <!-- Error Message if any -->
-    <div th:if="${error}" class="glass-panel p-12 text-center bg-red-500/20 border border-red-500/50">
-        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
-        <h3 class="text-xl font-bold text-white mb-2">Error</h3>
-        <p class="text-red-300 mb-6" th:text="${error}"></p>
-        <a th:href="@{/cart}" class="cyber-button inline-block">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Cart
-        </a>
-    </div>
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 
-    <!-- Checkout Content -->
-    <div th:if="${cart != null && cart.storeGroups != null && !cart.storeGroups.empty}"
-         class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Left: Order Items -->
-        <div class="lg:col-span-2 space-y-6">
-
-            <!-- Store Grouping -->
-            <div th:each="storeGroup : ${cart.storeGroups}"
-                 class="glass-panel p-6 store-group"
-                 th:data-store-id="${storeGroup.storeId}">
-
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-blue/20 to-quantum/20
-                                flex items-center justify-center mr-3">
-                        <i class="fas fa-store text-cyber-blue"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-white" th:text="${storeGroup.storeName}">Store</h3>
-                        <p class="text-gray-400 text-sm" th:text="${storeGroup.storeArea}">Area</p>
-                    </div>
-                </div>
-
-                <!-- Items -->
-                <div th:each="item, iterStat : ${storeGroup.items}"
-                     th:class="${!iterStat.last ? 'border-b border-white/10 pb-6 mb-6' : 'pb-2'}">
-
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex-grow">
-                            <h4 class="font-bold text-white" th:text="${item.name}">Item</h4>
-                            <p class="text-gray-400 text-sm" th:text="${item.description}">Description</p>
+        <div class="row">
+            <!-- Left Column: Order Summary -->
+            <div class="col-md-7">
+                <form method="post" action="/checkout/process" id="checkoutForm">
+                    
+                    <!-- Step 1: Order Type -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">1. Τρόπος Παραλαβής</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="orderType" id="orderTypeDelivery" 
+                                       value="DELIVERY" required>
+                                <label class="form-check-label" for="orderTypeDelivery">
+                                    <strong>Delivery</strong> - Παράδοση στη διεύθυνσή σας
+                                    <span th:if="${deliveryFee != null and deliveryFee > 0}">
+                                        (Κόστος: €<span th:text="${#numbers.formatDecimal(deliveryFee, 1, 2)}"></span>)
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="orderType" id="orderTypePickup" 
+                                       value="PICKUP" required checked>
+                                <label class="form-check-label" for="orderTypePickup">
+                                    <strong>Παραλαβή</strong> - Παραλαβή από το κατάστημα
+                                </label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between">
-                        <!-- Quantity (Read-only in checkout) -->
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-400 text-sm">Qty:</span>
-                            <span class="text-white font-bold" th:text="${item.quantity}">1</span>
+                    <!-- Step 2: Delivery Address (shown only for DELIVERY) -->
+                    <div class="card mb-3" id="deliveryAddressSection" style="display: none;">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">2. Διεύθυνση Παράδοσης</h5>
                         </div>
-
-                        <!-- Price -->
-                        <div class="text-right">
-                            <p class="text-xl font-bold text-cyber-blue">
-                                €<span th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">0.00</span>
-                            </p>
-                            <p class="text-gray-400 text-sm">
-                                €<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span> each
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Special Instructions -->
-            <div class="glass-panel p-6">
-                <h4 class="text-white mb-3">Special Instructions</h4>
-                <textarea id="specialInstructions"
-                          class="quantum-input w-full h-24"
-                          placeholder="Any special requests for your order?"
-                          th:text="${specialInstructions}"></textarea>
-            </div>
-        </div>
-
-        <!-- Right: Order Summary and Address -->
-        <div class="lg:col-span-1">
-            <div class="glass-panel p-6 sticky top-24 space-y-6">
-                <h3 class="text-xl font-bold text-white mb-4">Order Summary</h3>
-
-                <!-- Order Type (Read-only) -->
-                <div>
-                    <h4 class="text-white mb-2 text-sm font-semibold">Order Type</h4>
-                    <div class="flex items-center gap-2">
-                        <i th:if="${orderType == 'DELIVERY'}" class="fas fa-truck text-cyber-blue"></i>
-                        <i th:if="${orderType == 'PICKUP'}" class="fas fa-walking text-cyber-blue"></i>
-                        <span class="text-cyber-blue font-semibold" th:text="${orderType}">Delivery</span>
-                    </div>
-                </div>
-
-                <!-- Payment Method Section -->
-                <div class="mb-6 pb-6 border-b border-white/10">
-                    <h4 class="text-white mb-3 font-semibold flex items-center">
-                        <i class="fas fa-credit-card mr-2 text-cyber-blue"></i>
-                        Payment Method *
-                    </h4>
-                    <div class="space-y-3">
-                        <label class="flex items-start p-4 border-2 border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer transition-all payment-method-option">
-                            <input type="radio" name="paymentMethod" value="CASH" class="mt-1 mr-3" checked
-                                   onchange="setPaymentMethod('CASH')">
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between mb-1">
-                                    <p class="text-white font-semibold">Cash on Delivery</p>
-                                    <i class="fas fa-money-bill-wave text-green-400 text-xl"></i>
+                        <div class="card-body">
+                            <div th:if="${addresses.empty}">
+                                <p class="text-muted">Δεν έχετε αποθηκευμένες διευθύνσεις.</p>
+                                <a href="/addresses/new" class="btn btn-primary">Προσθήκη Διεύθυνσης</a>
+                            </div>
+                            <div th:unless="${addresses.empty}">
+                                <div th:each="address : ${addresses}" class="address-card" 
+                                     th:data-address-id="${address.id}">
+                                    <input type="radio" name="deliveryAddressId" th:value="${address.id}" 
+                                           th:id="'address-' + ${address.id}" style="display: none;">
+                                    <strong th:text="${address.label}"></strong><br>
+                                    <span th:text="${address.streetAddress}"></span>,
+                                    <span th:text="${address.city}"></span>
+                                    <span th:text="${address.postalCode}"></span>
                                 </div>
-                                <p class="text-gray-400 text-sm">Pay with cash when you receive your order</p>
+                                <a href="/addresses/new" class="btn btn-sm btn-outline-primary mt-2">+ Νέα Διεύθυνση</a>
                             </div>
-                        </label>
+                        </div>
+                    </div>
 
-                        <label class="flex items-start p-4 border-2 border-white/10 rounded-lg hover:border-cyber-blue/50 cursor-pointer transition-all payment-method-option">
-                            <input type="radio" name="paymentMethod" value="CARD" class="mt-1 mr-3"
-                                   onchange="setPaymentMethod('CARD')">
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between mb-1">
-                                    <p class="text-white font-semibold">Credit/Debit Card</p>
-                                    <i class="fas fa-credit-card text-blue-400 text-xl"></i>
+                    <!-- Step 3: Payment Method -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">3. Τρόπος Πληρωμής</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Cash Payment -->
+                            <div class="payment-card" data-payment="CASH">
+                                <input type="radio" name="paymentMethod" id="paymentCash" value="CASH" required checked>
+                                <label for="paymentCash" style="cursor: pointer; width: 100%;">
+                                    <h5>💵 Μετρητά</h5>
+                                    <p class="mb-0 text-muted">Πληρωμή με μετρητά κατά την παράδοση (Αντικαταβολή)</p>
+                                </label>
+                            </div>
+
+                            <!-- Card Payment -->
+                            <div class="payment-card" data-payment="CARD">
+                                <input type="radio" name="paymentMethod" id="paymentCard" value="CARD">
+                                <label for="paymentCard" style="cursor: pointer; width: 100%;">
+                                    <h5>💳 Πιστωτική/Χρεωστική Κάρτα</h5>
+                                    <p class="mb-0 text-muted">Ασφαλής πληρωμή με κάρτα</p>
+                                </label>
+                                
+                                <!-- Card Form (hidden by default) -->
+                                <div class="card-form" id="cardForm">
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="cardNumber" class="form-label">Αριθμός Κάρτας</label>
+                                            <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
+                                                   placeholder="1234 5678 9012 3456" maxlength="19">
+                                        </div>
+                                        <div class="col-md-12 mb-3">
+                                            <label for="cardHolderName" class="form-label">Όνομα Κατόχου</label>
+                                            <input type="text" class="form-control" id="cardHolderName" name="cardHolderName" 
+                                                   placeholder="ΟΝΟΜΑ ΕΠΩΝΥΜΟ">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Λήξη</label>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <select class="form-select" id="expiryMonth" name="expiryMonth">
+                                                        <option value="">Μήνας</option>
+                                                        <option th:each="i : ${#numbers.sequence(1, 12)}" 
+                                                                th:value="${i}" th:text="${#numbers.formatInteger(i, 2)}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6">
+                                                    <select class="form-select" id="expiryYear" name="expiryYear">
+                                                        <option value="">Έτος</option>
+                                                        <option th:each="i : ${#numbers.sequence(2024, 2034)}" 
+                                                                th:value="${i}" th:text="${i}"></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cvv" class="form-label">CVV</label>
+                                            <input type="text" class="form-control" id="cvv" name="cvv" 
+                                                   placeholder="123" maxlength="3">
+                                        </div>
+                                    </div>
                                 </div>
-                                <p class="text-gray-400 text-sm">Pay securely with your card</p>
                             </div>
-                        </label>
+                        </div>
                     </div>
-                    <div id="cardDetailsSection" class="mt-4 p-4 bg-white/5 rounded-lg hidden">
-                        <p class="text-white text-sm font-semibold mb-3">Enter Card Details</p>
-                        <div class="space-y-3">
-                            <input type="text" placeholder="Card Number (1234 5678 9012 3456)"
-                                   class="quantum-input w-full text-sm" maxlength="19">
-                            <div class="grid grid-cols-2 gap-3">
-                                <input type="text" placeholder="MM/YY"
-                                       class="quantum-input text-sm" maxlength="5">
-                                <input type="text" placeholder="CVV"
-                                       class="quantum-input text-sm" maxlength="3">
+
+                    <!-- Step 4: Notes -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">4. Σχόλια (Προαιρετικά)</h5>
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control" name="customerNotes" rows="3" 
+                                      placeholder="π.χ. Παρακαλώ να μην βάλετε κρεμμύδια..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        Ολοκλήρωση Παραγγελίας - €<span id="finalTotal" th:text="${#numbers.formatDecimal(total, 1, 2)}"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Cart Summary -->
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Περίληψη Παραγγελίας</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 th:text="${store.name}"></h6>
+                        <hr>
+                        
+                        <div th:each="item : ${cartDetails}" class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong th:text="${item.cartLine.quantity} + 'x ' + ${item.menuItem.name}"></strong>
+                                </div>
+                                <div>
+                                    €<span th:text="${#numbers.formatDecimal(item.cartLine.totalPrice, 1, 2)}"></span>
+                                </div>
                             </div>
-                            <input type="text" placeholder="Cardholder Name"
-                                   class="quantum-input w-full text-sm">
+                        </div>
+                        
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Υποσύνολο:</span>
+                            <span>€<span th:text="${#numbers.formatDecimal(subtotal, 1, 2)}"></span></span>
+                        </div>
+                        <div class="d-flex justify-content-between" id="deliveryFeeRow" style="display: none;">
+                            <span>Κόστος Παράδοσης:</span>
+                            <span>€<span id="deliveryFeeAmount" th:text="${#numbers.formatDecimal(deliveryFee, 1, 2)}"></span></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Σύνολο:</strong>
+                            <strong>€<span id="totalAmount" th:text="${#numbers.formatDecimal(total, 1, 2)}"></span></strong>
                         </div>
                     </div>
                 </div>
-
-                <!-- Delivery Address Section (Visible only for DELIVERY) -->
-                <div id="deliveryAddressSection" th:if="${orderType == 'DELIVERY'}">
-                    <h4 class="text-white mb-3 text-sm font-semibold">Delivery Address</h4>
-
-                    <!-- No Address Warning -->
-                    <div id="noAddressWarning" class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                        <p class="text-red-300 text-sm">⚠️ Please select or add a delivery address</p>
-                    </div>
-
-                    <!-- Saved Addresses -->
-                    <div th:if="${userAddresses != null && !userAddresses.empty}" class="mb-4">
-                        <select id="savedAddressSelect"
-                                class="quantum-input w-full text-sm"
-                                onchange="onAddressSelect(this.value)">
-                            <option value="">-- Select Address --</option>
-                            <option th:each="addr : ${userAddresses}"
-                                    th:value="${addr.id}"
-                                    th:text="${addr.label + ' - ' + addr.street}">
-                            </option>
-                            <option value="new">+ Add New Address</option>
-                        </select>
-                    </div>
-
-                    <!-- If no addresses, show add new button -->
-                    <div th:if="${userAddresses == null || userAddresses.empty}" class="mb-4">
-                        <button type="button" onclick="showNewAddressForm()"
-                                class="w-full cyber-button-secondary py-2 text-sm">
-                            <i class="fas fa-plus mr-2"></i>Add Delivery Address
-                        </button>
-                    </div>
-
-                    <!-- New Address Form -->
-                    <div id="newAddressForm" class="space-y-3 hidden">
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Address Label *</label>
-                            <input type="text" id="addressLabel"
-                                   class="quantum-input w-full text-sm"
-                                   placeholder="Home, Work, etc.">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Street Address *</label>
-                            <input type="text" id="streetAddress"
-                                   class="quantum-input w-full text-sm"
-                                   placeholder="123 Main Street">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">City *</label>
-                            <input type="text" id="city"
-                                   class="quantum-input w-full text-sm"
-                                   placeholder="Athens">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Postal Code *</label>
-                            <input type="text" id="postalCode"
-                                   class="quantum-input w-full text-sm"
-                                   placeholder="10431">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-1">Phone Number</label>
-                            <input type="text" id="phoneNumber"
-                                   class="quantum-input w-full text-sm"
-                                   placeholder="+30 123 456 7890">
-                        </div>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="saveNewAddress()"
-                                    class="flex-1 cyber-button-secondary py-2 text-sm">
-                                <i class="fas fa-save mr-1"></i>Save
-                            </button>
-                            <button type="button" onclick="cancelNewAddress()"
-                                    class="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 text-sm rounded-lg">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Current Address Display -->
-                    <div id="currentAddressDisplay" class="p-3 bg-white/5 rounded-lg hidden">
-                        <div class="flex justify-between items-start mb-2">
-                            <p class="text-white font-medium text-sm" id="displayLabel"></p>
-                            <button type="button" onclick="changeAddress()"
-                                    class="text-cyber-blue hover:text-cyber-blue-light text-xs">
-                                Change
-                            </button>
-                        </div>
-                        <p class="text-gray-400 text-xs" id="displayStreet"></p>
-                        <p class="text-gray-400 text-xs" id="displayCityPostal"></p>
-                        <p class="text-gray-400 text-xs" id="displayPhone"></p>
-                        <input type="hidden" id="selectedAddressId">
-                    </div>
-                </div>
-
-                <!-- Summary Details -->
-                <div class="space-y-2 pt-4 border-t border-white/10">
-                    <div class="flex justify-between text-gray-300 text-sm">
-                        <span>Subtotal</span>
-                        <span>€<span th:text="${#numbers.formatDecimal(cart.subtotal, 1, 2)}">0.00</span></span>
-                    </div>
-                    <div class="flex justify-between text-gray-300 text-sm">
-                        <span>Delivery Fee</span>
-                        <span>€<span th:text="${#numbers.formatDecimal(cart.deliveryTotal, 1, 2)}">0.00</span></span>
-                    </div>
-                    <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
-                        <span>Total</span>
-                        <span>€<span th:text="${#numbers.formatDecimal(cart.total, 1, 2)}">0.00</span></span>
-                    </div>
-                </div>
-
-                <!-- Place Order Button -->
-                <button type="button" id="placeOrderButton" onclick="validateAndPlaceOrder()"
-                        class="w-full cyber-button py-3">
-                    <i class="fas fa-check-circle mr-2"></i>Place Order
-                </button>
-
-                <!-- Back to Cart -->
-                <a th:href="@{/cart}" class="block text-center text-gray-400 hover:text-white text-sm">
-                    <i class="fas fa-arrow-left mr-1"></i>Back to Cart
-                </a>
             </div>
         </div>
     </div>
 
     <script th:inline="javascript">
-        // ==================== CSRF UTILITIES ====================
-        function getCsrfToken() {
-            const metaTag = document.querySelector('meta[name="_csrf"]');
-            if (metaTag && metaTag.content) return metaTag.content;
+        /*<![CDATA[*/
+        const subtotal = /*[[${subtotal}]]*/ 0;
+        const deliveryFee = /*[[${deliveryFee}]]*/ 0;
 
-            const cookieMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-            if (cookieMatch && cookieMatch[1]) return decodeURIComponent(cookieMatch[1]);
-
-            return '';
-        }
-
-        function getCsrfHeaderName() {
-            const metaTag = document.querySelector('meta[name="_csrf_header"]');
-            return (metaTag && metaTag.content) ? metaTag.content : 'X-CSRF-TOKEN';
-        }
-
-        function makeAuthenticatedRequest(url, options = {}) {
-            const csrfToken = getCsrfToken();
-            const csrfHeader = getCsrfHeaderName();
-
-            const defaultHeaders = {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                [csrfHeader]: csrfToken
-            };
-
-            const method = (options.method || 'GET').toUpperCase();
-            if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-                defaultHeaders['Content-Type'] = 'application/json';
-            }
-
-            return fetch(url, {
-                ...options,
-                headers: {
-                    ...defaultHeaders,
-                    ...options.headers
-                },
-                credentials: 'same-origin'
-            });
-        }
-
-        // ==================== GLOBAL STATE ====================
-        let selectedAddressId = null;
-        let orderType = /*[[${orderType}]]*/ 'DELIVERY';
-        let selectedPaymentMethod = 'CASH'; // Default
-
-        // ==================== PAYMENT METHOD ====================
-        function setPaymentMethod(method) {
-            // Avoid infinite loops and unnecessary DOM work
-            if (!method) return;
-            if (selectedPaymentMethod === method) {
-                // Ensure UI is consistent anyway
-            } else {
-                selectedPaymentMethod = method;
-            }
-
-            console.log('💳 Payment method set to:', selectedPaymentMethod);
-
-            // Keep radio UI in sync WITHOUT triggering recursion
-            const radios = document.querySelectorAll('input[name="paymentMethod"]');
-            radios.forEach(r => { r.checked = (r.value === selectedPaymentMethod); });
-
-            // Update visual selection on parent labels
-            document.querySelectorAll('.payment-method-option').forEach(label => {
-                const radio = label.querySelector('input[type="radio"]');
-                if (radio && radio.checked) {
-                    label.classList.add('border-cyber-blue', 'bg-cyber-blue/10');
-                    label.classList.remove('border-white/10');
+        // Handle order type change
+        document.querySelectorAll('input[name="orderType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const deliverySection = document.getElementById('deliveryAddressSection');
+                const deliveryFeeRow = document.getElementById('deliveryFeeRow');
+                
+                if (this.value === 'DELIVERY') {
+                    deliverySection.style.display = 'block';
+                    deliveryFeeRow.style.display = 'flex';
+                    updateTotal(subtotal + deliveryFee);
                 } else {
-                    label.classList.remove('border-cyber-blue', 'bg-cyber-blue/10');
-                    label.classList.add('border-white/10');
+                    deliverySection.style.display = 'none';
+                    deliveryFeeRow.style.display = 'none';
+                    updateTotal(subtotal);
                 }
-            });
-
-            // Show/hide card details
-            const cardSection = document.getElementById('cardDetailsSection');
-            if (cardSection) {
-                if (selectedPaymentMethod === 'CARD') {
-                    cardSection.classList.remove('hidden');
-                } else {
-                    cardSection.classList.add('hidden');
-                }
-            }
-
-            updatePlaceOrderButton();
-        }
-
-        // ==================== ADDRESS FUNCTIONS ====================
-        function showNewAddressForm() {
-            document.getElementById('newAddressForm').classList.remove('hidden');
-            const select = document.getElementById('savedAddressSelect');
-            if (select) select.classList.add('hidden');
-        }
-
-        function onAddressSelect(value) {
-            console.log('📍 Address selected:', value);
-
-            if (value === 'new') {
-                showNewAddressForm();
-                return;
-            } else if (value === '') {
-                selectedAddressId = null;
-                document.getElementById('currentAddressDisplay').classList.add('hidden');
-                document.getElementById('noAddressWarning').classList.remove('hidden');
-                updatePlaceOrderButton();
-                return;
-            }
-
-            // For now, just set the ID (assuming addresses are already loaded)
-            // In a real app, you'd fetch from /api/addresses/{id}
-            selectedAddressId = value;
-
-            // Show selected address display
-            document.getElementById('savedAddressSelect').classList.add('hidden');
-            document.getElementById('currentAddressDisplay').classList.remove('hidden');
-            document.getElementById('noAddressWarning').classList.add('hidden');
-
-            // Get the selected option text
-            const select = document.getElementById('savedAddressSelect');
-            const selectedOption = select.options[select.selectedIndex];
-            const addressText = selectedOption.text;
-
-            document.getElementById('displayLabel').textContent = addressText.split(' - ')[0];
-            document.getElementById('displayStreet').textContent = addressText.split(' - ')[1] || '';
-            document.getElementById('displayCityPostal').textContent = '';
-            document.getElementById('displayPhone').textContent = '';
-
-            updatePlaceOrderButton();
-        }
-
-        function cancelNewAddress() {
-            console.log('❌ Cancelled new address');
-            document.getElementById('newAddressForm').classList.add('hidden');
-            const select = document.getElementById('savedAddressSelect');
-            if (select) {
-                select.classList.remove('hidden');
-            }
-
-            // Clear form fields
-            document.getElementById('addressLabel').value = '';
-            document.getElementById('streetAddress').value = '';
-            document.getElementById('city').value = '';
-            document.getElementById('postalCode').value = '';
-            document.getElementById('phoneNumber').value = '';
-        }
-
-        function saveNewAddress() {
-            console.log('💾 Saving new address');
-
-            const label = document.getElementById('addressLabel').value.trim();
-            const street = document.getElementById('streetAddress').value.trim();
-            const city = document.getElementById('city').value.trim();
-            const postalCode = document.getElementById('postalCode').value.trim();
-            const phone = document.getElementById('phoneNumber').value.trim();
-
-            if (!label || !street || !city || !postalCode) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-
-            const newAddress = {
-                label: label,
-                street: street,
-                city: city,
-                postalCode: postalCode,
-                phoneNumber: phone
-            };
-
-            makeAuthenticatedRequest('/api/addresses', {
-                method: 'POST',
-                body: JSON.stringify(newAddress)
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to save address');
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('✅ Address saved:', data);
-                    selectedAddressId = data.id;
-
-                    document.getElementById('displayLabel').textContent = data.label;
-                    document.getElementById('displayStreet').textContent = data.street;
-                    document.getElementById('displayCityPostal').textContent = data.city + ', ' + data.postalCode;
-                    document.getElementById('displayPhone').textContent = data.phoneNumber || '';
-
-                    document.getElementById('currentAddressDisplay').classList.remove('hidden');
-                    document.getElementById('newAddressForm').classList.add('hidden');
-                    document.getElementById('noAddressWarning').classList.add('hidden');
-
-                    const select = document.getElementById('savedAddressSelect');
-                    if (select) {
-                        select.classList.remove('hidden');
-                        const option = document.createElement('option');
-                        option.value = data.id;
-                        option.textContent = data.label + ' - ' + data.street;
-                        select.insertBefore(option, select.lastElementChild);
-                        select.value = data.id;
-                    }
-
-                    showNotification('✅ Address saved successfully');
-                    updatePlaceOrderButton();
-                })
-                .catch(error => {
-                    console.error('❌ Failed to save address:', error);
-                    showNotification('❌ Failed to save address: ' + error.message, 'error');
-                });
-        }
-
-        function changeAddress() {
-            console.log('🔄 Change address clicked');
-            document.getElementById('currentAddressDisplay').classList.add('hidden');
-            const select = document.getElementById('savedAddressSelect');
-            if (select) {
-                select.classList.remove('hidden');
-                select.value = '';
-            }
-            selectedAddressId = null;
-            updatePlaceOrderButton();
-        }
-
-        // ==================== VALIDATION ====================
-        function isOrderValid() {
-            if (orderType === 'DELIVERY' && !selectedAddressId) {
-                return false;
-            }
-            if (!selectedPaymentMethod) {
-                return false;
-            }
-            return true;
-        }
-
-        function updatePlaceOrderButton() {
-            const button = document.getElementById('placeOrderButton');
-            if (isOrderValid()) {
-                button.disabled = false;
-                button.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                button.disabled = true;
-                button.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        function validateAndPlaceOrder() {
-            console.log('🔍 Validating order...');
-
-            if (!isOrderValid()) {
-                if (orderType === 'DELIVERY') {
-                    document.getElementById('noAddressWarning').classList.remove('hidden');
-                    showNotification('⚠️ Please select or add a delivery address', 'error');
-                }
-                return;
-            }
-
-            placeOrder();
-        }
-
-        // ==================== CHECKOUT ====================
-        function placeOrder() {
-            console.log('💳 Placing order...');
-
-            const button = document.getElementById('placeOrderButton');
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-            button.disabled = true;
-
-            const instructions = document.getElementById('specialInstructions').value;
-            const checkoutData = {
-                deliveryAddressId: orderType === 'DELIVERY' ? selectedAddressId : null,
-                orderType: orderType,
-                specialInstructions: instructions,
-                paymentMethod: selectedPaymentMethod
-            };
-
-            console.log('📤 Checkout data:', checkoutData);
-
-            makeAuthenticatedRequest('/api/cart/checkout', {
-                method: 'POST',
-                body: JSON.stringify(checkoutData)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(data => {
-                            throw new Error(data.error || 'HTTP ' + response.status);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('✅ Checkout successful:', data);
-
-                    if (data.orderIds && data.orderIds.length > 0) {
-                        showNotification('✅ ' + data.message);
-
-                        setTimeout(() => {
-                            if (data.orderIds.length === 1) {
-                                window.location.href = '/orders/' + data.orderIds[0] + '/confirm';
-                            } else {
-                                window.location.href = '/orders/confirmation?ids=' + data.orderIds.join(',');
-                            }
-                        }, 1000);
-                    } else {
-                        throw new Error('No order IDs returned');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Checkout failed:', error);
-                    showNotification('❌ Checkout failed: ' + error.message, 'error');
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                });
-        }
-
-        // ==================== NOTIFICATIONS ====================
-        function showNotification(message, type = 'success') {
-            const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
-            const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50';
-            const textColor = type === 'error' ? 'text-red-300' : 'text-green-300';
-
-            const notification = document.createElement('div');
-            notification.className = `fixed top-6 right-6 z-50 px-6 py-4 ${bgColor} border ${textColor} rounded-lg shadow-xl transform transition-all duration-300 translate-x-full`;
-            notification.innerHTML = `
-            <div class="flex items-center">
-                <i class="fas ${icon} mr-3"></i>
-                <span class="font-medium">${message}</span>
-            </div>
-        `;
-
-            document.body.appendChild(notification);
-            setTimeout(() => notification.classList.remove('translate-x-full'), 10);
-
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🛒 Checkout page loaded');
-            console.log('🔐 CSRF Token:', getCsrfToken() ? '✓ Loaded' : '✗ Not found');
-            console.log('📦 Order Type:', orderType);
-            
-            const initialPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CASH';
-            setPaymentMethod(initialPayment);
-            updatePlaceOrderButton();
-            
-            // Add visual feedback on payment method selection
-            document.querySelectorAll('.payment-method-option').forEach(label => {
-                label.addEventListener('click', function() {
-                    console.log('💳 Payment option clicked');
-                });
             });
         });
+
+        // Handle payment method selection
+        document.querySelectorAll('.payment-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const payment = this.getAttribute('data-payment');
+                const radio = document.getElementById('payment' + payment.charAt(0) + payment.slice(1).toLowerCase());
+                radio.checked = true;
+                
+                // Remove selected class from all cards
+                document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Show/hide card form
+                const cardForm = document.getElementById('cardForm');
+                if (payment === 'CARD') {
+                    cardForm.classList.add('active');
+                    // Make card fields required
+                    document.getElementById('cardNumber').required = true;
+                    document.getElementById('cardHolderName').required = true;
+                    document.getElementById('expiryMonth').required = true;
+                    document.getElementById('expiryYear').required = true;
+                    document.getElementById('cvv').required = true;
+                } else {
+                    cardForm.classList.remove('active');
+                    // Make card fields not required
+                    document.getElementById('cardNumber').required = false;
+                    document.getElementById('cardHolderName').required = false;
+                    document.getElementById('expiryMonth').required = false;
+                    document.getElementById('expiryYear').required = false;
+                    document.getElementById('cvv').required = false;
+                }
+            });
+        });
+
+        // Handle address selection
+        document.querySelectorAll('.address-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const addressId = this.getAttribute('data-address-id');
+                const radio = document.getElementById('address-' + addressId);
+                radio.checked = true;
+                
+                // Remove selected class from all cards
+                document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // Update total display
+        function updateTotal(total) {
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+            document.getElementById('finalTotal').textContent = total.toFixed(2);
+        }
+
+        // Initialize: select first payment method
+        document.querySelector('.payment-card[data-payment="CASH"]').classList.add('selected');
+        /*]]>*/
     </script>
-</div>
-
-
+</main>
 </body>
 </html>
