@@ -37,26 +37,30 @@ services:
       start_period: 60s
 
   osrm:
-    image: osrm/osrm-backend:latest
+    build:
+      context: .
+      dockerfile: docker/osrm.Dockerfile
     container_name: streetfoodgo-osrm
-    # Demo dataset (Monaco) - small and fast to bootstrap.
-    # For real Greece data you can swap the PBF URL.
+    entrypoint: /usr/bin/env
+    # Uses Greece data (Athens/Attica region support)
     volumes:
       - osrm-data:/data
     command: >
       sh -c "
-        if [ ! -f /data/monaco.osrm ]; then
-          echo 'Downloading Monaco OSM extract...';
-          wget -q -O /data/monaco.osm.pbf https://download.geofabrik.de/europe/monaco-latest.osm.pbf;
+        if [ ! -f /data/greece.osrm.fileIndex ]; then
+          echo 'OSRM data missing or incomplete. Cleansing and rebuilding...';
+          rm -f /data/greece.osrm*;
+          echo 'Downloading Greece OSM extract (this may take a few minutes)...';
+          wget -q -O /data/greece.osm.pbf https://download.geofabrik.de/europe/greece-latest.osm.pbf;
           echo 'Extracting OSRM...';
-          osrm-extract -p /opt/car.lua /data/monaco.osm.pbf;
+          osrm-extract -p /opt/car.lua /data/greece.osm.pbf || exit 1;
           echo 'Partitioning...';
-          osrm-partition /data/monaco.osrm;
+          osrm-partition /data/greece.osrm || exit 1;
           echo 'Customizing...';
-          osrm-customize /data/monaco.osrm;
+          osrm-customize /data/greece.osrm || exit 1;
         fi;
         echo 'Starting OSRM routed...';
-        osrm-routed --algorithm mld /data/monaco.osrm
+        osrm-routed --algorithm mld /data/greece.osrm
       "
     ports:
       - "5000:5000"
