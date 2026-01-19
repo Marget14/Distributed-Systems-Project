@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Manage Options</title>
+</head>
+<body>
+<div layout:fragment="main">
+
+    <div class="glass-panel p-8 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Customization Options</h1>
+                <p class="text-gray-400">Item: <span class="text-white" th:text="${item.name()}">Item</span></p>
+            </div>
+            <div class="flex gap-3">
+                <a th:href="@{/owner/menu-items/{id}/options/new(id=${item.id()})}" class="cyber-button">
+                    <i class="fas fa-plus mr-2"></i>Add Option Group
+                </a>
+                <a th:href="@{/owner/stores/{storeId}/menu(storeId=${item.storeId()})}" class="cyber-button inline-block opacity-60 hover:opacity-80">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Menu
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${options == null || options.isEmpty()}" class="glass-panel p-12 text-center">
+        <i class="fas fa-sliders text-4xl text-gray-500 mb-4"></i>
+        <h3 class="text-xl font-bold text-white mb-2">No option groups yet</h3>
+        <p class="text-gray-400 mb-6">Create option groups like “Sauce”, “Sides”, “Size”.</p>
+        <a th:href="@{/owner/menu-items/{id}/options/new(id=${item.id()})}" class="cyber-button inline-block">
+            <i class="fas fa-plus mr-2"></i>Add Option Group
+        </a>
+    </div>
+
+    <div th:if="${options != null && !options.isEmpty()}" class="space-y-6">
+        <div th:each="opt : ${options}" class="glass-panel p-6">
+            <div class="flex justify-between items-start gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white" th:text="${opt.name()}">Option</h2>
+                    <p class="text-gray-400 text-sm" th:text="${opt.description()}">Description</p>
+                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                        <span class="px-2 py-1 rounded bg-white/10 text-gray-200">
+                            Required: <span th:text="${opt.isRequired()} ? 'Yes' : 'No'">No</span>
+                        </span>
+                        <span class="px-2 py-1 rounded bg-white/10 text-gray-200">
+                            Multiple: <span th:text="${opt.allowMultiple()} ? 'Yes' : 'No'">No</span>
+                        </span>
+                        <span class="px-2 py-1 rounded bg-white/10 text-gray-200">
+                            Min: <span th:text="${opt.minSelections()} ?: 0">0</span>
+                        </span>
+                        <span class="px-2 py-1 rounded bg-white/10 text-gray-200">
+                            Max: <span th:text="${opt.maxSelections()} ?: 1">1</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <a th:href="@{/owner/menu-items/{itemId}/options/{optId}/edit(itemId=${item.id()},optId=${opt.id()})}"
+                       class="cyber-button py-2 px-4 inline-block opacity-60 hover:opacity-80">
+                        <i class="fas fa-edit mr-1"></i>Edit
+                    </a>
+                    <form th:action="@{/owner/menu-items/{itemId}/options/{optId}/delete(itemId=${item.id()},optId=${opt.id()})}" method="post">
+                        <button type="submit" class="py-2 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-white font-semibold">Choices</h3>
+                    <a th:href="@{/owner/menu-items/{itemId}/options/{optId}/choices/new(itemId=${item.id()},optId=${opt.id()})}" class="text-cyber-blue hover:text-cyber-blue/80">
+                        <i class="fas fa-plus mr-1"></i>Add Choice
+                    </a>
+                </div>
+
+                <div th:if="${opt.choices() == null || opt.choices().isEmpty()}" class="text-gray-400 text-sm">
+                    No choices yet.
+                </div>
+
+                <div th:if="${opt.choices() != null && !opt.choices().isEmpty()}" class="space-y-2">
+                    <div th:each="ch : ${opt.choices()}" class="flex justify-between items-center bg-white/5 rounded-lg p-3">
+                        <div>
+                            <p class="text-white font-semibold">
+                                <span th:text="${ch.name()}">Choice</span>
+                                <span class="text-gray-400 text-sm" th:if="${ch.additionalPrice() != null && ch.additionalPrice().doubleValue() > 0}">
+                                    (+€<span th:text="${#numbers.formatDecimal(ch.additionalPrice(), 1, 2)}">0.00</span>)
+                                </span>
+                            </p>
+                            <p class="text-gray-400 text-sm" th:text="${ch.description()}">desc</p>
+                            <p class="text-xs text-gray-500">
+                                Available: <span th:text="${ch.isAvailable()} ? 'Yes' : 'No'">Yes</span>
+                                • Default: <span th:text="${ch.isDefault()} ? 'Yes' : 'No'">No</span>
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a th:href="@{/owner/menu-items/{itemId}/options/{optId}/choices/{chId}/edit(itemId=${item.id()},optId=${opt.id()},chId=${ch.id()})}"
+                               class="text-white/80 hover:text-white">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <form th:action="@{/owner/menu-items/{itemId}/options/{optId}/choices/{chId}/delete(itemId=${item.id()},optId=${opt.id()},chId=${ch.id()})}" method="post">
+                                <button type="submit" class="text-red-300 hover:text-red-200">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

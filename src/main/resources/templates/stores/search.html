@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Search Stores - StreetFoodGo</title>
+    <style>
+        .search-filter {
+            @apply px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyber-blue;
+        }
+        .result-card {
+            @apply glass-panel p-6 transition-all duration-300 hover:border-cyber-blue/30 hover:-translate-y-1;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="main">
+    <!-- Search Header -->
+    <div class="glass-panel p-8 mb-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-orbitron font-bold text-white mb-4">Find Your Favorite Food</h1>
+            <p class="text-gray-400 mb-8">Search across all stores, cuisines, and menu items</p>
+
+            <!-- Advanced Search Form -->
+            <form th:action="@{/stores/search}" method="get" class="space-y-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" name="q" th:value="${searchQuery}"
+                           placeholder="Search for dishes, stores, or cuisines..."
+                           class="search-filter flex-grow">
+                    <button type="submit" class="cyber-button px-8">
+                        <i class="fas fa-search mr-2"></i>Search
+                    </button>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <select name="cuisine" class="search-filter">
+                        <option value="">All Cuisines</option>
+                        <option th:each="cuisine : ${cuisineTypes}"
+                                th:value="${cuisine}"
+                                th:text="${cuisine}"
+                                th:selected="${selectedCuisine == cuisine}"></option>
+                    </select>
+
+                    <select name="area" class="search-filter">
+                        <option value="">All Areas</option>
+                        <option th:each="area : ${areas}"
+                                th:value="${area}"
+                                th:text="${area}"
+                                th:selected="${selectedArea == area}"></option>
+                    </select>
+
+                    <select name="priceRange" class="search-filter">
+                        <option value="">Any Price</option>
+                        <option value="cheap">€ (Budget)</option>
+                        <option value="medium">€€ (Moderate)</option>
+                        <option value="expensive">€€€ (Premium)</option>
+                    </select>
+
+                    <select name="sort" class="search-filter">
+                        <option value="relevance">Relevance</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="delivery_time">Fastest Delivery</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                    </select>
+                </div>
+
+                <!-- Quick Filters -->
+                <div class="flex flex-wrap gap-2">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="openNow" class="rounded bg-white/5 border-white/10">
+                        <span class="ml-2 text-gray-300">Open Now</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="delivery" class="rounded bg-white/5 border-white/10" checked>
+                        <span class="ml-2 text-gray-300">Delivery Available</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="pickup" class="rounded bg-white/5 border-white/10">
+                        <span class="ml-2 text-gray-300">Pickup Available</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" name="vegetarian" class="rounded bg-white/5 border-white/10">
+                        <span class="ml-2 text-gray-300">Vegetarian Options</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">
+                <span th:if="${searchQuery}">
+                    Results for "<span th:text="${searchQuery}" class="text-cyber-blue"></span>"
+                </span>
+                <span th:unless="${searchQuery}">
+                    All Stores
+                </span>
+                <span class="text-gray-400 text-lg ml-2">
+                    (<span th:text="${results.size()}">0</span> found)
+                </span>
+            </h2>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-400">View:</span>
+                <button id="gridView" class="px-3 py-2 rounded-lg bg-cyber-blue/20 text-cyber-blue">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button id="listView" class="px-3 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- No Results -->
+        <div th:if="${results.empty}" class="glass-panel p-12 text-center">
+            <i class="fas fa-search text-4xl text-gray-500 mb-4"></i>
+            <h3 class="text-xl font-bold text-white mb-2">No results found</h3>
+            <p class="text-gray-400 mb-6">Try adjusting your search filters</p>
+            <a th:href="@{/stores}" class="cyber-button inline-block">
+                Browse All Stores
+            </a>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div th:each="result : ${results}" class="result-card">
+                <!-- Store Type -->
+                <div th:if="${result.type == 'STORE'}">
+                    <a th:href="@{/stores/{id}(id=${result.store.id})}" class="block">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-white" th:text="${result.store.name}"></h3>
+                                <p class="text-sm text-gray-400" th:text="${result.store.cuisineType}"></p>
+                            </div>
+                            <span th:if="${result.store.open}"
+                                  class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
+                                OPEN
+                            </span>
+                        </div>
+
+                        <p class="text-gray-300 text-sm mb-4 line-clamp-2" th:text="${result.store.description}"></p>
+
+                        <div class="flex items-center justify-between text-sm text-gray-400">
+                            <span><i class="fas fa-clock mr-1"></i><span th:text="${result.store.deliveryTime}"></span> min</span>
+                            <span><i class="fas fa-star mr-1"></i><span th:text="${result.store.rating}"></span></span>
+                            <span><i class="fas fa-euro-sign mr-1"></i><span th:text="${result.store.minOrder}"></span> min</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Dish Type -->
+                <div th:if="${result.type == 'DISH'}">
+                    <a th:href="@{/stores/{id}(id=${result.store.id})}" class="block">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-white" th:text="${result.dish.name}"></h3>
+                                <p class="text-sm text-gray-400">
+                                    <span th:text="${result.dish.category}"></span> •
+                                    <span th:text="${result.store.name}"></span>
+                                </p>
+                            </div>
+                            <span class="text-lg font-bold text-cyber-blue">
+                                €<span th:text="${result.dish.price}"></span>
+                            </span>
+                        </div>
+
+                        <p class="text-gray-300 text-sm mb-4 line-clamp-2" th:text="${result.dish.description}"></p>
+
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-400">
+                                <i class="fas fa-store mr-1"></i>
+                                <span th:text="${result.store.area}"></span>
+                            </div>
+                            <span th:if="${result.dish.available}"
+                                  class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
+                                Available
+                            </span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${!results.empty}" class="glass-panel p-6">
+        <div class="flex justify-center items-center space-x-2">
+            <button th:if="${currentPage > 1}"
+                    th:onclick="'window.location=\'/stores/search?page=' + (${currentPage} - 1) + '\''"
+                    class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+
+            <div class="flex space-x-2">
+                <span th:each="page : ${#numbers.sequence(1, totalPages)}"
+                      th:class="${page == currentPage} ?
+                                'px-4 py-2 bg-cyber-blue text-white rounded-lg' :
+                                'px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg cursor-pointer'"
+                      th:onclick="${page != currentPage} ? 'window.location=\'/stores/search?page=' + ${page} + '\'' : ''"
+                      th:text="${page}">
+                </span>
+            </div>
+
+            <button th:if="${currentPage < totalPages}"
+                    th:onclick="'window.location=\'/stores/search?page=' + (${currentPage} + 1) + '\''"
+                    class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View toggle
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        gridView.addEventListener('click', function() {
+            gridView.classList.add('bg-cyber-blue/20', 'text-cyber-blue');
+            gridView.classList.remove('bg-white/5', 'text-gray-400');
+            listView.classList.remove('bg-cyber-blue/20', 'text-cyber-blue');
+            listView.classList.add('bg-white/5', 'text-gray-400');
+
+            resultsContainer.classList.remove('grid-cols-1');
+            resultsContainer.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+        });
+
+        listView.addEventListener('click', function() {
+            listView.classList.add('bg-cyber-blue/20', 'text-cyber-blue');
+            listView.classList.remove('bg-white/5', 'text-gray-400');
+            gridView.classList.remove('bg-cyber-blue/20', 'text-cyber-blue');
+            gridView.classList.add('bg-white/5', 'text-gray-400');
+
+            resultsContainer.classList.remove('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+            resultsContainer.classList.add('grid-cols-1');
+        });
+
+        // Real-time search suggestions
+        const searchInput = document.querySelector('input[name="q"]');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                const query = searchInput.value.trim();
+                if (query.length >= 2) {
+                    fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Show suggestions dropdown
+                            showSearchSuggestions(data);
+                        });
+                }
+            }, 300);
+        });
+
+        function showSearchSuggestions(suggestions) {
+            // Implementation for search suggestions dropdown
+            console.log('Suggestions:', suggestions);
+        }
+    });
+</script>
+</body>
+</html>
