@@ -1,1 +1,0 @@
-package com.streetfoodgo.web.rest.model;
