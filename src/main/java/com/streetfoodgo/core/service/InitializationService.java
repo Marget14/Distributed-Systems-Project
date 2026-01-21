@@ -108,7 +108,7 @@ public class InitializationService {
                         "Dimitris",
                         "Margetis",
                         "dimitris.m@streetfoodgo.com",
-                        "+306976679684",
+                        "+306900000014",
                         "owner123"
                 ),
                 new CreatePersonRequest(
