@@ -92,8 +92,6 @@ services:
         condition: service_healthy
       hua-noc:
         condition: service_started
-      osrm:
-        condition: service_started
       redis:
         condition: service_healthy
     environment:
@@ -103,9 +101,13 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
       JWT_SECRET: Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=
       HUA_NOC_BASE_URL: http://hua-noc:8080
+      APP_OSRM_BASE_URL: http://streetfoodgo-osrm:5000
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      APP_OSRM_BASE_URL: http://osrm:5000
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: your-email@gmail.com
+      MAIL_PASSWORD: your-app-password
     ports:
       - "8080:8080"
     networks:
