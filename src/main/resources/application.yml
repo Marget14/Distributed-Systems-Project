@@ -19,23 +19,6 @@ spring:
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  mail:
-    host: "${MAIL_HOST:smtp.gmail.com}"
-    port: "${MAIL_PORT:587}"
-    username: "${MAIL_USERNAME:}"
-    password: "${MAIL_PASSWORD:}"
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-
-
 server:
   port: 8080
 
@@ -46,19 +29,26 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  base-url: "${APP_BASE_URL:http://localhost:8080}"
+
+  # 1. OSRM Service (GET)
   osrm:
     base-url: "${APP_OSRM_BASE_URL:http://localhost:5000}"
+
+  # 2. HUA NOC Service
+  hua-noc:
+    base-url: "${HUA_NOC_BASE_URL:http://localhost:8081}"
+
+  # 3. Email Service (POST - Brevo)
+  email:
+    from: "${EMAIL_FROM:it2023141@hua.gr}"
+    sender-name: "StreetFoodGo"
+    api-key: "${EMAIL_API_KEY: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}"
+    verification:
+      expiry-hours: 24
+
   jwt:
     issuer: "streetfoodgo-api"
     audience: "external-systems"
     secret: "${JWT_SECRET:Uh0WvRj5qs2sChP0dwTkky/VoudWSk0FVikEDDUKdRU=}"
     ttl-minutes: 60
-  hua-noc:
-    base-url: "${HUA_NOC_BASE_URL:http://localhost:8081}"
-  base-url: "${APP_BASE_URL:http://localhost:8080}"
-  email:
-    from: "${EMAIL_FROM:noreply@streetfoodgo.com}"
-    verification:
-      expiry-hours: 24
-
-
