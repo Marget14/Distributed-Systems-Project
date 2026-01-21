@@ -2,6 +2,31 @@
 
 A distributed street food marketplace built with Spring Boot.
 
+## ✨ Key Features (Implemented)
+
+### 🗺️ Real-Time Delivery Tracking (New!)
+- **Self-Hosted OSRM Router**: Fully integrated Open Source Routing Machine (OSRM) running in Docker. No external API keys or rate limits!
+- **Interactive Maps**: Leaflet.js + OpenStreetMap integration for visualizing store locations and delivery routes.
+- **Live Driver Simulation**: Smart algorithm that simulates driver movement along real road networks (calculated via OSRM) for demo purposes.
+- **WebSocket Updates**: Push notifications update the driver's pin on the map instantly without page reloads.
+
+### 🍱 Complete Order Workflow
+- **Customer**: Browse stores, customize items (toppings/ingredients), cart management, checkout with precise map-based address selection.
+- **Store Owner**: Real-time dashboard to Receive/Accept/Reject orders.
+- **Status Updates**: Automatic timeline updates (Pending -> Preparing -> Ready -> Delivering -> Completed).
+- **Notifications**: Email & SMS alerts for order status changes using external microservices.
+
+### 🏢 Store Management
+- **Dashboard**: Store owners can manage menus, prices, and view order history.
+- **Schedule**: Define operating hours. The system automatically prevents orders when the store is closed.
+- **Delivery Zones**: Distance calculation using real road networks to enforce maximum delivery range.
+
+### 🏗️ Microservices Architecture
+- **StreetFoodGo Core**: Main Spring Boot application handling business logic.
+- **NOC Service**: Dedicated microservice for handling notifications (SMS/Email) and user verification.
+- **PostgreSQL**: Robust relational database for data persistence.
+- **OSRM Container**: Dedicated routing engine container.
+
 ---
 
 ### 🚀 Prerequisites
@@ -35,7 +60,7 @@ A distributed street food marketplace built with Spring Boot.
 
 3. **Start all services:**
    ```bash
-   docker-compose up -d
+   docker-compose up --build
    ```
    Wait ~1–2 minutes for full startup.
 
