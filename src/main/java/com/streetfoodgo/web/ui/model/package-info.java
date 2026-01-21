@@ -1,0 +1,1 @@
+package com.streetfoodgo.web.ui.model;
