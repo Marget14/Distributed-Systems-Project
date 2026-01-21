@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+    <title>Order Tracking</title>
+    <!-- Leaflet CSS is in base.html -->
+    <style>
+        .leaflet-div-icon { background: transparent !important; border: none !important; }
+        .driver-marker { animation: pulse-driver 1.5s ease-in-out infinite; }
+        @keyframes pulse-driver {
+            0%, 100% { transform: scale(1) scaleX(-1); filter: drop-shadow(0 2px 8px rgba(79, 172, 254, 0.6)); }
+            50% { transform: scale(1.15) scaleX(-1); filter: drop-shadow(0 4px 12px rgba(79, 172, 254, 0.9)); }
+        }
+        .leaflet-popup-content-wrapper { background: rgba(30, 41, 59, 0.95); color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+        .leaflet-popup-content { margin: 12px; font-size: 14px; }
+        .leaflet-popup-tip { background: rgba(30, 41, 59, 0.95); }
+    </style>
+</head>
+<body>
+<div layout:fragment="main" class="container mx-auto px-4 py-8">
+    <div class="mb-6 flex gap-4">
+        <a th:href="@{/orders/{id}(id=${order.id})}" class="text-cyber-blue hover:text-cyber-blue/80 flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i>Back to Order Details
+        </a>
+        <a th:href="@{/orders}" class="text-gray-400 hover:text-white flex items-center gap-2">
+            <i class="fas fa-list"></i>My Orders
+        </a>
+    </div>
+    <!-- MAIN PANEL -->
+    <div class="glass-panel p-8">
+        <!-- HEADER -->
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-orbitron font-bold text-white mb-2">
+                    Tracking Order #<span th:text="${order.id}">1</span>
+                </h1>
+                <p class="text-gray-400">
+                    Store: <span class="text-white" th:text="${safeStoreName}">Store</span>
+                </p>
+                <p th:if="${order.estimatedDeliveryMinutes != null}" class="text-gray-400">
+                    Estimated delivery: <span class="text-white" th:text="${order.estimatedDeliveryMinutes} + ' min'"></span>
+                    <span th:if="${order.estimatedDeliveryDistanceKm != null}" class="text-gray-500">(
+                        <span th:text="${#numbers.formatDecimal(order.estimatedDeliveryDistanceKm, 1, 2)}"></span> km
+                    )</span>
+                </p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-semibold"
+                  th:classappend="${safeOrderStatus == 'PENDING' ? 'bg-yellow-500/20 text-yellow-300' :                                   safeOrderStatus == 'PREPARING' ? 'bg-blue-500/20 text-blue-300' :                                   safeOrderStatus == 'READY' ? 'bg-purple-500/20 text-purple-300' :                                   safeOrderStatus == 'DELIVERING' ? 'bg-cyan-500/20 text-cyan-300' :                                   safeOrderStatus == 'COMPLETED' ? 'bg-green-500/20 text-green-300' :                                   'bg-red-500/20 text-red-300'}"
+                  th:text="${safeOrderStatus}">STATUS</span>
+        </div>
+        <!-- ??? LIVE MAP WITH ANIMATED ROUTE -->
+        <div th:if="${safeOrderType == 'DELIVERY'}" class="mb-8">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Live Delivery Route</span>
+                <span th:if="${safeOrderStatus == 'DELIVERY'}" class="text-sm text-cyan-400 animate-pulse">? LIVE</span>
+            </h3>
+
+            <!-- Refactored Map Container -->
+            <div id="deliveryMap" class="w-full rounded-xl overflow-hidden border border-white/10"
+                 style="height: 500px; background-color: #0d1117;"></div>
+
+            <div class="mt-4 flex justify-between text-sm text-gray-400 px-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-store text-neon-pink"></i>
+                        <span th:text="${safeStoreName}">Store</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-motorcycle text-cyan-400"></i>
+                        <span th:if="${safeOrderStatus == 'DELIVERING'}">Driver en route</span>
+                        <span th:unless="${safeOrderStatus == 'DELIVERING'}">Awaiting pickup</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-home text-cyber-blue"></i>
+                        <span>Your Address</span>
+                    </div>
+            </div>
+        </div>
+        <!-- TIMELINE -->
+        <div class="space-y-4">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-check text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-white font-semibold">Order Placed</h3>
+                    <p class="text-gray-400 text-sm" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">date</p>
+                </div>
+            </div>
+            <!-- Additional timeline items... (Keeping basic one for brevity, functionality is in Map) -->
+        </div>
+    </div>
+</div>
+<!-- LEAFLET & LOGIC -->
+<!-- Leaflet is in base.html -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:inline="javascript">
+(function() {
+    'use strict';
+    // SAFE DATA INJECTION  (Fixes the crash)
+    const orderId = /*[[${order.id}]]*/ 1;
+    const orderStatus = /*[[${safeOrderStatus}]]*/ 'PENDING';
+    const orderType = /*[[${safeOrderType}]]*/ 'DELIVERY';
+    // Safe coordinates from Controller
+    let storeLat = /*[[${storeLat}]]*/ 37.9838;
+    let storeLon = /*[[${storeLon}]]*/ 23.7275;
+    let custLat = /*[[${custLat}]]*/ 37.9838;
+    let custLon = /*[[${custLon}]]*/ 23.7275;
+    // Potentially passed driver location (if supported by backend later)
+    let driverLat = /*[[${driverLat}]]*/ null;
+    let driverLon = /*[[${driverLon}]]*/ null;
+
+    // Convert to Numbers & Fallback
+    storeLat = Number(storeLat) || 37.9838;
+    storeLon = Number(storeLon) || 23.7275;
+    custLat = Number(custLat) || 37.9838;
+    custLon = Number(custLon) || 23.7275;
+
+    // Fallback if driverLat/Lon is string "null" or invalid
+    if (isNaN(Number(driverLat))) driverLat = null;
+    if (isNaN(Number(driverLon))) driverLon = null;
+
+    const storeCoords = [storeLat, storeLon];
+    const homeCoords = [custLat, custLon];
+    const storeName = /*[[${safeStoreName}]]*/ 'Store';
+    const deliveryAddress = /*[[${safeDelStreet}]]*/ 'Home'; // Using safeDelStreet from Controller
+    console.log('Tracking Status:', orderStatus, '| Store:', storeCoords, '| Home:', homeCoords);
+
+    // Auto-refresh logic
+    if (orderStatus && !['COMPLETED', 'REJECTED', 'CANCELLED'].includes(orderStatus)) {
+        setTimeout(() => location.reload(), 15000);
+    }
+
+    // MAP INITIALIZATION (Logic from stores/detail.html via owner tracking)
+    console.log('🗺️ Initializing Leaflet map (delayed)...');
+
+    if (typeof L === 'undefined') {
+        console.error('❌ Leaflet library is NOT loaded.');
+        return;
+    }
+
+    const mapElement = document.getElementById('deliveryMap');
+
+    if (orderType === 'DELIVERY' && mapElement) {
+
+        // Map is already visible
+        // Delay init to allow layout to settle
+        setTimeout(() => {
+            const map = L.map('deliveryMap').setView(storeCoords, 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                 maxZoom: 19
+            }).addTo(map);
+
+            const storeIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/3014/3014520.png', // 🏪
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                popupAnchor: [0, -16]
+            });
+            const homeIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/25/25694.png', // 🏠
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                popupAnchor: [0, -16]
+            });
+            const driverIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063823.png', // 🛵
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
+                className: 'driver-marker'
+            });
+
+            L.marker(storeCoords, { icon: storeIcon }).addTo(map).bindPopup(`<strong>🏪 ${storeName}</strong>`);
+            L.marker(homeCoords, { icon: homeIcon }).addTo(map).bindPopup(`<strong>🏠 Customer</strong>`);
+
+            // Force resize (Delayed like address-form)
+            setTimeout(() => {
+                map.invalidateSize();
+                const bounds = L.latLngBounds([storeCoords, homeCoords]);
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }, 200);
+
+            let driverMarker = L.marker(storeCoords, { icon: driverIcon, zIndexOffset: 1000 }).addTo(map);
+
+            // --- ANIMATION ---
+            let animationInterval = null;
+            function startDriverAnimation(latLngs) {
+                if (orderStatus !== 'DELIVERING') return;
+
+                console.log('🚀 Starting live driver animation...');
+                if (animationInterval) clearInterval(animationInterval);
+
+                let step = 0;
+                const totalSteps = 2000;
+
+                animationInterval = setInterval(() => {
+                    step = (step + 1) % totalSteps;
+                    const progress = step / totalSteps;
+                    const routeIndex = progress * (latLngs.length - 1);
+                    const index = Math.floor(routeIndex);
+                    const nextIndex = Math.min(index + 1, latLngs.length - 1);
+                    const segmentProgress = routeIndex - index;
+
+                    if (!latLngs[index] || !latLngs[nextIndex]) return;
+
+                    const p1 = latLngs[index];
+                    const p2 = latLngs[nextIndex];
+                    const lat = p1[0] + (p2[0] - p1[0]) * segmentProgress;
+                    const lng = p1[1] + (p2[1] - p1[1]) * segmentProgress;
+                    driverMarker.setLatLng([lat, lng]);
+
+                }, 20);
+            }
+
+            // --- FETCH ROUTE ---
+            const proxyUrl = `/api/v1/routing/route?fromLat=${storeCoords[0]}&fromLon=${storeCoords[1]}&toLat=${customerCoords[0]}&toLon=${customerCoords[1]}`;
+
+            fetch(proxyUrl)
+              .then(r => r.ok ? r.json() : Promise.reject(r.status))
+              .then(data => {
+                const coords = data?.geometry?.coordinates;
+                if (coords && coords.length > 1) {
+                  const latLngs = coords.map(c => [c[1], c[0]]);
+                  const routeLine = L.polyline(latLngs, {
+                    color: '#4facfe',
+                    weight: 5,
+                    opacity: 0.8,
+                    dashArray: '10, 15',
+                    lineCap: 'round'
+                  }).addTo(map);
+
+                  let offset = 0;
+                  setInterval(() => {
+                    offset = (offset - 1) % 25;
+                    routeLine.setStyle({ dashOffset: offset });
+                  }, 50);
+
+                  map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                  startDriverAnimation(latLngs);
+                }
+              })
+              .catch(err => {
+                 console.warn('Routing fallback:', err);
+                 const latLngs = [storeCoords, homeCoords];
+                 L.polyline(latLngs, { color: '#f093fb', weight: 3, dashArray: '5, 10' }).addTo(map);
+                 startDriverAnimation(latLngs);
+              });
+
+            // --- WEBSOCKET ---
+            const socket = new SockJS('/ws-streetfoodgo');
+            const stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log('✅ Connected to Real-time Updates');
+                stompClient.subscribe('/topic/orders/' + orderId, function (message) {
+                    const update = JSON.parse(message.body);
+                    if (update.lat && update.lon) {
+                        if (animationInterval) {
+                           clearInterval(animationInterval);
+                           animationInterval = null;
+                        }
+                        driverMarker.setLatLng([update.lat, update.lon]);
+                    }
+                });
+            });
+
+        }, 500); // 500ms delay like in stores/detail.html
+    }
+
+})();
+</script>
+</body>
+</html>

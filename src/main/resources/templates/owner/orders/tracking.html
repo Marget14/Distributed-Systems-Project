@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{base}">
+<head>
+  <title>Track Order - StreetFoodGo</title>
+  <style>
+    .tracking-step {
+      @apply flex items-center;
+    }
+    .tracking-step.active .step-icon {
+      @apply bg-cyber-blue text-white border-cyber-blue;
+    }
+    .tracking-step.active .step-label {
+      @apply text-cyber-blue font-semibold;
+    }
+    .tracking-step.completed .step-icon {
+      @apply bg-green-500 text-white border-green-500;
+    }
+    .tracking-step.completed .step-label {
+      @apply text-green-400;
+    }
+    .tracking-step.pending .step-icon {
+      @apply bg-white/10 text-gray-400 border-white/10;
+    }
+    .tracking-step.pending .step-label {
+      @apply text-gray-400;
+    }
+    .step-connector {
+      @apply flex-1 h-1 mx-4;
+    }
+    .step-connector.active {
+      @apply bg-cyber-blue;
+    }
+    .step-connector.completed {
+      @apply bg-green-500;
+    }
+    .step-connector.pending {
+      @apply bg-white/10;
+    }
+  </style>
+</head>
+<body>
+<div layout:fragment="main" class="container mx-auto px-4 py-8">
+
+  <div class="mb-6">
+    <a th:href="@{/owner/stores/{id}/orders(id=${order.store().id})}" class="text-cyber-blue hover:text-cyber-blue/80 flex items-center gap-2">
+      <i class="fas fa-arrow-left"></i>Back to Store Orders
+    </a>
+  </div>
+
+  <!-- Order Tracking Header -->
+  <div class="glass-panel p-8 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+      <div>
+        <h1 class="text-3xl font-orbitron font-bold text-white mb-2">Order Tracking</h1>
+        <div class="flex items-center gap-4">
+          <p class="text-gray-400">Order #<span th:text="${order.id}" class="font-mono text-white">00042</span></p>
+
+          <div th:with="statusStr=${#strings.toString(order.status)}">
+            <span th:if="${statusStr == 'PENDING'}" class="px-3 py-1 rounded-full text-sm font-semibold bg-yellow-500/20 text-yellow-300" th:text="${order.status}">PENDING</span>
+            <span th:if="${statusStr == 'PREPARING'}" class="px-3 py-1 rounded-full text-sm font-semibold bg-blue-500/20 text-blue-300" th:text="${order.status}">PREPARING</span>
+            <span th:if="${statusStr == 'READY'}" class="px-3 py-1 rounded-full text-sm font-semibold bg-purple-500/20 text-purple-300" th:text="${order.status}">READY</span>
+            <span th:if="${statusStr == 'DELIVERING'}" class="px-3 py-1 rounded-full text-sm font-semibold bg-cyan-500/20 text-cyan-300" th:text="${order.status}">DELIVERING</span>
+            <span th:if="${statusStr == 'COMPLETED'}" class="px-3 py-1 rounded-full text-sm font-semibold bg-green-500/20 text-green-300" th:text="${order.status}">COMPLETED</span>
+            <span th:if="${statusStr != 'PENDING' and statusStr != 'PREPARING' and statusStr != 'READY' and statusStr != 'DELIVERING' and statusStr != 'COMPLETED'}"
+                  class="px-3 py-1 rounded-full text-sm font-semibold bg-red-500/20 text-red-300" th:text="${order.status}">OTHER</span>
+          </div>
+        </div>
+        <p class="text-gray-400 mt-2">Store: <span class="text-white" th:text="${safeStoreName}">Store</span></p>
+      </div>
+      <div class="mt-4 md:mt-0" th:if="${order.estimatedDeliveryMinutes != null}">
+        <p class="text-gray-400">Estimated Delivery</p>
+        <p class="text-2xl font-bold text-cyber-blue" th:text="${order.estimatedDeliveryMinutes} + ' min'">0 min</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tracking Progress (simplified, based on real timestamps) -->
+  <div class="glass-panel p-8 mb-8">
+    <div class="max-w-4xl mx-auto">
+
+      <!-- Live Map Section -->
+      <div th:if="${order.orderType?.name() == 'DELIVERY' && order.deliveryAddress != null}" class="mb-8">
+        <h3 class="text-xl font-bold text-white mb-4">Delivery Route</h3>
+
+        <!-- Map Container -->
+        <div id="ownerTrackingMap" class="w-full rounded-xl overflow-hidden border border-white/10"
+             style="height: 500px; background-color: #0d1117;"></div>
+
+        <div class="mt-4 flex justify-between text-sm text-gray-400 px-2">
+            <div>
+              <i class="fas fa-store text-neon-pink mr-1"></i>
+              <span th:text="${order.store?.name}">Store</span>
+            </div>
+            <div>
+              <i class="fas fa-motorcycle text-cyan-400 mr-1"></i>
+              <span th:if="${order.status?.name() == 'DELIVERING'}">Driver en route</span>
+              <span th:unless="${order.status?.name() == 'DELIVERING'}">...</span>
+            </div>
+            <div>
+              <i class="fas fa-home text-cyber-blue mr-1"></i>
+              <span>Customer</span>
+            </div>
+        </div>
+      </div>
+
+      <!-- Delivery Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glass-panel p-6">
+          <h4 class="text-lg font-bold text-white mb-4">
+            <i class="fas fa-store mr-2"></i>Store Information
+          </h4>
+          <div class="space-y-2">
+            <p class="text-white" th:text="${safeStoreName}">Store</p>
+            <p class="text-gray-400 text-sm" th:text="${safeStoreAddress}">Address</p>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6" th:if="${order.deliveryAddress != null}">
+          <h4 class="text-lg font-bold text-white mb-4">
+            <i class="fas fa-home mr-2"></i>Delivery Address
+          </h4>
+          <div class="space-y-2">
+            <p class="text-white">
+                <span th:text="${safeDelStreet}">Street</span>
+                <span th:text="${safeDelNumber}">12</span>
+            </p>
+            <p class="text-gray-400 text-sm">
+                <span th:text="${safeDelCity}">City</span>
+                <span th:if="${!#strings.isEmpty(safeDelPostalCode)}" th:text="', ' + ${safeDelPostalCode}"></span>
+            </p>
+            <p class="text-gray-400 text-sm" th:text="${safeDelArea}">Area</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Scripts (Leaflet is in base.html) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script th:inline="javascript">
+  const orderType = /*[[${order.orderType != null ? order.orderType.name() : ''}]]*/ 'DELIVERY';
+  const orderStatus = /*[[${order.status != null ? order.status.name() : 'PENDING'}]]*/ 'PENDING';
+  let animationInterval = null; // To control simulation
+
+  // Auto-refresh logic (keep owner up to date)
+  if (orderStatus && ['PENDING', 'PREPARING', 'READY', 'DELIVERING'].includes(orderStatus)) {
+      setTimeout(() => window.location.reload(), 15000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (orderType !== 'DELIVERY') return;
+
+    const mapElement = document.getElementById('ownerTrackingMap');
+    if (!mapElement) {
+        console.error("❌ Map element 'ownerTrackingMap' not found!");
+        return;
+    }
+
+    // Safe default values passed efficiently from the controller and parsed as numbers
+    let sLat = /*[[${storeLat}]]*/ 37.9838;
+    let sLon = /*[[${storeLon}]]*/ 23.7275;
+    let cLat = /*[[${custLat}]]*/ 37.9838;
+    let cLon = /*[[${custLon}]]*/ 23.7275;
+
+    // Ensure they are numbers
+    sLat = Number(sLat);
+    sLon = Number(sLon);
+    cLat = Number(cLat);
+    cLon = Number(cLon);
+
+    console.log('🗺️ Map Config:', { store: [sLat, sLon], customer: [cLat, cLon] });
+
+    if (sLat === 0 || sLon === 0) {
+        console.warn('⚠️ Invalid store coordinates (0,0), defaulting to Athens.');
+        sLat = 37.9838; sLon = 23.7275;
+    }
+
+    const storeCoords = [sLat, sLon];
+    const customerCoords = [cLat, cLon];
+    const storeName = /*[[${safeStoreName}]]*/ 'Store';
+
+
+    // Initialize Map - LOGIC COPIED FROM STORES/DETAIL.HTML
+    console.log('🗺️ Initializing Leaflet map...');
+
+    // Check if Leaflet is loaded
+    if (typeof L === 'undefined') {
+        console.error('❌ Leaflet library is NOT loaded.');
+        return;
+    }
+
+    const mapElement = document.getElementById('ownerTrackingMap');
+
+    if (mapElement) {
+        // Map is already visible, just initialize
+        setTimeout(() => {
+            const map = L.map('ownerTrackingMap').setView(storeCoords, 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                 maxZoom: 19
+            }).addTo(map);
+
+            const storeIcon = L.divIcon({
+                className: '',
+                html: '<div style="background:#f093fb;border:3px solid #fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 8px rgba(0, 0, 0, 0.3);">🏪</div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const customerIcon = L.divIcon({
+                className: '',
+                html: '<div style="background:#4facfe;border:3px solid #fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 8px rgba(0, 0, 0, 0.3);">🏠</div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            L.marker(storeCoords, { icon: storeIcon }).addTo(map).bindPopup(`<strong>🏪 ${storeName}</strong>`);
+            L.marker(customerCoords, { icon: customerIcon }).addTo(map).bindPopup('<strong>🏠 Customer</strong>');
+
+            // Force resize to ensure tiles load correctly
+            map.invalidateSize();
+
+            // Fit bounds
+            const bounds = L.latLngBounds([storeCoords, customerCoords]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+
+            // --- DRIVER LOGIC (Moved inside timeout so it has access to 'map') ---
+            const driverIcon = L.divIcon({
+                className: 'driver-marker',
+                html: '<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: scaleX(-1);">🛵</div>',
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+
+            const driverMarker = L.marker(storeCoords, { icon: driverIcon, zIndexOffset: 1000 }).addTo(map);
+
+            // Animation Function
+            let animationInterval = null;
+            function startDriverAnimation(latLngs) {
+                if (orderStatus !== 'DELIVERING') return;
+                console.log('🚀 Starting live driver animation...');
+                if (animationInterval) clearInterval(animationInterval);
+
+                let step = 0;
+                const totalSteps = 2000;
+
+                animationInterval = setInterval(() => {
+                    step = (step + 1) % totalSteps;
+                    const progress = step / totalSteps;
+                    const routeIndex = progress * (latLngs.length - 1);
+                    const index = Math.floor(routeIndex);
+                    const nextIndex = Math.min(index + 1, latLngs.length - 1);
+                    const segmentProgress = routeIndex - index;
+
+                    if (!latLngs[index] || !latLngs[nextIndex]) return;
+
+                    const p1 = latLngs[index];
+                    const p2 = latLngs[nextIndex];
+                    const lat = p1[0] + (p2[0] - p1[0]) * segmentProgress;
+                    const lng = p1[1] + (p2[1] - p1[1]) * segmentProgress;
+                    driverMarker.setLatLng([lat, lng]);
+                }, 20);
+            }
+
+            // Fetch Route
+            const proxyUrl = `/api/v1/routing/route?fromLat=${storeCoords[0]}&fromLon=${storeCoords[1]}&toLat=${customerCoords[0]}&toLon=${customerCoords[1]}`;
+            fetch(proxyUrl)
+              .then(r => r.ok ? r.json() : Promise.reject(r.status))
+              .then(data => {
+                const coords = data?.geometry?.coordinates;
+                if (coords && coords.length > 1) {
+                  const latLngs = coords.map(c => [c[1], c[0]]);
+                  const routeLine = L.polyline(latLngs, {
+                    color: '#4facfe',
+                    weight: 5,
+                    opacity: 0.8,
+                    dashArray: '10, 15',
+                    lineCap: 'round'
+                  }).addTo(map);
+
+                  let offset = 0;
+                  setInterval(() => {
+                    offset = (offset - 1) % 25;
+                    routeLine.setStyle({ dashOffset: offset });
+                  }, 50);
+
+                  map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                  startDriverAnimation(latLngs);
+                }
+              })
+              .catch(err => {
+                 console.warn('Routing fallback:', err);
+                 const latLngs = [storeCoords, customerCoords];
+                 L.polyline(latLngs, { color: '#f093fb', weight: 3, dashArray: '5, 10' }).addTo(map);
+                 startDriverAnimation(latLngs);
+              });
+
+            // WebSocket
+            const socket = new SockJS('/ws-streetfoodgo');
+            const stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log('✅ Connected to Real-time Updates');
+                stompClient.subscribe('/topic/orders/' + orderId, function (message) {
+                    const update = JSON.parse(message.body);
+                    if (update.lat && update.lon) {
+                        if (animationInterval) {
+                           clearInterval(animationInterval);
+                           animationInterval = null;
+                           console.log("🛑 Simulation stopped, real data received.");
+                        }
+                        driverMarker.setLatLng([update.lat, update.lon]);
+                    }
+                });
+            });
+
+        }, 500); // 500ms delay like in stores/detail.html
+    }
+
+  });
+
+  });
+</script>
+</body>
+</html>
+

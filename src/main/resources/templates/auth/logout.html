@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="https://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{base}">
+
+<head>
+    <title>Logout</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <h1>StreetFoodGo <small>/ Logout</small></h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="glass-panel p-8 max-w-md mx-auto text-center">
+        <h2 class="text-2xl font-bold text-white mb-6">Are you sure you want to log out?</h2>
+
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="cyber-button w-full mb-4">
+                <i class="fas fa-sign-out-alt mr-2"></i>Log out
+            </button>
+        </form>
+
+        <a th:href="@{/profile}" class="text-cyber-blue hover:text-white transition-colors">
+            <i class="fas fa-arrow-left mr-1"></i>Back to Profile
+        </a>
+    </div>
+
+</section>
+
+</body>
+</html>
