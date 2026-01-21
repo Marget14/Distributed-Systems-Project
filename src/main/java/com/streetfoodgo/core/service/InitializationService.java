@@ -77,17 +77,17 @@ public class InitializationService {
         final List<CreatePersonRequest> customerRequests = List.of(
                 new CreatePersonRequest(
                         PersonType.CUSTOMER,
-                        "Giorgos",
-                        "Papadopoulos",
-                        "giorgos.p@example.com",
+                        "Dimitris",
+                        "Gkoulis",
+                        "gkoulis.d@example.com",
                         "+306900000001",
                         "password123"
                 ),
                 new CreatePersonRequest(
                         PersonType.CUSTOMER,
-                        "Maria",
-                        "Nikolaou",
-                        "maria.n@example.com",
+                        "Mara",
+                        "Nikolaidou",
+                        "mara.n@example.com",
                         "+306900000002",
                         "password123"
                 ),
