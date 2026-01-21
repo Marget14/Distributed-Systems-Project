@@ -123,16 +123,13 @@ A distributed street food marketplace built with Spring Boot.
 
 ```
 streetfoodgo/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   └── resources/
-│   └── test/
+├── src/                    # Main Spring Boot Application (Core)
 ├── services/
-│   └── Distributed-Systems-Project-NOC/
-├── docker-compose.yml
-├── Dockerfile
-├── pom.xml
+│   └── Distributed-Systems-Project-NOC/  # Notification Microservice
+├── docker/
+│   └── osrm.Dockerfile     # OSRM Routing Engine Config
+├── docker-compose.yml      # Orchestration for App + DB + NOC + OSRM
+├── pom.xml                 # Maven Dependencies
 └── README.md
 ```
 
